@@ -12,7 +12,5 @@
 </section>
 
 <?php include __DIR__ . '/sections/modal-meta.php'; ?>
-<?php include __DIR__ . '/sections/modal-templates.php'; ?>
-<?php include __DIR__ . '/sections/modal-aporte.php'; ?>
 
 <!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

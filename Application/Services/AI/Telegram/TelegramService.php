@@ -6,6 +6,9 @@ namespace Application\Services\AI\Telegram;
 
 use Application\Config\TelegramRuntimeConfig;
 use Application\Container\ApplicationContainer;
+use Application\Enums\LogCategory;
+use Application\Enums\LogLevel;
+use Application\Services\Infrastructure\LogService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -153,7 +156,10 @@ class TelegramService
     private function request(string $method, array $params): bool
     {
         if (!$this->isConfigured()) {
-            \Application\Services\Infrastructure\LogService::safeErrorLog('[Telegram] Serviço não configurado. Defina TELEGRAM_BOT_TOKEN.');
+            $this->logFailure($method, 'Servico Telegram nao configurado. Defina TELEGRAM_BOT_TOKEN.', [
+                'reason' => 'missing_token',
+            ]);
+
             return false;
         }
 
@@ -178,10 +184,17 @@ class TelegramService
                 ? (string) ($body['description'] ?? 'Resposta sem descricao.')
                 : 'Resposta invalida da API.';
 
-            \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] {$method} falhou: HTTP {$status} - {$description}");
+            $this->logFailure($method, "Telegram API retornou falha: HTTP {$status} - {$description}", [
+                'http_status' => $status,
+                'description' => $description,
+            ]);
+
             return false;
         } catch (GuzzleException $e) {
-            \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
+            $this->logFailure($method, 'Erro ao chamar Telegram API: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+            ]);
+
             return false;
         }
     }
@@ -192,6 +205,10 @@ class TelegramService
     private function requestWithResponse(string $method, array $params): array
     {
         if (!$this->isConfigured()) {
+            $this->logFailure($method, 'Servico Telegram nao configurado. Defina TELEGRAM_BOT_TOKEN.', [
+                'reason' => 'missing_token',
+            ]);
+
             return ['ok' => false, 'description' => 'Serviço não configurado'];
         }
 
@@ -207,13 +224,41 @@ class TelegramService
             }
 
             if (($body['ok'] ?? false) !== true) {
-                \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] {$method} falhou: " . ($body['description'] ?? 'Sem descricao'));
+                $description = (string) ($body['description'] ?? 'Sem descricao');
+                $this->logFailure($method, "Telegram API retornou falha: {$description}", [
+                    'description' => $description,
+                ]);
             }
 
             return $body;
         } catch (GuzzleException $e) {
-            \Application\Services\Infrastructure\LogService::safeErrorLog("[Telegram] Erro ao chamar {$method}: " . $e->getMessage());
+            $this->logFailure($method, 'Erro ao chamar Telegram API: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+            ]);
+
             return ['ok' => false, 'description' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function logFailure(string $method, string $message, array $context = []): void
+    {
+        $context = array_merge([
+            'action' => 'telegram_api_request',
+            'method' => $method,
+        ], $context);
+
+        try {
+            LogService::persist(
+                LogLevel::WARNING,
+                LogCategory::WEBHOOK,
+                $message,
+                $context,
+            );
+        } catch (\Throwable) {
+            LogService::safeErrorLog("[Telegram] {$method} falhou: {$message}");
         }
     }
 

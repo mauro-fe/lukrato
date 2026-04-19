@@ -502,7 +502,7 @@ function shouldRetryWithFreshCsrf(response, data) {
 
     const message = typeof data.message === 'string' ? data.message.toLowerCase() : '';
 
-    return message.includes('csrf') || message.includes('token inválido') || message.includes('token invalido');
+    return message.includes('csrf') || message.includes('token inválido') || message.includes('token inválido');
 }
 
 function normalizeRequestHeaders(headers) {

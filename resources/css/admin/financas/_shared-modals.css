@@ -2,7 +2,7 @@
  * ============================================================================
  * SHARED MODAL / FORM STYLES
  * ============================================================================
- * Reusable modal, form, button, sugestão, template, and aporte styles
+ * Reusable modal, form, button, sugestão, and template styles
  * Originally from financas/index.css – shared by Orçamento and Metas pages
  * ============================================================================
  */
@@ -553,17 +553,6 @@
 .template-arrow {
   color: var(--color-text-secondary);
   font-size: 0.8rem;
-}
-
-/* Aporte Info */
-.aporte-meta-info {
-  font-size: 0.88rem;
-  color: var(--color-text);
-  line-height: 1.6;
-  padding: var(--spacing-3);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  margin: 0;
 }
 
 /* ============================================================================

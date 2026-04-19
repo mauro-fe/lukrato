@@ -331,7 +331,7 @@ class LancamentosApiControllersTest extends TestCase
         $this->assertSame([
             'success' => false,
             'message' => 'Validation failed',
-            'errors' => ['month' => 'Formato invalido (YYYY-MM)'],
+            'errors' => ['month' => 'Formato inválido (YYYY-MM)'],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 

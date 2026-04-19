@@ -833,37 +833,76 @@ class TelegramWebhookWorkflowService
 
             foreach ($chunks as $i => $chunk) {
                 if ($i === $lastIndex) {
-                    $this->telegram()->sendConfirmationButtons($chatId, $chunk);
+                    $sent = $this->telegram()->sendConfirmationButtons($chatId, $chunk);
                 } else {
-                    $this->telegram()->sendText($chatId, $chunk);
+                    $sent = $this->telegram()->sendText($chatId, $chunk);
+                }
+
+                if (!$sent) {
+                    $this->markTelegramSendFailure($msgRecord, $chatId, 'send_ai_pending', $intent);
+                    return;
                 }
             }
+
             $msgRecord->markProcessed($intent . '_pending');
             return;
         }
 
         if (!empty($response->data['options']) && ($response->data['action'] ?? '') === 'awaiting_selection') {
-            $this->sendSelectionButtons($chatId, $response->message, $response->data['options']);
+            if (!$this->sendSelectionButtons($chatId, $response->message, $response->data['options'])) {
+                $this->markTelegramSendFailure($msgRecord, $chatId, 'send_ai_selection', $intent);
+                return;
+            }
+
             $msgRecord->markProcessed($intent . '_awaiting_selection');
             return;
         }
 
         if (!empty($response->data['quick_replies']) && is_array($response->data['quick_replies'])) {
-            $this->sendQuickReplyButtons(
+            if (!$this->sendQuickReplyButtons(
                 $chatId,
                 $response->message,
                 $response->data['quick_replies'],
                 $response->data['suggestion'] ?? null,
-            );
+            )) {
+                $this->markTelegramSendFailure($msgRecord, $chatId, 'send_ai_quick_replies', $intent);
+                return;
+            }
+
             $msgRecord->markProcessed($intent . '_quick_replies');
             return;
         }
 
         foreach (TelegramResponseFormatter::format($response->message) as $chunk) {
-            $this->telegram()->sendText($chatId, $chunk);
+            if (!$this->telegram()->sendText($chatId, $chunk)) {
+                $this->markTelegramSendFailure($msgRecord, $chatId, 'send_ai_text', $intent);
+                return;
+            }
         }
 
         $msgRecord->markProcessed($intent);
+    }
+
+    private function markTelegramSendFailure(
+        TelegramMessage $msgRecord,
+        string $chatId,
+        string $operation,
+        string $intent
+    ): void {
+        $msgRecord->markFailed("telegram_send_failed: {$operation}");
+
+        LogService::persist(
+            LogLevel::WARNING,
+            LogCategory::WEBHOOK,
+            'Falha ao enviar resposta para o Telegram',
+            [
+                'action' => 'telegram_send_response',
+                'chat_id' => $chatId,
+                'operation' => $operation,
+                'intent' => $intent,
+                'telegram_message_id' => $msgRecord->id ?? null,
+            ],
+        );
     }
 
     private function shouldHandleConfirmationReply(TelegramMessageDTO $dto, int $userId): bool
@@ -966,16 +1005,19 @@ class TelegramWebhookWorkflowService
             ->first();
     }
 
-    private function sendQuickReplyButtons(string $chatId, string $text, array $quickReplies, ?string $suggestion = null): void
+    private function sendQuickReplyButtons(string $chatId, string $text, array $quickReplies, ?string $suggestion = null): bool
     {
         $normalizedReplies = $this->normalizeQuickReplies($quickReplies);
         $message = $this->appendSuggestion($text, $suggestion);
 
         if (empty($normalizedReplies)) {
             foreach (TelegramResponseFormatter::format($message) as $chunk) {
-                $this->telegram()->sendText($chatId, $chunk);
+                if (!$this->telegram()->sendText($chatId, $chunk)) {
+                    return false;
+                }
             }
-            return;
+
+            return true;
         }
 
         $this->cacheQuickReplies($chatId, $normalizedReplies);
@@ -993,12 +1035,19 @@ class TelegramWebhookWorkflowService
 
         foreach ($chunks as $index => $chunk) {
             if ($index === $lastIndex) {
-                $this->telegram()->sendInlineKeyboard($chatId, $chunk, $rows);
+                if (!$this->telegram()->sendInlineKeyboard($chatId, $chunk, $rows)) {
+                    return false;
+                }
+
                 continue;
             }
 
-            $this->telegram()->sendText($chatId, $chunk);
+            if (!$this->telegram()->sendText($chatId, $chunk)) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     private function appendSuggestion(string $text, ?string $suggestion = null): string
@@ -1266,7 +1315,7 @@ class TelegramWebhookWorkflowService
         );
     }
 
-    private function sendSelectionButtons(string $chatId, string $text, array $options): void
+    private function sendSelectionButtons(string $chatId, string $text, array $options): bool
     {
         $rows = [];
 
@@ -1285,11 +1334,17 @@ class TelegramWebhookWorkflowService
 
         foreach ($chunks as $j => $chunk) {
             if ($j === $lastIndex) {
-                $this->telegram()->sendInlineKeyboard($chatId, $chunk, $rows);
+                if (!$this->telegram()->sendInlineKeyboard($chatId, $chunk, $rows)) {
+                    return false;
+                }
             } else {
-                $this->telegram()->sendText($chatId, $chunk);
+                if (!$this->telegram()->sendText($chatId, $chunk)) {
+                    return false;
+                }
             }
         }
+
+        return true;
     }
 
     private function allowIncomingSender(string $sender, ?string $messageId = null): bool

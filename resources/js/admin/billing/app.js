@@ -1,8 +1,100 @@
-import { apiPost, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiPost, buildAppUrl, getErrorMessage } from '../shared/api.js';
 import { resolvePremiumCancelEndpoint } from '../api/endpoints/billing.js';
 import { initCustomize } from './customize.js';
 
-const BASE_URL = getBaseUrl();
+function calcTotal(baseMonthly, months, discountPct) {
+    const base = Number(baseMonthly) || 0;
+    const m = Number(months) || 1;
+    const d = Number(discountPct) || 0;
+    return Math.round((base * m * (1 - (d / 100)) + Number.EPSILON) * 100) / 100;
+}
+
+function cycleLabel(months) {
+    if (Number(months) === 12) return 'ano';
+    if (Number(months) === 6) return 'semestre';
+    return 'mes';
+}
+
+function getActiveCycle(group) {
+    const active = group?.querySelector('.plan-billing-toggle__btn.is-active');
+    if (!active) {
+        return { cycle: 'monthly', months: 1, discount: 0 };
+    }
+
+    return {
+        cycle: active.dataset.cycle || 'monthly',
+        months: Number(active.dataset.months || '1'),
+        discount: Number(active.dataset.discount || '0'),
+    };
+}
+
+function buildCheckoutUrl(planCode, cycle) {
+    return buildAppUrl('billing/checkout', {
+        plan: planCode,
+        cycle: cycle.cycle,
+        months: cycle.months,
+        discount: cycle.discount,
+    });
+}
+
+function updatePlanPrice(group, button) {
+    const card = group.closest('.plan-card');
+    const priceElement = card ? card.querySelector('.plan-card__price') : null;
+    if (!priceElement) {
+        return;
+    }
+
+    const basePrice = Number(priceElement.dataset.basePrice || 0);
+    const months = Number(button.dataset.months || 1);
+    const discount = Number(button.dataset.discount || 0);
+    const total = calcTotal(basePrice, months, discount);
+    const period = cycleLabel(months);
+
+    const priceValueElement = priceElement.querySelector('.plan-card__price-value');
+    const pricePeriodElement = priceElement.querySelector('.plan-card__price-period');
+
+    if (priceValueElement) {
+        priceValueElement.style.animation = 'none';
+        void priceValueElement.offsetWidth;
+        priceValueElement.textContent = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        priceValueElement.style.animation = 'priceAppear 0.5s ease';
+    }
+
+    if (pricePeriodElement) {
+        pricePeriodElement.textContent = `/${period}`;
+    }
+}
+
+function setupPlanSelection() {
+    document.querySelectorAll('.plan-billing-toggle').forEach((group) => {
+        const buttons = group.querySelectorAll('.plan-billing-toggle__btn');
+
+        buttons.forEach((button) => {
+            button.addEventListener('click', () => {
+                buttons.forEach((item) => item.classList.remove('is-active'));
+                button.classList.add('is-active');
+                updatePlanPrice(group, button);
+            });
+        });
+    });
+
+    document.querySelectorAll('[data-plan-button]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            const planCode = button.dataset.planCode || null;
+            const monthlyBase = Number(button.dataset.planMonthly ?? button.dataset.planAmount ?? '0');
+
+            if (!planCode || !monthlyBase || Number.isNaN(monthlyBase)) {
+                event.preventDefault();
+                window.Swal?.fire('Plano invalido', 'Nao foi possivel identificar o plano. Recarregue a pagina.', 'warning');
+                return;
+            }
+
+            event.preventDefault();
+            const group = button.closest('.plan-card')?.querySelector('.plan-billing-toggle');
+            window.location.href = buildCheckoutUrl(planCode, getActiveCycle(group));
+        });
+    });
+}
 
 function showStatusFeedback() {
     const status = new URLSearchParams(window.location.search).get('status');
@@ -203,7 +295,7 @@ function setupRenewButton(button, action) {
             return;
         }
 
-        window.location.href = `${BASE_URL}billing?action=renew&plan=${planCode}`;
+        window.location.href = buildCheckoutUrl(planCode, { cycle: 'monthly', months: 1, discount: 0 });
     });
 }
 
@@ -215,6 +307,7 @@ function setupRenewSubscription() {
 export function bootBillingPage() {
     initCustomize();
     showStatusFeedback();
+    setupPlanSelection();
     setupCancelSubscription();
     setupRenewSubscription();
 }

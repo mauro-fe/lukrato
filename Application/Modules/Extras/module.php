@@ -58,4 +58,38 @@ return array(
     'hidden' => true,
     'order' => 101,
   ),
+  2 =>
+  array(
+    'key' => 'billing_checkout',
+    'label' => 'Checkout',
+    'title' => 'Pagamento Seguro',
+    'icon' => 'credit-card',
+    'group' => 'Extras',
+    'route' => 'billing/checkout',
+    'menu' => 'billing',
+    'view_prefix' => 'admin/billing/checkout',
+    'view_ids' =>
+    array(
+      0 => 'admin-billing-checkout',
+    ),
+    'vite_entry' => 'admin/billing/checkout.js',
+    'css_entry' => '',
+    'breadcrumbs' =>
+    array(
+      0 =>
+      array(
+        'label' => 'Assinatura',
+        'url' => '/billing',
+        'icon' => 'star',
+      ),
+      1 =>
+      array(
+        'label' => 'Pagamento',
+        'icon' => 'credit-card',
+      ),
+    ),
+    'placement' => 'hidden',
+    'hidden' => true,
+    'order' => 102,
+  ),
 );

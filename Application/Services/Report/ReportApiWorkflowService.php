@@ -52,8 +52,8 @@ class ReportApiWorkflowService
      */
     public function generateReport(int $userId, Usuario $user, array $query, bool $trackView = true): array
     {
-        $params = $this->buildReportParameters($userId, $query);
         $type = $this->resolveReportType($query);
+        $params = $this->buildReportParameters($userId, $query, $type);
         $result = $this->reportService->generateReport(
             $type,
             $params,
@@ -219,8 +219,21 @@ class ReportApiWorkflowService
     /**
      * @param array<string, string|null> $query
      */
-    private function buildReportParameters(int $userId, array $query): ReportParameters
+    private function buildReportParameters(int $userId, array $query, ReportType $type): ReportParameters
     {
+        if ($this->usesCalendarYearPeriod($type)) {
+            $year = $this->resolveYearForAnnualReport($query);
+            $start = Carbon::create($year, 1, 1)->startOfDay();
+
+            return new ReportParameters(
+                start: $start,
+                end: (clone $start)->endOfYear()->endOfDay(),
+                accountId: $this->resolveAccountId($query),
+                userId: $userId,
+                includeTransfers: $this->shouldIncludeTransfers($query)
+            );
+        }
+
         [$start, $end] = $this->resolvePeriod($query);
 
         return new ReportParameters(
@@ -249,7 +262,9 @@ class ReportApiWorkflowService
             null,
             [
                 'report_type' => $type->value,
-                'period' => $params->start->format('Y-m'),
+                'period' => $this->usesCalendarYearPeriod($type)
+                    ? (string) $params->start->year
+                    : $params->start->format('Y-m'),
                 'account_id' => $params->accountId,
             ]
         );
@@ -334,6 +349,42 @@ class ReportApiWorkflowService
     private function shouldIncludeTransfers(array $query): bool
     {
         return ($query['include_transfers'] ?? null) === '1';
+    }
+
+    private function usesCalendarYearPeriod(ReportType $type): bool
+    {
+        return in_array($type, [
+            ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
+            ReportType::RECEITAS_ANUAIS_POR_CATEGORIA,
+            ReportType::RESUMO_ANUAL,
+        ], true);
+    }
+
+    /**
+     * @param array<string, string|null> $query
+     */
+    private function resolveYearForAnnualReport(array $query): int
+    {
+        $yearParam = $query['year'] ?? null;
+        if ($yearParam !== null && preg_match('/^\d{4}$/', $yearParam) === 1) {
+            $year = (int) $yearParam;
+            $this->validateDateParams($year, 1);
+
+            return $year;
+        }
+
+        $monthParam = $query['month'] ?? null;
+        if ($this->isYearMonthFormat($monthParam)) {
+            $year = (int) substr((string) $monthParam, 0, 4);
+            $this->validateDateParams($year, 1);
+
+            return $year;
+        }
+
+        $year = (int) date('Y');
+        $this->validateDateParams($year, 1);
+
+        return $year;
     }
 
     /**

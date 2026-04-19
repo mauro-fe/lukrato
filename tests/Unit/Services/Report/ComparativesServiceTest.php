@@ -63,6 +63,25 @@ class ComparativesServiceTest extends TestCase
         $this->assertSame(300.0, $comparison['variation']['saldo']);
     }
 
+    public function testComparisonsCastDatabaseAggregateStringsBeforeVariation(): void
+    {
+        $this->setState([
+            'currentMonthData' => (object) ['receitas' => '210.00', 'despesas' => '90.00'],
+            'previousMonthData' => (object) ['receitas' => '105.00', 'despesas' => '120.00'],
+            'currentYearData' => (object) ['receitas' => '1000.00', 'despesas' => '700.00'],
+            'previousYearData' => (object) ['receitas' => '800.00', 'despesas' => '600.00'],
+        ]);
+
+        $monthly = $this->invokePrivate('buildMonthlyComparison');
+        $yearly = $this->invokePrivate('buildYearlyComparison');
+
+        $this->assertSame(210.0, $monthly['current']['receitas']);
+        $this->assertSame(100.0, $monthly['variation']['receitas']);
+        $this->assertSame(-25.0, $monthly['variation']['despesas']);
+        $this->assertSame(25.0, $yearly['variation']['receitas']);
+        $this->assertSame(50.0, $yearly['variation']['saldo']);
+    }
+
     public function testBuildDailyAverageUsesMonthLengths(): void
     {
         $average = $this->invokePrivate('buildDailyAverage');

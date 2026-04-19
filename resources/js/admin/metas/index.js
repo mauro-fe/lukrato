@@ -13,7 +13,6 @@ import { initCustomize } from './customize.js';
 window.metasManager = {
     openMetaModal: (id) => MetasApp.openMetaModal(id),
     deleteMeta: (id) => MetasApp.deleteMeta(id),
-    openAporteModal: (id) => MetasApp.openAporteModal(id),
     useTemplate: (tmpl) => MetasApp.useTemplate(tmpl),
     openTemplates: () => MetasApp.openTemplates(),
     loadAll: () => MetasApp.loadAll(),

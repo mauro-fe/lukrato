@@ -20,7 +20,7 @@
 #yearModal .modal-content {
     font-family: var(--font-primary);
     overflow: hidden;
-    background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+    background: var(--color-bg);
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-xl);
     backdrop-filter: blur(18px);
@@ -478,11 +478,7 @@
         bottom: 0;
         border-top: 1px solid var(--glass-border);
         padding-bottom: calc(var(--spacing-4) + env(safe-area-inset-bottom, 0px));
-        background: linear-gradient(
-            180deg,
-            color-mix(in srgb, var(--color-surface) 25%, transparent),
-            color-mix(in srgb, var(--color-surface) 98%, transparent) 38%
-        );
+        background: var(--color-bg)
     }
 
     #monthModal .month-modal-dismiss,

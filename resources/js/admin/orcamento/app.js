@@ -185,7 +185,6 @@ export const OrcamentoApp = {
         document.getElementById('btnCopiarMes')?.addEventListener('click', () => OrcamentoApp.copiarMesAnterior());
         document.getElementById('btnNovoOrcamento')?.addEventListener('click', () => OrcamentoApp.openOrcamentoModal());
         document.getElementById('formOrcamento')?.addEventListener('submit', (e) => OrcamentoApp.handleOrcamentoSubmit(e));
-        document.getElementById('btnAplicarSugestoes')?.addEventListener('click', () => OrcamentoApp.aplicarSugestoes());
         document.getElementById('orcSearchInput')?.addEventListener('input', (e) => {
             STATE.ui.query = e.target.value || '';
             OrcamentoApp.renderOrcamentos();
@@ -609,13 +608,7 @@ export const OrcamentoApp = {
 
             if (res.success) {
                 const appliedCount = res.data?.aplicados || orcamentos.length;
-                if (OrcamentoApp.isSugestoesPage()) {
-                    await OrcamentoApp.showSugestoesAppliedAlert(appliedCount);
-                } else {
-                    OrcamentoApp.closeModal('modalSugestoes');
-                    Utils.showToast(`${appliedCount} orçamentos configurados!`, 'success');
-                    await OrcamentoApp.loadAll();
-                }
+                await OrcamentoApp.showSugestoesAppliedAlert(appliedCount);
             } else {
                 Utils.showToast(res.message || 'Erro ao aplicar', 'error');
             }

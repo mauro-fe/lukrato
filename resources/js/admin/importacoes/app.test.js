@@ -39,21 +39,21 @@ describe('admin/importacoes/app', () => {
     it('preserva payload e messages quando a api retorna success false', async () => {
         apiFetchMock.mockResolvedValue({
             success: false,
-            message: 'Arquivo invalido.',
+            message: 'Arquivo inválido.',
             errors: {
-                file: ['Extensao nao suportada.'],
+                file: ['Extensão não suportada.'],
             },
         });
 
         const { fetchApiJson } = await import('./app.js');
 
         await expect(fetchApiJson('api/v1/importacoes/preview')).rejects.toMatchObject({
-            message: 'Arquivo invalido.',
+            message: 'Arquivo inválido.',
             payload: {
                 success: false,
-                message: 'Arquivo invalido.',
+                message: 'Arquivo inválido.',
             },
-            messages: ['Extensao nao suportada.', 'Arquivo invalido.'],
+            messages: ['Extensão não suportada.', 'Arquivo inválido.'],
         });
     });
 });

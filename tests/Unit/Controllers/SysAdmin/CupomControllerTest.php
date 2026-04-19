@@ -76,7 +76,7 @@ class CupomControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'Codigo do cupom e obrigatorio',
+            'message' => 'Código do cupom é obrigatório',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
@@ -92,7 +92,7 @@ class CupomControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'Codigo do cupom e obrigatorio',
+            'message' => 'Código do cupom é obrigatório',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 

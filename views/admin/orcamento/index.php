@@ -12,6 +12,5 @@
 </section>
 
 <?php include __DIR__ . '/sections/modal-orcamento.php'; ?>
-<?php include __DIR__ . '/sections/modal-sugestoes.php'; ?>
 
 <!-- Page JS carregado automaticamente via loadPageJs() + Vite -->

@@ -34,13 +34,13 @@ class ResponseTest extends TestCase
 
     public function testErrorResponseIncludesErrorsWhenProvided(): void
     {
-        $response = Response::errorResponse('Dados invalidos', 422, ['month' => 'Formato invalido']);
+        $response = Response::errorResponse('Dados inválidos', 422, ['month' => 'Formato inválido']);
 
         $this->assertSame(422, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'Dados invalidos',
-            'errors' => ['month' => 'Formato invalido'],
+            'message' => 'Dados inválidos',
+            'errors' => ['month' => 'Formato inválido'],
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 

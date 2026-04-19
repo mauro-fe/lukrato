@@ -34,7 +34,7 @@ class UpdateLancamentoUseCaseTest extends TestCase
 
         $this->assertTrue($result->isError());
         $this->assertSame(422, $result->httpCode);
-        $this->assertSame('ID invalido.', $result->message);
+        $this->assertSame('ID inválidos.', $result->message);
     }
 
     public function testExecuteReturns404WhenLancamentoDoesNotExist(): void

@@ -43,9 +43,9 @@ class ExportController extends ApiController
         try {
             $result = $this->exportService->export($userId, $filters);
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Parametros de exportacao invalidos.', 422);
+            return $this->domainErrorResponse($e, 'Parâmetros de exportação inválidos.', 422);
         } catch (\Throwable) {
-            return Response::errorResponse('Erro ao gerar exportacao.', 500);
+            return Response::errorResponse('Erro ao gerar exportação.', 500);
         }
 
         return (new Response())

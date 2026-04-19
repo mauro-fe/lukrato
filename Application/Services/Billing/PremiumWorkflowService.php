@@ -13,6 +13,8 @@ use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
 use Application\Enums\SubscriptionCycle;
 use Application\Models\AssinaturaUsuario;
+use Application\Models\Cupom;
+use Application\Models\CupomUsado;
 use Application\Models\Plano;
 use Application\Models\Usuario;
 use Application\Services\Gamification\AchievementService;
@@ -455,7 +457,7 @@ class PremiumWorkflowService
             $valorOriginal = $total;
 
             if ($dto->couponCode) {
-                $cupom = \Application\Models\Cupom::findByCodigo($dto->couponCode, lockForUpdate: true);
+                $cupom = Cupom::findByCodigo($dto->couponCode, lockForUpdate: true);
 
                 if (!$cupom) {
                     throw new \RuntimeException('Cupom não encontrado.');
@@ -465,7 +467,7 @@ class PremiumWorkflowService
                     throw new \RuntimeException('Cupom inválido ou expirado.');
                 }
 
-                $jaUsou = \Application\Models\CupomUsado::where('cupom_id', $cupom->id)
+                $jaUsou = CupomUsado::where('cupom_id', $cupom->id)
                     ->where('usuario_id', $usuario->id)
                     ->exists();
 
@@ -509,7 +511,7 @@ class PremiumWorkflowService
 
                 $cupom->incrementarUso();
 
-                \Application\Models\CupomUsado::create([
+                CupomUsado::create([
                     'cupom_id' => $cupom->id,
                     'usuario_id' => $usuario->id,
                     'assinatura_id' => $assinatura->id,
@@ -757,6 +759,10 @@ class PremiumWorkflowService
         array $result,
         string $billingType = 'CREDIT_CARD'
     ): AssinaturaUsuario {
+        if (empty($result['asaas_id'])) {
+            throw new \RuntimeException('Gateway não retornou identificador da cobrança.');
+        }
+
         $data = [
             'user_id' => $usuario->id,
             'plano_id' => $plano->id,
@@ -829,9 +835,6 @@ class PremiumWorkflowService
         ]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     protected function handleCheckoutError(Throwable $e, int $userId): array
     {
         $this->rollbackOpenTransaction();
@@ -842,20 +845,13 @@ class PremiumWorkflowService
                 'userId' => $userId,
             ], $userId, LogLevel::WARNING);
 
-            return $this->failure($e->getMessage() ?: 'Nao foi possivel concluir o checkout.', 400, null, 'PAYMENT_FAILED');
+            return $this->failure($e->getMessage() ?: 'Não foi possível concluir o checkout.', 400, null, 'PAYMENT_FAILED');
         }
 
         return $this->internalFailure($e, 'Erro ao concluir checkout.', LogCategory::PAYMENT, [
             'action' => 'checkout',
             'userId' => $userId,
         ], 'PAYMENT_FAILED');
-
-        LogService::captureException($e, LogCategory::PAYMENT, [
-            'action' => 'checkout',
-            'userId' => $userId,
-        ], $userId);
-
-        return $this->failure($e->getMessage() ?: 'Não foi possível concluir o checkout.', 400, null, 'PAYMENT_FAILED');
     }
 
     /**
@@ -869,13 +865,6 @@ class PremiumWorkflowService
             'action' => 'cancel_subscription',
             'userId' => $userId,
         ]);
-
-        LogService::captureException($e, LogCategory::SUBSCRIPTION, [
-            'action' => 'cancel_subscription',
-            'userId' => $userId,
-        ], $userId);
-
-        return $this->failure('Erro interno no servidor.', 500);
     }
 
     protected function saveCheckoutDataToProfile(Usuario $usuario, CheckoutRequestDTO $dto): void
@@ -912,16 +901,12 @@ class PremiumWorkflowService
             return $this->perfilService = $resolvedPerfilService;
         }
 
-        $container = ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap();
-
-        if (!$container->bound(PerfilService::class)) {
-            $container = ApplicationContainer::ensureProviderRegistered(PerfilServiceProvider::class);
-        }
+        $container = ApplicationContainer::ensureProviderRegistered(PerfilServiceProvider::class);
 
         return $this->perfilService = $container->make(PerfilService::class);
     }
 
-    protected function validarElegibilidadeCupom(Usuario $usuario, \Application\Models\Cupom $cupom): void
+    protected function validarElegibilidadeCupom(Usuario $usuario, Cupom $cupom): void
     {
         $assinaturasEfetivas = $usuario->assinaturas()
             ->where('gateway', 'asaas')
@@ -974,6 +959,33 @@ class PremiumWorkflowService
         }
 
         throw new \RuntimeException('Este cupom é válido apenas para a primeira assinatura.');
+    }
+
+    private function isSafeCheckoutException(Throwable $e): bool
+    {
+        $message = mb_strtolower(trim((string) $e->getMessage()));
+
+        if ($message === '') {
+            return false;
+        }
+
+        $safeMessages = [
+            'você já possui uma assinatura ativa.',
+            'você já possui uma assinatura em andamento.',
+            'cupom não encontrado.',
+            'cupom inválido ou expirado.',
+            'você já utilizou este cupom anteriormente.',
+            'este cupom é válido apenas para a primeira assinatura.',
+            'este cupom é válido para ex-assinantes inativos',
+        ];
+
+        foreach ($safeMessages as $safeMessage) {
+            if (str_contains($message, $safeMessage)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -1033,33 +1045,6 @@ class PremiumWorkflowService
             'error_id' => $errorId,
             'request_id' => LogService::currentRequestId(),
         ], $code);
-    }
-
-    private function isSafeCheckoutException(Throwable $e): bool
-    {
-        $message = trim((string) $e->getMessage());
-
-        if ($message === '') {
-            return false;
-        }
-
-        $safeMessages = [
-            'você ja possui uma assinatura ativa.',
-            'você ja possui uma assinatura em andamento.',
-            'Cupom nao encontrado.',
-            'Cupom invalido ou expirado.',
-            'você ja utilizou este cupom anteriormente.',
-            'Este cupom e valido apenas para a primeira assinatura.',
-            'Este cupom e valido para ex-assinantes inativos',
-        ];
-
-        foreach ($safeMessages as $safeMessage) {
-            if (str_starts_with($message, $safeMessage)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function rollbackOpenTransaction(): void

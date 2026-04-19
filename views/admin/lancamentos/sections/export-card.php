@@ -6,26 +6,26 @@
         </div>
         <div class="card-title-group">
             <h3 class="card-title">Exportar lancamentos</h3>
-            <p class="card-subtitle">Exportacao rapida em PDF ou Excel.</p>
+            <p class="card-subtitle">Exportação rapida em PDF ou Excel.</p>
         </div>
         <?php if (!$isPro): ?>
             <span class="pro-badge"><i data-lucide="crown"></i> PRO</span>
         <?php endif; ?>
         <button type="button" class="card-collapse-btn" id="toggleExportCard" aria-expanded="false"
-            aria-controls="exportCardBody" title="Expandir exportacao">
+            aria-controls="exportCardBody" title="Expandir exportação">
             <i data-lucide="chevron-down"></i>
         </button>
     </div>
 
     <div class="export-card-toolbar">
         <div class="export-toolbar-copy">
-            <span class="export-toolbar-label">Exportacao</span>
+            <span class="export-toolbar-label">Exportação</span>
             <p class="export-toolbar-text">Escolha o formato e exporte. Filtros avancados ficam recolhidos por
                 padrao.</p>
         </div>
         <div class="export-actions-group">
             <select id="exportFormat" class="modern-select" data-lk-custom-select="export"
-                aria-label="Formato de exportacao" <?= !$isPro ? 'disabled' : '' ?>>
+                aria-label="Formato de exportação" <?= !$isPro ? 'disabled' : '' ?>>
                 <option value="pdf">PDF</option>
                 <option value="excel">Excel (.xlsx)</option>
             </select>
@@ -44,7 +44,7 @@
                     <i data-lucide="crown"
                         style="font-size:2.5rem;color:var(--color-warning);margin-bottom:var(--spacing-4);"></i>
                     <h4>Recurso premium</h4>
-                    <p>Exportacao de lancamentos e exclusiva do <a href="<?= BASE_URL ?>billing">plano Pro</a>.</p>
+                    <p>Exportação de lançamentos e exclusiva do <a href="<?= BASE_URL ?>billing">plano Pro</a>.</p>
                 </div>
             </div>
         <?php endif; ?>

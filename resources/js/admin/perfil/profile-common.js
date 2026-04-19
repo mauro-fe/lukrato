@@ -193,7 +193,7 @@ export function setupAvatarHandlers(context) {
             if (window.Swal) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Tipo invalido',
+                    title: 'Tipo inválido',
                     text: 'Use JPEG, PNG ou WebP.',
                     confirmButtonColor: '#e74c3c',
                 });

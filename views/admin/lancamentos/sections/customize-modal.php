@@ -29,7 +29,7 @@
                     <input type="checkbox" id="toggleLanSummary" checked>
                 </label>
                 <label class="lan-customize-toggle">
-                    <span>Exportacao</span>
+                    <span>Exportação</span>
                     <input type="checkbox" id="toggleLanExport" checked>
                 </label>
                 <label class="lan-customize-toggle">

@@ -161,7 +161,7 @@ class ForgotPasswordControllerTest extends TestCase
 
         $this->assertSame(404, $response->getStatusCode());
         $this->assertFalse($payload['success']);
-        $this->assertSame('Token invalido ou expirado.', $payload['message']);
+        $this->assertSame('Token inválido ou expirado.', $payload['message']);
         $this->assertSame('https://app.example.com/forgot-password', $payload['errors']['redirect'] ?? null);
     }
 

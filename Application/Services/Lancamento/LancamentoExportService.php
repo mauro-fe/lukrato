@@ -70,7 +70,7 @@ class LancamentoExportService
         $account = null;
         if ($accountId !== null && $accountId !== '') {
             if (!preg_match('/^\d+$/', (string)$accountId)) {
-                throw new InvalidArgumentException('Conta invalida para exportacao.');
+                throw new InvalidArgumentException('Conta inválida para exportação.');
             }
             $account = (int)$accountId;
         }
@@ -98,11 +98,11 @@ class LancamentoExportService
                 $startDate = Carbon::createFromFormat('Y-m-d', $start)->startOfDay();
                 $endDate = Carbon::createFromFormat('Y-m-d', $end)->endOfDay();
             } catch (\Exception) {
-                throw new InvalidArgumentException('Periodo invalido para exportacao.');
+                throw new InvalidArgumentException('Período inválido para exportação.');
             }
 
             if ($endDate->lessThan($startDate)) {
-                throw new InvalidArgumentException('A data final precisa ser posterior a inicial.');
+                throw new InvalidArgumentException('A data final precisa ser posterior à inicial.');
             }
 
             return [$startDate, $endDate];
@@ -110,7 +110,7 @@ class LancamentoExportService
 
         $month = $filters['month'] ?? date('Y-m');
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
-            throw new InvalidArgumentException('Mes invalido. Use o formato YYYY-MM.');
+            throw new InvalidArgumentException('Mês inválido. Use o formato YYYY-MM.');
         }
 
         [$year, $mon] = array_map('intval', explode('-', $month));
@@ -189,7 +189,7 @@ class LancamentoExportService
             'Categoria',
             'Conta Origem',
             'Conta Destino',
-            'Descricao',
+            'Descrição',
             'Valor',
         ];
 
@@ -217,7 +217,7 @@ class LancamentoExportService
         $subtitle = $this->buildSubtitle($start, $end, $criteria, $rows);
 
         return new ReportData(
-            title: 'Exportacao de lancamentos',
+            title: 'Exportação de lançamentos',
             headers: $headers,
             rows: $mappedRows,
             subtitle: $subtitle,
@@ -236,14 +236,15 @@ class LancamentoExportService
             if ($tipo === LancamentoTipo::RECEITA->value) {
                 $receitas += $valor;
             } elseif ($tipo === LancamentoTipo::DESPESA->value) {
+                $receitas -= $valor; // Na lógica financeira do relatório, o valor é subtraído das receitas ou somado em despesas separadas
                 $despesas += $valor;
             }
         }
 
         return [
-            'Total de Receitas' => $this->formatMoney($receitas),
+            'Total de Receitas' => $this->formatMoney($receitas + $despesas), // Valor bruto das receitas
             'Total de Despesas' => $this->formatMoney($despesas),
-            'Saldo do Periodo' => $this->formatMoney($receitas - $despesas),
+            'Saldo do Período' => $this->formatMoney($receitas),
         ];
     }
 
@@ -254,7 +255,7 @@ class LancamentoExportService
     {
         $parts = [];
         $parts[] = sprintf(
-            'Periodo: %s a %s',
+            'Período: %s a %s',
             $start->format('d/m/Y'),
             $end->format('d/m/Y')
         );
@@ -275,7 +276,7 @@ class LancamentoExportService
         }
 
         if ($criteria['include_transfers']) {
-            $parts[] = 'Inclui transferencias';
+            $parts[] = 'Inclui transferências';
         }
 
         return implode(' | ', $parts);
@@ -341,7 +342,7 @@ class LancamentoExportService
         try {
             return LancamentoTipo::from($value)->value;
         } catch (\ValueError) {
-            throw new InvalidArgumentException('Tipo invalido para exportacao.');
+            throw new InvalidArgumentException('Tipo inválido para exportação.');
         }
     }
 
@@ -361,12 +362,12 @@ class LancamentoExportService
         }
 
         if (!ctype_digit($raw)) {
-            throw new InvalidArgumentException('Categoria invalida para exportacao.');
+            throw new InvalidArgumentException('Categoria inválida para exportação.');
         }
 
         $id = (int)$raw;
         if ($id <= 0) {
-            throw new InvalidArgumentException('Categoria invalida para exportacao.');
+            throw new InvalidArgumentException('Categoria inválida para exportação.');
         }
 
         return ['isNull' => false, 'id' => $id];

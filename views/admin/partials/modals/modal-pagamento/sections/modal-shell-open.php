@@ -1,17 +1,43 @@
-<div id="billing-modal" class="payment-modal" role="dialog" aria-labelledby="billing-modal-title" aria-modal="true"
+<?php
+$billingPaymentMode = $billingPaymentMode ?? 'modal';
+$isBillingCheckoutPage = $billingPaymentMode === 'page';
+$selectedPlanData = is_array($selectedPlanData ?? null) ? $selectedPlanData : [];
+$paymentShellId = $isBillingCheckoutPage ? 'billing-checkout-page' : 'billing-modal';
+$paymentShellClass = $isBillingCheckoutPage ? 'payment-modal payment-modal--page payment-modal--open' : 'payment-modal';
+$paymentShellRole = $isBillingCheckoutPage ? 'region' : 'dialog';
+$paymentShellAriaModal = $isBillingCheckoutPage ? '' : ' aria-modal="true"';
+?>
+
+<div id="<?= $paymentShellId ?>" class="<?= $paymentShellClass ?>" role="<?= $paymentShellRole ?>"
+    aria-labelledby="billing-modal-title"<?= $paymentShellAriaModal ?>
+    data-mode="<?= $isBillingCheckoutPage ? 'page' : 'modal' ?>"
+    data-return-url="<?= htmlspecialchars(BASE_URL . 'billing', ENT_QUOTES, 'UTF-8') ?>"
     data-pix-complete="<?= $pixDataComplete ? '1' : '0' ?>"
     data-boleto-complete="<?= $boletoDataComplete ? '1' : '0' ?>"
     data-cpf="<?= htmlspecialchars($cpfDigits, ENT_QUOTES, 'UTF-8') ?>"
     data-phone="<?= htmlspecialchars($phoneDigits, ENT_QUOTES, 'UTF-8') ?>"
     data-cep="<?= htmlspecialchars($cepDigits, ENT_QUOTES, 'UTF-8') ?>"
     data-endereco="<?= htmlspecialchars($enderecoValue, ENT_QUOTES, 'UTF-8') ?>"
-    data-email="<?= htmlspecialchars($user->email ?? '', ENT_QUOTES, 'UTF-8') ?>">
+    data-email="<?= htmlspecialchars($user->email ?? '', ENT_QUOTES, 'UTF-8') ?>"
+    data-plan-id="<?= htmlspecialchars((string) ($selectedPlanData['planId'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+    data-plan-code="<?= htmlspecialchars((string) ($selectedPlanData['planCode'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+    data-plan-name="<?= htmlspecialchars((string) ($selectedPlanData['planName'] ?? 'Lukrato PRO'), ENT_QUOTES, 'UTF-8') ?>"
+    data-plan-monthly="<?= htmlspecialchars((string) ($selectedPlanData['monthlyBase'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+    data-plan-cycle="<?= htmlspecialchars((string) ($selectedPlanData['cycle'] ?? 'monthly'), ENT_QUOTES, 'UTF-8') ?>"
+    data-plan-months="<?= htmlspecialchars((string) ($selectedPlanData['months'] ?? 1), ENT_QUOTES, 'UTF-8') ?>"
+    data-plan-discount="<?= htmlspecialchars((string) ($selectedPlanData['discount'] ?? 0), ENT_QUOTES, 'UTF-8') ?>">
     <div class="payment-modal__content">
         <div class="payment-modal__header">
-            <button class="payment-modal__close" aria-label="Fechar modal" type="button"
-                onclick="window.closeBillingModal?.()">
-                <i data-lucide="x" aria-hidden="true"></i>
-            </button>
+            <?php if ($isBillingCheckoutPage): ?>
+                <a class="payment-modal__close" aria-label="Voltar para planos" href="<?= BASE_URL ?>billing">
+                    <i data-lucide="x" aria-hidden="true"></i>
+                </a>
+            <?php else: ?>
+                <button class="payment-modal__close" aria-label="Fechar modal" type="button"
+                    onclick="window.closeBillingModal?.()">
+                    <i data-lucide="x" aria-hidden="true"></i>
+                </button>
+            <?php endif; ?>
 
             <h2 id="billing-modal-title" class="payment-modal__title">
                 Pagamento Seguro
@@ -22,7 +48,9 @@
             </p>
 
             <div id="billing-modal-price" class="payment-modal__price" role="status" aria-live="polite">
-                Selecione um plano para continuar
+                <?= $isBillingCheckoutPage && isset($selectedPlanData['total'], $selectedPlanData['period'])
+                    ? htmlspecialchars((string) $selectedPlanData['planName'], ENT_QUOTES, 'UTF-8') . ' - R$ ' . number_format((float) $selectedPlanData['total'], 2, ',', '.') . '/' . htmlspecialchars((string) $selectedPlanData['period'], ENT_QUOTES, 'UTF-8')
+                    : 'Selecione um plano para continuar' ?>
             </div>
         </div>
 

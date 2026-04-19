@@ -26,25 +26,25 @@ class SysAdminUserService
         $planType = (string) ($payload['planType'] ?? 'pro');
 
         if (empty($userIdOrEmail)) {
-            throw new ClientErrorException(400, 'Email ou ID do usuario e obrigatorio');
+            throw new ClientErrorException(400, 'E-mail ou ID do usuário é obrigatório');
         }
 
         if ($days < 1) {
-            throw new ClientErrorException(400, 'Numero de dias invalido');
+            throw new ClientErrorException(400, 'Número de dias inválido');
         }
 
         if (!in_array($planType, ['pro', 'ultra'], true)) {
-            throw new ClientErrorException(400, 'Tipo de plano invalido. Use "pro" ou "ultra".');
+            throw new ClientErrorException(400, 'Tipo de plano inválido. Use "pro" ou "ultra".');
         }
 
         $plan = Plano::where('code', $planType)->first();
         if (!$plan) {
-            throw new \RuntimeException('Plano nao encontrado no sistema');
+            throw new \RuntimeException('Plano não encontrado no sistema');
         }
 
         $targetUser = $this->findUserByIdentifier($userIdOrEmail);
         if (!$targetUser) {
-            throw new ClientErrorException(404, 'Usuario nao encontrado');
+            throw new ClientErrorException(404, 'Usuário não encontrado');
         }
 
         $existingSubscription = AssinaturaUsuario::where('user_id', $targetUser->id)
@@ -106,12 +106,12 @@ class SysAdminUserService
         $userIdOrEmail = $payload['userId'] ?? null;
 
         if (empty($userIdOrEmail)) {
-            throw new ClientErrorException(400, 'Email ou ID do usuario e obrigatorio');
+            throw new ClientErrorException(400, 'E-mail ou ID do usuário é obrigatório');
         }
 
         $targetUser = $this->findUserByIdentifier($userIdOrEmail);
         if (!$targetUser) {
-            throw new ClientErrorException(404, 'Usuario nao encontrado');
+            throw new ClientErrorException(404, 'Usuário não encontrado');
         }
 
         $activeSubscriptions = AssinaturaUsuario::where('user_id', $targetUser->id)
@@ -119,7 +119,7 @@ class SysAdminUserService
             ->get();
 
         if ($activeSubscriptions->isEmpty()) {
-            throw new ClientErrorException(400, 'Usuario nao possui assinatura premium ativa');
+            throw new ClientErrorException(400, 'Usuário não possui assinatura premium ativa');
         }
 
         foreach ($activeSubscriptions as $subscription) {
@@ -158,7 +158,7 @@ class SysAdminUserService
         $status = (string) ($query['status'] ?? '');
         $planFilter = (string) ($query['plan'] ?? '');
         $page = max(1, (int) ($query['page'] ?? 1));
-        $perPage = min(100, max(1, (int) ($query['perPage'] ?? 10)));
+        $perPage = min(100, max(1, (int) ($query['perPage'] ?? $query['per_page'] ?? 10)));
         $offset = ($page - 1) * $perPage;
 
         $usersQuery = Usuario::query();
@@ -223,7 +223,7 @@ class SysAdminUserService
     {
         $targetUser = Usuario::find($id);
         if (!$targetUser) {
-            throw new ClientErrorException(404, 'Usuario nao encontrado');
+            throw new ClientErrorException(404, 'Usuário não encontrado');
         }
 
         $subscription = AssinaturaUsuario::where('user_id', $targetUser->id)
@@ -268,25 +268,17 @@ class SysAdminUserService
     {
         $targetUser = Usuario::find($targetUserId);
         if (!$targetUser) {
-            throw new ClientErrorException(404, 'Usuario nao encontrado');
+            throw new ClientErrorException(404, 'Usuário não encontrado');
         }
 
-        $allowedFields = ['nome', 'email', 'is_admin', 'data_nascimento'];
-        $updateData = [];
-
-        foreach ($allowedFields as $field) {
-            if (isset($payload[$field])) {
-                $updateData[$field] = $payload[$field];
-            }
-        }
-
-        if (isset($updateData['email'])) {
-            $updateData['email'] = trim((string) $updateData['email']);
-            if (!filter_var($updateData['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new ClientErrorException(400, 'Email invalido');
+        // Validações de email e campos obrigatórios
+        if (isset($payload['email'])) {
+            $payload['email'] = trim((string) $payload['email']);
+            if (!filter_var($payload['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new ClientErrorException(400, 'E-mail inválido');
             }
 
-            $normalizedEmail = mb_strtolower($updateData['email']);
+            $normalizedEmail = mb_strtolower($payload['email']);
             $existingUser = Usuario::where('id', '!=', $targetUserId)
                 ->where(function ($query) use ($normalizedEmail) {
                     $query->whereRaw('LOWER(email) = ?', [$normalizedEmail])
@@ -295,7 +287,22 @@ class SysAdminUserService
                 ->first();
 
             if ($existingUser) {
-                throw new ClientErrorException(400, 'Este email ja esta em uso por outro usuario');
+                throw new ClientErrorException(400, 'Este e-mail já está em uso por outro usuário');
+            }
+        }
+
+        if (isset($payload['is_admin'])) {
+            if ($targetUser->id === $adminUserId && (int)$payload['is_admin'] === 0) {
+                throw new ClientErrorException(400, 'Você não pode remover seu próprio status de administrador');
+            }
+        }
+
+        $allowedFields = ['nome', 'email', 'is_admin', 'data_nascimento'];
+        $updateData = [];
+
+        foreach ($allowedFields as $field) {
+            if (array_key_exists($field, $payload)) {
+                $updateData[$field] = $payload[$field];
             }
         }
 
@@ -306,15 +313,12 @@ class SysAdminUserService
             }
         }
 
-        if (isset($updateData['is_admin'])) {
-            $updateData['is_admin'] = (int) $updateData['is_admin'];
-            if ($targetUser->id === $adminUserId && $updateData['is_admin'] === 0) {
-                throw new ClientErrorException(400, 'você nao pode remover seu proprio status de administrador');
-            }
+        if (isset($updateData['email'])) {
+            $updateData['email'] = trim((string) $updateData['email']);
         }
 
-        if (empty($updateData)) {
-            throw new ClientErrorException(400, 'Nenhum campo para atualizar');
+        if (isset($updateData['is_admin'])) {
+            $updateData['is_admin'] = (int) $updateData['is_admin'];
         }
 
         if (!empty($payload['senha'])) {
@@ -327,13 +331,17 @@ class SysAdminUserService
             $targetUser->senha = $password;
         }
 
+        if (empty($updateData) && empty($payload['senha'])) {
+            throw new ClientErrorException(400, 'Nenhum campo para atualizar');
+        }
+
         foreach ($updateData as $field => $value) {
             $targetUser->$field = $value;
         }
 
         $targetUser->save();
 
-        LogService::info('[SYSADMIN] Usuario atualizado', [
+        LogService::info('[SYSADMIN] Usuário atualizado', [
             'admin_user_id' => $adminUserId,
             'admin_user_name' => $adminName,
             'target_user_id' => $targetUser->id,
@@ -346,7 +354,7 @@ class SysAdminUserService
                 'email' => $targetUser->email,
                 'is_admin' => $targetUser->is_admin,
             ],
-            'message' => 'Usuario atualizado com sucesso',
+            'message' => 'Usuário atualizado com sucesso',
         ];
     }
 
@@ -357,31 +365,25 @@ class SysAdminUserService
     {
         $targetUser = Usuario::find($targetUserId);
         if (!$targetUser) {
-            throw new ClientErrorException(404, 'Usuario nao encontrado');
+            throw new ClientErrorException(404, 'Usuário não encontrado');
         }
 
         if ($targetUser->id === $adminUserId) {
-            throw new ClientErrorException(400, 'você nao pode excluir sua propria conta');
+            throw new ClientErrorException(400, 'Você não pode excluir sua própria conta');
         }
 
         $userName = $targetUser->nome;
         $userEmail = $targetUser->email;
         $targetUser->delete();
 
-        LogService::info('[SYSADMIN] Usuario excluido', [
+        LogService::info('[SYSADMIN] Usuário excluído', [
             'admin_user_id' => $adminUserId,
-            'admin_user_name' => $adminName,
             'target_user_id' => $targetUserId,
-            'target_user_email' => $userEmail,
         ]);
 
         return [
-            'data' => [
-                'id' => $targetUserId,
-                'nome' => $userName,
-                'email' => $userEmail,
-            ],
-            'message' => 'Usuario excluido com sucesso',
+            'data' => ['id' => $targetUserId, 'nome' => $userName, 'email' => $userEmail],
+            'message' => 'Usuário excluído com sucesso',
         ];
     }
 

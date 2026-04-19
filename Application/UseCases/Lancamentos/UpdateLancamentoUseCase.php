@@ -42,16 +42,16 @@ class UpdateLancamentoUseCase
     {
         try {
             if ($lancamentoId <= 0) {
-                throw new ValueError('ID invalido.');
+                throw new ValueError('ID inválido.');
             }
 
             $lancamento = $this->lancamentoRepo->findByIdAndUser($lancamentoId, $userId);
             if (!$lancamento) {
-                return ServiceResultDTO::fail('Lancamento nao encontrado.', 404);
+                return ServiceResultDTO::fail('Lançamento não encontrado.', 404);
             }
 
             if ((bool) ($lancamento->eh_transferencia ?? 0) === true) {
-                throw new ValueError('Transferencias nao podem ser editadas aqui.');
+                throw new ValueError('Transferências não podem ser editadas aqui.');
             }
 
             $mergedData = $this->mergeLancamentoPayload($payload, $lancamento);
@@ -61,9 +61,11 @@ class UpdateLancamentoUseCase
             $categoriaId = $this->normalizeOptionalId($mergedData['categoria_id'] ?? null);
             $metaId = $this->normalizeOptionalId($mergedData['meta_id'] ?? ($mergedData['metaId'] ?? null));
             $metaId = LancamentoValidator::validateMetaOwnership($metaId, $userId, $errors);
+
             $meta = $metaId
                 ? Meta::where('id', $metaId)->where('user_id', $userId)->first()
                 : null;
+
             $metaOperacao = $metaId
                 ? LancamentoValidator::resolveMetaOperationForContext(
                     LancamentoValidator::normalizeMetaOperation($mergedData['meta_operacao'] ?? ($mergedData['metaOperacao'] ?? null)),
@@ -74,10 +76,12 @@ class UpdateLancamentoUseCase
                     $meta
                 )
                 : null;
+
             $metaValor = $metaId
                 ? (LancamentoValidator::sanitizeMetaValor($mergedData['meta_valor'] ?? ($mergedData['metaValor'] ?? null))
                     ?? LancamentoValidator::sanitizeValor($mergedData['valor'] ?? $lancamento->valor))
                 : null;
+
             LancamentoValidator::validateMetaLinkRules($metaId, [
                 'tipo' => $mergedData['tipo'] ?? $lancamento->tipo,
                 'eh_transferencia' => false,
@@ -86,6 +90,7 @@ class UpdateLancamentoUseCase
                 'meta_valor' => $metaValor,
                 'valor' => $mergedData['valor'] ?? $lancamento->valor,
             ], $errors);
+
             $errors = array_merge($errors, $this->validateLancamentoRelations($userId, $contaId, $categoriaId));
 
             if ($errors !== []) {
@@ -102,7 +107,7 @@ class UpdateLancamentoUseCase
 
             return new ServiceResultDTO(
                 success: true,
-                message: 'Success',
+                message: 'Sucesso',
                 data: ['id' => (int) $lancamento->id],
                 httpCode: 200
             );
@@ -110,7 +115,7 @@ class UpdateLancamentoUseCase
             $message = trim($e->getMessage());
 
             return ServiceResultDTO::fail(
-                $message !== '' ? $message : 'Dados invalidos para atualizar lancamento.',
+                $message !== '' ? $message : 'Dados inválidos para atualizar lançamento.',
                 422
             );
         }
@@ -134,11 +139,11 @@ class UpdateLancamentoUseCase
         $errors = [];
 
         if ($contaId !== null && !$this->contaRepo->belongsToUser($contaId, $userId)) {
-            $errors['conta_id'] = 'Conta invalida.';
+            $errors['conta_id'] = 'Conta inválida.';
         }
 
         if ($categoriaId !== null && !$this->categoriaRepo->belongsToUser($categoriaId, $userId)) {
-            $errors['categoria_id'] = 'Categoria invalida.';
+            $errors['categoria_id'] = 'Categoria inválida.';
         }
 
         return $errors;

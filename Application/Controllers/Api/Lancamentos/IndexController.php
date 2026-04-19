@@ -37,7 +37,7 @@ class IndexController extends ApiController
         $hasCustomRange = $startDate !== '' || $endDate !== '';
 
         if ($hasCustomRange && ($startDate === '' || $endDate === '')) {
-            return Response::validationErrorResponse(['period' => 'Informe data inicial e final para usar periodo personalizado']);
+            return Response::validationErrorResponse(['period' => 'Informe as datas inicial e final para usar o período personalizado']);
         }
 
         if ($hasCustomRange) {
@@ -45,16 +45,16 @@ class IndexController extends ApiController
             $to = $this->parseDateParam($endDate);
 
             if ($from === null || $to === null) {
-                return Response::validationErrorResponse(['period' => 'Formato invalido de data (YYYY-MM-DD)']);
+                return Response::validationErrorResponse(['period' => 'Formato inválido de data (YYYY-MM-DD)']);
             }
 
             if ($to < $from) {
-                return Response::validationErrorResponse(['period' => 'A data final deve ser posterior ou igual a inicial']);
+                return Response::validationErrorResponse(['period' => 'A data final deve ser posterior ou igual à inicial']);
             }
         } else {
             $month = $this->getStringQuery('month', date('Y-m'));
             if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
-                return Response::validationErrorResponse(['month' => 'Formato invalido (YYYY-MM)']);
+                return Response::validationErrorResponse(['month' => 'Formato inválido (YYYY-MM)']);
             }
 
             [$y, $m] = array_map('intval', explode('-', $month));
@@ -65,6 +65,7 @@ class IndexController extends ApiController
         $categoriaParams = $this->parseCategoriaParam($this->getStringQuery('categoria_id', ''));
         $search = $this->getStringQuery('q', '');
         $status = strtolower($this->getStringQuery('status', ''));
+
         if (!in_array($status, ['pago', 'pendente'], true)) {
             $status = null;
         }

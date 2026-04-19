@@ -127,25 +127,28 @@ class ComparativesService
     {
         $cm = $this->currentMonthData;
         $pm = $this->previousMonthData;
+        $currentReceitas = (float) ($cm->receitas ?? 0);
+        $currentDespesas = (float) ($cm->despesas ?? 0);
+        $previousReceitas = (float) ($pm->receitas ?? 0);
+        $previousDespesas = (float) ($pm->despesas ?? 0);
+        $currentSaldo = $currentReceitas - $currentDespesas;
+        $previousSaldo = $previousReceitas - $previousDespesas;
 
         return [
             'current' => [
-                'receitas' => (float)($cm->receitas ?? 0),
-                'despesas' => (float)($cm->despesas ?? 0),
-                'saldo'    => (float)(($cm->receitas ?? 0) - ($cm->despesas ?? 0)),
+                'receitas' => $currentReceitas,
+                'despesas' => $currentDespesas,
+                'saldo'    => $currentSaldo,
             ],
             'previous' => [
-                'receitas' => (float)($pm->receitas ?? 0),
-                'despesas' => (float)($pm->despesas ?? 0),
-                'saldo'    => (float)(($pm->receitas ?? 0) - ($pm->despesas ?? 0)),
+                'receitas' => $previousReceitas,
+                'despesas' => $previousDespesas,
+                'saldo'    => $previousSaldo,
             ],
             'variation' => [
-                'receitas' => $this->calculateVariation($pm->receitas ?? 0, $cm->receitas ?? 0),
-                'despesas' => $this->calculateVariation($pm->despesas ?? 0, $cm->despesas ?? 0),
-                'saldo'    => $this->calculateVariation(
-                    ($pm->receitas ?? 0) - ($pm->despesas ?? 0),
-                    ($cm->receitas ?? 0) - ($cm->despesas ?? 0)
-                ),
+                'receitas' => $this->calculateVariation($previousReceitas, $currentReceitas),
+                'despesas' => $this->calculateVariation($previousDespesas, $currentDespesas),
+                'saldo'    => $this->calculateVariation($previousSaldo, $currentSaldo),
             ],
         ];
     }
@@ -155,25 +158,28 @@ class ComparativesService
     {
         $cy = $this->currentYearData;
         $py = $this->previousYearData;
+        $currentReceitas = (float) ($cy->receitas ?? 0);
+        $currentDespesas = (float) ($cy->despesas ?? 0);
+        $previousReceitas = (float) ($py->receitas ?? 0);
+        $previousDespesas = (float) ($py->despesas ?? 0);
+        $currentSaldo = $currentReceitas - $currentDespesas;
+        $previousSaldo = $previousReceitas - $previousDespesas;
 
         return [
             'current' => [
-                'receitas' => (float)($cy->receitas ?? 0),
-                'despesas' => (float)($cy->despesas ?? 0),
-                'saldo'    => (float)(($cy->receitas ?? 0) - ($cy->despesas ?? 0)),
+                'receitas' => $currentReceitas,
+                'despesas' => $currentDespesas,
+                'saldo'    => $currentSaldo,
             ],
             'previous' => [
-                'receitas' => (float)($py->receitas ?? 0),
-                'despesas' => (float)($py->despesas ?? 0),
-                'saldo'    => (float)(($py->receitas ?? 0) - ($py->despesas ?? 0)),
+                'receitas' => $previousReceitas,
+                'despesas' => $previousDespesas,
+                'saldo'    => $previousSaldo,
             ],
             'variation' => [
-                'receitas' => $this->calculateVariation($py->receitas ?? 0, $cy->receitas ?? 0),
-                'despesas' => $this->calculateVariation($py->despesas ?? 0, $cy->despesas ?? 0),
-                'saldo'    => $this->calculateVariation(
-                    ($py->receitas ?? 0) - ($py->despesas ?? 0),
-                    ($cy->receitas ?? 0) - ($cy->despesas ?? 0)
-                ),
+                'receitas' => $this->calculateVariation($previousReceitas, $currentReceitas),
+                'despesas' => $this->calculateVariation($previousDespesas, $currentDespesas),
+                'saldo'    => $this->calculateVariation($previousSaldo, $currentSaldo),
             ],
         ];
     }

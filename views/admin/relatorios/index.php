@@ -9,6 +9,7 @@
     <?php include __DIR__ . '/sections/panel-relatorios.php'; ?>
     <?php include __DIR__ . '/sections/panel-insights.php'; ?>
     <?php include __DIR__ . '/sections/panel-comparativos.php'; ?>
+    <?php include __DIR__ . '/sections/export-modal.php'; ?>
     <?php include __DIR__ . '/sections/customize-modal.php'; ?>
     <?php include __DIR__ . '/sections/loading-state.php'; ?>
 </div>

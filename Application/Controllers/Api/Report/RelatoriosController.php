@@ -181,12 +181,10 @@ class RelatoriosController extends ApiController
 
             return Response::successResponse($data);
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Parametros invalidos para o relatorio detalhado.', 400);
+            return $this->domainErrorResponse($e, 'Parâmetros inválidos para o relatório detalhado.', 400);
         } catch (\Exception $e) {
-            $statusCode = str_contains($e->getMessage(), 'não encontrado')
-                || str_contains($e->getMessage(), 'nao encontrado')
-                ? 404
-                : 500;
+            $message = mb_strtolower($e->getMessage());
+            $statusCode = str_contains($message, 'não encontrado') ? 404 : 500;
 
             LogService::warning('Erro ao buscar detalhes do cartão.', [
                 'error' => $e->getMessage(),
@@ -195,10 +193,10 @@ class RelatoriosController extends ApiController
             ]);
 
             if ($statusCode === 404) {
-                return $this->notFoundFromThrowable($e, 'Cartao nao encontrado.');
+                return $this->notFoundFromThrowable($e, 'Cartão não encontrado.');
             }
 
-            return Response::errorResponse('Erro ao gerar relatorio detalhado.', $statusCode);
+            return Response::errorResponse('Erro ao gerar relatório detalhado.', $statusCode);
         } catch (Throwable $e) {
             LogService::error('Erro inesperado ao gerar relatório de cartão.', [
                 'error' => $e->getMessage(),
@@ -284,7 +282,7 @@ class RelatoriosController extends ApiController
             'user_id' => $this->userId ?? null,
         ]);
 
-        return $this->domainErrorResponse($e, 'Parametros invalidos para o relatorio.', 422);
+        return $this->domainErrorResponse($e, 'Parâmetros inválidos para o relatório.', 422);
     }
 
     private function handleUnexpectedError(Throwable $e): Response

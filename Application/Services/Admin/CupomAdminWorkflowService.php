@@ -41,11 +41,11 @@ class CupomAdminWorkflowService
     {
         try {
             if (empty($data['codigo'])) {
-                return $this->failure('Codigo do cupom e obrigatorio', 400);
+                return $this->failure('Código do cupom é obrigatório', 400);
             }
 
             if (empty($data['tipo_desconto']) || !in_array($data['tipo_desconto'], ['percentual', 'fixo'], true)) {
-                return $this->failure('Tipo de desconto invalido', 400);
+                return $this->failure('Tipo de desconto inválido', 400);
             }
 
             if (!isset($data['valor_desconto']) || $data['valor_desconto'] <= 0) {
@@ -53,12 +53,12 @@ class CupomAdminWorkflowService
             }
 
             if ($data['tipo_desconto'] === 'percentual' && $data['valor_desconto'] > 100) {
-                return $this->failure('Desconto percentual nao pode ser maior que 100%', 400);
+                return $this->failure('Desconto percentual não pode ser maior que 100%', 400);
             }
 
             $codigoExiste = Cupom::whereRaw('UPPER(codigo) = ?', [strtoupper((string) $data['codigo'])])->exists();
             if ($codigoExiste) {
-                return $this->failure('Ja existe um cupom com este codigo', 400);
+                return $this->failure('Já existe um cupom com este código', 400);
             }
 
             $cupom = new Cupom();
@@ -94,12 +94,12 @@ class CupomAdminWorkflowService
     {
         try {
             if (empty($data['id'])) {
-                return $this->failure('ID do cupom e obrigatorio', 400);
+                return $this->failure('ID do cupom é obrigatório', 400);
             }
 
             $cupom = Cupom::find($data['id']);
             if (!$cupom) {
-                return $this->failure('Cupom nao encontrado', 404);
+                return $this->failure('Cupom não encontrado', 404);
             }
 
             $foiUsado = CupomUsado::where('cupom_id', $cupom->id)->exists();
@@ -109,14 +109,14 @@ class CupomAdminWorkflowService
                 $cupom->save();
 
                 return $this->success([
-                    'message' => 'Cupom desativado com sucesso (nao pode ser excluido pois ja foi usado)',
+                    'message' => 'Cupom desativado com sucesso (não pode ser excluído pois já foi usado)',
                 ]);
             }
 
             $cupom->delete();
 
             return $this->success([
-                'message' => 'Cupom excluido com sucesso!',
+                'message' => 'Cupom excluído com sucesso!',
             ]);
         } catch (Throwable $e) {
             return $this->internalFailure($e, 'Erro ao excluir cupom.', [
@@ -136,16 +136,16 @@ class CupomAdminWorkflowService
             $codigo = trim((string) ($codigo ?? ''));
 
             if ($codigo === '') {
-                return $this->failure('Codigo do cupom e obrigatorio', 400);
+                return $this->failure('Código do cupom é obrigatório', 400);
             }
 
             $cupom = Cupom::findByCodigo($codigo);
             if (!$cupom) {
-                return $this->failure('Cupom nao encontrado', 404);
+                return $this->failure('Cupom não encontrado', 404);
             }
 
             if (!$cupom->isValid()) {
-                $motivo = 'Cupom invalido';
+                $motivo = 'Cupom inválido';
 
                 if (!$cupom->ativo) {
                     $motivo = 'Cupom inativo';
@@ -163,7 +163,7 @@ class CupomAdminWorkflowService
                 ->exists();
 
             if ($jaUsou) {
-                return $this->failure('você ja utilizou este cupom anteriormente', 400);
+                return $this->failure('Você já utilizou este cupom anteriormente', 400);
             }
 
             $elegibilidadeErro = $this->verificarElegibilidade($user, $cupom);
@@ -172,7 +172,7 @@ class CupomAdminWorkflowService
             }
 
             return $this->success([
-                'message' => 'Cupom valido!',
+                'message' => 'Cupom válido!',
                 'cupom' => [
                     'id' => $cupom->id,
                     'codigo' => $cupom->codigo,
@@ -198,12 +198,12 @@ class CupomAdminWorkflowService
     {
         try {
             if (empty($data['id'])) {
-                return $this->failure('ID do cupom e obrigatorio', 400);
+                return $this->failure('ID do cupom é obrigatório', 400);
             }
 
             $cupom = Cupom::find($data['id']);
             if (!$cupom) {
-                return $this->failure('Cupom nao encontrado', 404);
+                return $this->failure('Cupom não encontrado', 404);
             }
 
             if (isset($data['ativo'])) {
@@ -243,12 +243,12 @@ class CupomAdminWorkflowService
     {
         try {
             if (!$cupomId) {
-                return $this->failure('ID do cupom e obrigatorio', 400);
+                return $this->failure('ID do cupom é obrigatório', 400);
             }
 
             $cupom = Cupom::find($cupomId);
             if (!$cupom) {
-                return $this->failure('Cupom nao encontrado', 404);
+                return $this->failure('Cupom não encontrado', 404);
             }
 
             $usos = CupomUsado::where('cupom_id', $cupomId)
@@ -273,7 +273,7 @@ class CupomAdminWorkflowService
                 ],
                 'usos' => $usos->map(function ($uso): array {
                     return [
-                        'usuario' => $uso->usuario->nome ?? 'Usuario removido',
+                        'usuario' => $uso->usuario->nome ?? 'Usuário removido',
                         'email' => $uso->usuario->email ?? '-',
                         'valor_original' => 'R$ ' . number_format($uso->valor_original, 2, ',', '.'),
                         'desconto_aplicado' => 'R$ ' . number_format($uso->desconto_aplicado, 2, ',', '.'),
@@ -283,29 +283,10 @@ class CupomAdminWorkflowService
                 }),
             ]);
         } catch (Throwable $e) {
-            return $this->internalFailure($e, 'Erro ao buscar estatisticas do cupom.', [
+            return $this->internalFailure($e, 'Erro ao buscar estatísticas do cupom.', [
                 'action' => 'cupom_admin_statistics',
                 'cupom_id' => $cupomId,
             ]);
-        }
-    }
-
-    private function atualizarCuponsExpirados(): void
-    {
-        try {
-            $agora = date('Y-m-d H:i:s');
-
-            Cupom::where('ativo', 1)
-                ->whereNotNull('valido_ate')
-                ->where('valido_ate', '<', $agora)
-                ->update(['ativo' => 0]);
-
-            Cupom::where('ativo', 1)
-                ->where('limite_uso', '>', 0)
-                ->whereRaw('uso_atual >= limite_uso')
-                ->update(['ativo' => 0]);
-        } catch (Throwable $e) {
-            \Application\Services\Infrastructure\LogService::safeErrorLog('Erro ao atualizar cupons expirados: ' . $e->getMessage());
         }
     }
 
@@ -334,7 +315,7 @@ class CupomAdminWorkflowService
                 ->exists();
 
             if ($temAtiva) {
-                return 'você ja possui uma assinatura ativa.';
+                return 'Você já possui uma assinatura ativa.';
             }
 
             $ultimaAssinatura = AssinaturaUsuario::where('user_id', $user->id)
@@ -351,11 +332,30 @@ class CupomAdminWorkflowService
                     return null;
                 }
 
-                return "Este cupom e valido para ex-assinantes inativos ha pelo menos {$mesesInatividade} meses.";
+                return "Este cupom é válido para ex-assinantes inativos há pelo menos {$mesesInatividade} meses.";
             }
         }
 
-        return 'Este cupom e valido apenas para a primeira assinatura.';
+        return 'Este cupom é válido apenas para a primeira assinatura.';
+    }
+
+    private function atualizarCuponsExpirados(): void
+    {
+        try {
+            $agora = date('Y-m-d H:i:s');
+
+            Cupom::where('ativo', 1)
+                ->whereNotNull('valido_ate')
+                ->where('valido_ate', '<', $agora)
+                ->update(['ativo' => 0]);
+
+            Cupom::where('ativo', 1)
+                ->where('limite_uso', '>', 0)
+                ->whereRaw('uso_atual >= limite_uso')
+                ->update(['ativo' => 0]);
+        } catch (Throwable $e) {
+            LogService::safeErrorLog('Erro ao atualizar cupons expirados: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -402,7 +402,7 @@ class CupomAdminWorkflowService
 
         return $this->failure($publicMessage, 500, [
             'error_id' => $errorId,
-            'request_id' => $errorId,
+            'request_id' => LogService::currentRequestId(),
         ]);
     }
 

@@ -44,7 +44,4 @@ $currentPlanCode = $currentPlanCode ?? ($user?->planoAtual()?->code ?? null);
     <?php include __DIR__ . '/sections/customize-modal.php'; ?>
 </div>
 
-<!-- Modal de Pagamento -->
-<?php include __DIR__ . '/../partials/modals/modal-pagamento.php'; ?>
-
 <!-- JS carregado via Vite (loadPageJs) -->

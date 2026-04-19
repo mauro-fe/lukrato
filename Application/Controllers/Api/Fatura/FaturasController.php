@@ -41,7 +41,7 @@ class FaturasController extends ApiController
                 preserveSuccessMeta: true
             );
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Dados invalidos para listar faturas.', 400);
+            return $this->domainErrorResponse($e, 'Dados inválidos para listar faturas.', 400);
         } catch (Throwable $e) {
             $this->logError('Erro ao listar faturas', $e);
             return Response::errorResponse('Erro ao listar faturas', 500);
@@ -61,7 +61,7 @@ class FaturasController extends ApiController
                 preserveSuccessMeta: true
             );
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Não foi possivel buscar a fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possível buscar a fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao buscar fatura {$id}", $e);
             return Response::errorResponse('Erro ao buscar fatura', 500);
@@ -84,7 +84,7 @@ class FaturasController extends ApiController
                 preserveSuccessMeta: true
             );
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Dados invalidos para criar fatura.', 400);
+            return $this->domainErrorResponse($e, 'Dados inválidos para criar fatura.', 400);
         } catch (Throwable $e) {
             $this->logError('Erro ao criar fatura', $e);
             return Response::errorResponse('Erro ao criar fatura. Tente novamente.', 500);
@@ -104,7 +104,7 @@ class FaturasController extends ApiController
                 preserveSuccessMeta: true
             );
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Não foi possivel cancelar a fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possível cancelar a fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao cancelar fatura {$id}", $e);
             return Response::errorResponse('Erro ao cancelar fatura', 500);
@@ -135,7 +135,7 @@ class FaturasController extends ApiController
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->domainErrorResponse($e, 'Não foi possivel atualizar o item da fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possível atualizar o item da fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao atualizar item {$itemId} da fatura {$faturaId}", $e);
             LogService::error('Erro geral ao atualizar item da fatura', [
@@ -173,7 +173,7 @@ class FaturasController extends ApiController
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->domainErrorResponse($e, 'Não foi possivel atualizar o item da fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possível atualizar o item da fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao atualizar item {$itemId} da fatura {$faturaId}", $e);
             LogService::error('Erro geral ao atualizar item da fatura', [
@@ -206,7 +206,7 @@ class FaturasController extends ApiController
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->domainErrorResponse($e, 'Não foi possivel excluir o item da fatura.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possível excluir o item da fatura.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao excluir item {$itemId} da fatura {$faturaId}", $e);
             return $this->internalErrorResponse($e, 'Erro ao excluir item da fatura.');
@@ -232,7 +232,7 @@ class FaturasController extends ApiController
                 preserveSuccessMeta: true
             );
         } catch (InvalidArgumentException $e) {
-            return $this->domainErrorResponse($e, 'Não foi possivel excluir o parcelamento.', 400);
+            return $this->domainErrorResponse($e, 'Não foi possível excluir o parcelamento.', 400);
         } catch (Throwable $e) {
             $this->logError("Erro ao excluir parcelamento do item {$itemId}", $e);
             return Response::errorResponse('Erro ao excluir parcelamento', 500);

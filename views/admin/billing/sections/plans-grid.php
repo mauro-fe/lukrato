@@ -219,7 +219,9 @@
                             </div>
                         <?php endif; ?>
 
-                        <button <?= $buttonId ? 'id="' . $buttonId . '"' : '' ?>
+                        <?php $checkoutUrl = BASE_URL . 'billing/checkout?plan=' . rawurlencode((string) $plan['code']); ?>
+                        <a <?= $buttonId ? 'id="' . $buttonId . '"' : '' ?>
+                            href="<?= htmlspecialchars($checkoutUrl, ENT_QUOTES, 'UTF-8') ?>"
                             class="plan-card__button plan-card__button--primary" data-plan-button="1"
                             data-plan-id="<?= htmlspecialchars((string) $plan['id']) ?>"
                             data-plan-code="<?= htmlspecialchars($plan['code']) ?>"
@@ -229,7 +231,7 @@
                             data-plan-interval="<?= htmlspecialchars($intervalLabel) ?>">
                             <i class="plan-card__button-icon" data-lucide="rocket" aria-hidden="true"></i>
                             <span><?= htmlspecialchars($ctaLabel) ?></span>
-                        </button>
+                        </a>
 
 
                         <?php if ($buttonId): ?>

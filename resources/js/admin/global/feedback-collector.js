@@ -12,12 +12,13 @@ import {
     resolveFeedbackCheckNpsEndpoint,
     resolveFeedbackEndpoint,
 } from '../api/endpoints/engagement.js';
-import { getRuntimeConfig } from './runtime-config.js';
+import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
 
 (function () {
     'use strict';
 
     const userId = () => getRuntimeConfig().userId;
+    let npsInitialized = false;
 
     // ========================================================================
     // API HELPERS
@@ -136,6 +137,9 @@ import { getRuntimeConfig } from './runtime-config.js';
     // ========================================================================
 
     function initNps() {
+        if (npsInitialized || !userId()) return;
+        npsInitialized = true;
+
         // Check localStorage first (avoid unnecessary API call)
         const dismissed = localStorage.getItem('lk_nps_dismissed_at');
         if (dismissed) {
@@ -457,10 +461,8 @@ import { getRuntimeConfig } from './runtime-config.js';
     // ========================================================================
 
     function boot() {
-        if (!userId()) return;
-
-        initNps();
         initSuggestionButton();
+        initNps();
     }
 
     if (document.readyState === 'loading') {
@@ -469,12 +471,17 @@ import { getRuntimeConfig } from './runtime-config.js';
         boot();
     }
 
+    onRuntimeConfigUpdate(() => {
+        initNps();
+    });
+
     // ========================================================================
     // PUBLIC API
     // ========================================================================
 
     window.LKUserFeedback = {
         showMicroFeedback,
+        showSuggestionModal,
         showAiFeedback,
     };
 

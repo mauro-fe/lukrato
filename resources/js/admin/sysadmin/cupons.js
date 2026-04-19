@@ -65,8 +65,8 @@ function renderizarCupons() {
 
     tbody.innerHTML = cupons.map((cupom) => {
         const statusBadge = cupom.is_valid
-            ? '<span class="badge badge-ativo"><i data-lucide="circle-check"></i> Valido</span>'
-            : '<span class="badge badge-inativo"><i data-lucide="x-circle"></i> Invalido</span>';
+            ? '<span class="badge badge-ativo"><i data-lucide="circle-check"></i> Válido</span>'
+            : '<span class="badge badge-inativo"><i data-lucide="x-circle"></i> Inválido</span>';
 
         const tipoBadge = cupom.tipo_desconto === 'percentual'
             ? '<span class="badge badge-percentual"><i data-lucide="percent"></i> Percentual</span>'
@@ -93,7 +93,7 @@ function renderizarCupons() {
                     <button class="btn-action btn-detalhes-mobile" data-action="verDetalhesMobile" data-cupom-id="${cupom.id}" title="Ver detalhes">
                         <i data-lucide="eye"></i>
                     </button>
-                    <button class="btn-action btn-ver" data-action="verEstatisticas" data-cupom-id="${cupom.id}" title="Ver estatisticas">
+                    <button class="btn-action btn-ver" data-action="verEstatisticas" data-cupom-id="${cupom.id}" title="Ver estatísticas">
                         <i data-lucide="bar-chart-3"></i> Ver
                     </button>
                     <button class="btn-action btn-excluir" data-action="excluirCupom" data-cupom-id="${cupom.id}" data-cupom-codigo="${escapeHtml(cupom.codigo)}" title="Excluir">
@@ -188,7 +188,7 @@ document.getElementById('formCupom').addEventListener('submit', async (e) => {
 
 async function excluirCupom(id, codigo) {
     const result = await LKFeedback.confirm(`Deseja realmente excluir o cupom "${codigo}"?`, {
-        title: 'Confirmar exclusao?',
+        title: 'Confirmar exclusão?',
         icon: 'warning',
         isDanger: true,
         confirmButtonText: 'Sim, excluir',
@@ -217,14 +217,14 @@ async function verEstatisticas(cupomId) {
         const data = await apiGet(resolveCuponsStatisticsEndpoint(), { id: cupomId });
 
         if (!data.success) {
-            throw new Error(data.message || 'Erro ao carregar estatisticas');
+            throw new Error(data.message || 'Erro ao carregar estatísticas');
         }
 
         const { cupom, estatisticas, usos } = data.data;
 
         let usosHtml = '';
         if (usos.length > 0) {
-            usosHtml = '<div style="max-height: 300px; overflow-y: auto; margin-top: 1rem;"><table style="width: 100%; font-size: 0.9rem;"><thead><tr><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Usuario</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Desconto</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Data</th></tr></thead><tbody>';
+            usosHtml = '<div style="max-height: 300px; overflow-y: auto; margin-top: 1rem;"><table style="width: 100%; font-size: 0.9rem;"><thead><tr><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Usuário</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Desconto</th><th style="text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd;">Data</th></tr></thead><tbody>';
             usos.forEach((uso) => {
                 usosHtml += `<tr><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usuario)}<br><small>${escapeHtml(uso.email)}</small></td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.desconto_aplicado)}</td><td style="padding: 0.5rem; border-bottom: 1px solid #eee;">${escapeHtml(uso.usado_em)}</td></tr>`;
             });
@@ -234,7 +234,7 @@ async function verEstatisticas(cupomId) {
         }
 
         Swal.fire({
-            title: `Estatisticas: ${escapeHtml(cupom.codigo)}`,
+            title: `Estatísticas: ${escapeHtml(cupom.codigo)}`,
             html: `
                 <div style="text-align: left;">
                     <p><strong>Desconto:</strong> ${escapeHtml(cupom.desconto_formatado)}</p>
@@ -249,7 +249,7 @@ async function verEstatisticas(cupomId) {
             confirmButtonText: 'Fechar'
         });
     } catch (error) {
-        LKFeedback.error(getErrorMessage(error, 'Erro ao carregar estatisticas do cupom.'));
+        LKFeedback.error(getErrorMessage(error, 'Erro ao carregar estatísticas do cupom.'));
     }
 }
 
@@ -257,7 +257,7 @@ function verDetalhesMobile(cupomId) {
     const cupom = cupons.find((c) => c.id === cupomId);
     if (!cupom) return;
 
-    const statusText = cupom.is_valid ? 'Valido' : 'Invalido';
+    const statusText = cupom.is_valid ? 'Válido' : 'Inválido';
     const tipoText = cupom.tipo_desconto === 'percentual' ? 'Percentual' : 'Valor Fixo';
     const usoText = cupom.limite_uso > 0
         ? `${cupom.uso_atual} de ${cupom.limite_uso} usos`
@@ -295,7 +295,7 @@ function verDetalhesMobile(cupomId) {
 
                     ${cupom.descricao ? `
                     <div>
-                        <strong>Descricao:</strong><br>
+                        <strong>Descrição:</strong><br>
                         <span>${escapeHtml(cupom.descricao)}</span>
                     </div>
                     ` : ''}
@@ -304,7 +304,7 @@ function verDetalhesMobile(cupomId) {
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; display: flex; gap: 0.5rem; justify-content: center;">
                     <button data-action="verEstatisticasFromSwal" data-cupom-id="${cupom.id}"
                         style="padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                        <i data-lucide="bar-chart-3"></i> Ver Estatisticas
+                        <i data-lucide="bar-chart-3"></i> Ver Estatísticas
                     </button>
                     <button data-action="excluirCupomFromSwal" data-cupom-id="${cupom.id}" data-cupom-codigo="${escapeHtml(cupom.codigo)}"
                         style="padding: 0.5rem 1rem; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">

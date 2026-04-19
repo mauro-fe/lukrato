@@ -23,7 +23,7 @@ class SysAdminUserServiceTest extends TestCase
         $service = new SysAdminUserService();
 
         $this->expectException(ClientErrorException::class);
-        $this->expectExceptionMessage('Email ou ID do usuario e obrigatorio');
+        $this->expectExceptionMessage('E-mail ou ID do usuário é obrigatório');
 
         $service->grantAccess(1, 'Admin', ['days' => 7]);
     }
@@ -43,7 +43,7 @@ class SysAdminUserServiceTest extends TestCase
         $service = new SysAdminUserService();
 
         $this->expectException(ClientErrorException::class);
-        $this->expectExceptionMessage('você nao pode remover seu proprio status de administrador');
+        $this->expectExceptionMessage('Você não pode remover seu próprio status de administrador');
 
         $service->updateUser(10, 'Admin', 10, ['is_admin' => 0]);
     }
@@ -64,7 +64,7 @@ class SysAdminUserServiceTest extends TestCase
         $service = new SysAdminUserService();
 
         $this->expectException(ClientErrorException::class);
-        $this->expectExceptionMessage('você nao pode excluir sua propria conta');
+        $this->expectExceptionMessage('Você não pode excluir sua própria conta');
 
         $service->deleteUser(20, 'Admin', 20);
     }

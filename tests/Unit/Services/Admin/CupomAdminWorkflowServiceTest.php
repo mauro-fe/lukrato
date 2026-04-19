@@ -18,7 +18,7 @@ class CupomAdminWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(400, $result['status']);
-        $this->assertSame('Codigo do cupom e obrigatorio', $result['message']);
+        $this->assertSame('Código do cupom é obrigatório', $result['message']);
     }
 
     public function testValidateCouponReturnsBadRequestWhenCodeIsMissing(): void
@@ -31,7 +31,7 @@ class CupomAdminWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(400, $result['status']);
-        $this->assertSame('Codigo do cupom e obrigatorio', $result['message']);
+        $this->assertSame('Código do cupom é obrigatório', $result['message']);
     }
 
     public function testGetStatisticsReturnsBadRequestWhenCouponIdIsMissing(): void
@@ -42,6 +42,6 @@ class CupomAdminWorkflowServiceTest extends TestCase
 
         $this->assertFalse($result['success']);
         $this->assertSame(400, $result['status']);
-        $this->assertSame('ID do cupom e obrigatorio', $result['message']);
+        $this->assertSame('ID do cupom é obrigatório', $result['message']);
     }
 }

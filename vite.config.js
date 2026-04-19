@@ -27,6 +27,7 @@ export default defineConfig({
                 'gamification': resolve(__dirname, 'resources/js/admin/gamification/index.js'),
                 'gamification-dashboard': resolve(__dirname, 'resources/js/admin/gamification-dashboard/index.js'),
                 'billing': resolve(__dirname, 'resources/js/admin/billing/index.js'),
+                'billing-checkout': resolve(__dirname, 'resources/js/admin/billing/checkout.js'),
                 'perfil': resolve(__dirname, 'resources/js/admin/perfil/index.js'),
                 'configuracoes': resolve(__dirname, 'resources/js/admin/configuracoes/index.js'),
                 'frontend-pilot': resolve(__dirname, 'resources/js/admin/frontend-pilot/index.js'),

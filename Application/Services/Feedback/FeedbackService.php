@@ -38,11 +38,11 @@ class FeedbackService
         ];
 
         if (!in_array($tipo, $tiposValidos, true)) {
-            return ['success' => false, 'message' => 'Tipo de feedback invalido.'];
+            return ['success' => false, 'message' => 'Tipo de feedback inválido.'];
         }
 
         if (!$this->validateRating($tipo, $rating)) {
-            return ['success' => false, 'message' => 'Rating invalido para este tipo de feedback.'];
+            return ['success' => false, 'message' => 'Rating inválido para este tipo de feedback.'];
         }
 
         $spamCheck = $this->checkAntiSpam($userId, $tipo, $contexto);
@@ -72,7 +72,7 @@ class FeedbackService
     }
 
     /**
-     * Verifica se NPS deve ser exibido (ultimo NPS > 30 dias).
+     * Verifica se NPS deve ser exibido (último NPS > 30 dias).
      */
     public function shouldShowNps(int $userId): bool
     {
@@ -91,7 +91,7 @@ class FeedbackService
         return $this->repo->countTodayByUserAndContext($userId, Feedback::TIPO_ACAO, $contexto) === 0;
     }
 
-    // --- Metodos SysAdmin ---
+    // --- Métodos SysAdmin ---
 
     public function getStatsByTipo(): array
     {
@@ -152,7 +152,7 @@ class FeedbackService
     {
         $count = $this->repo->countTodayByUserAndContext($userId, Feedback::TIPO_ACAO, $contexto);
         return $count >= 1
-            ? ['allowed' => false, 'message' => 'você ja enviou feedback para esta acao hoje.']
+            ? ['allowed' => false, 'message' => 'Você já enviou feedback para esta ação hoje.']
             : ['allowed' => true];
     }
 
@@ -160,7 +160,7 @@ class FeedbackService
     {
         $lastNps = $this->repo->lastNpsFeedbackDate($userId);
         if ($lastNps !== null && $lastNps->diffInDays(now()) < 30) {
-            return ['allowed' => false, 'message' => 'NPS ja enviado recentemente.'];
+            return ['allowed' => false, 'message' => 'NPS já enviado recentemente.'];
         }
         return ['allowed' => true];
     }
@@ -169,7 +169,7 @@ class FeedbackService
     {
         $count = $this->repo->countTodayByUserAndContext($userId, Feedback::TIPO_SUGESTAO);
         return $count >= 3
-            ? ['allowed' => false, 'message' => 'Limite de sugestoes atingido hoje.']
+            ? ['allowed' => false, 'message' => 'Limite de sugestões atingido hoje.']
             : ['allowed' => true];
     }
 }

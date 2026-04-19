@@ -22,7 +22,10 @@ import {
 // ─── Config ─────────────────────────────────────────────────────────────────
 
 const modalEl = document.getElementById('billing-modal');
-const ds = modalEl?.dataset || {};
+const checkoutPageEl = document.getElementById('billing-checkout-page');
+const paymentRoot = modalEl || checkoutPageEl;
+const ds = paymentRoot?.dataset || {};
+const isPageMode = ds.mode === 'page' || Boolean(checkoutPageEl);
 const userDataComplete = {
     pix: ds.pixComplete === '1',
     boleto: ds.boletoComplete === '1',
@@ -35,8 +38,8 @@ const userDataComplete = {
 
 // ─── DOM Elements ───────────────────────────────────────────────────────────
 
-const modal = modalEl;
-const modalSystem = window.LK?.modalSystem;
+const modal = paymentRoot;
+const modalSystem = isPageMode ? null : window.LK?.modalSystem;
 const modalTitle = document.getElementById('billing-modal-title');
 const modalText = document.getElementById('billing-modal-text');
 const modalPrice = document.getElementById('billing-modal-price');
@@ -94,7 +97,7 @@ const pendingBoletoCode = document.getElementById('pending-boleto-code');
 const pendingBoletoDownload = document.getElementById('pending-boleto-download');
 const pendingCopyBtn = document.getElementById('pending-copy-btn');
 const cancelPendingBtn = document.getElementById('cancel-pending-btn');
-const modalBody = document.querySelector('.payment-modal__body');
+const modalBody = paymentRoot?.querySelector('.payment-modal__body') || document.querySelector('.payment-modal__body');
 
 const planButtons = document.querySelectorAll('[data-plan-button]');
 
@@ -120,7 +123,7 @@ const couponApplyBtn = document.getElementById('couponApplyBtn');
 const couponFeedback = document.getElementById('couponFeedback');
 const couponSection = document.querySelector('.coupon-section');
 
-if (modal) {
+if (modal && !isPageMode) {
     modalSystem?.prepareOverlay(modal, { scope: 'page' });
     modal.setAttribute('aria-hidden', modal.classList.contains('payment-modal--open') ? 'false' : 'true');
 }
@@ -283,6 +286,53 @@ function cycleLabel(months) {
     return 'mês';
 }
 
+function readPlanConfigFromRoot() {
+    const planId = ds.planId || null;
+    const planCode = ds.planCode || null;
+    const monthlyBase = Number(ds.planMonthly ?? ds.planAmount ?? '0');
+
+    if (!planId || !planCode || !monthlyBase || Number.isNaN(monthlyBase)) {
+        return null;
+    }
+
+    return {
+        planId,
+        planCode,
+        planName: ds.planName || 'Lukrato PRO',
+        monthlyBase,
+        cycle: ds.planCycle || 'monthly',
+        months: Number(ds.planMonths || '1'),
+        discount: Number(ds.planDiscount || '0'),
+    };
+}
+
+function redirectToBilling(status = '') {
+    const target = new URL(ds.returnUrl || '/billing', window.location.origin);
+    if (status) {
+        target.searchParams.set('status', status);
+    }
+    window.location.href = target.toString();
+}
+
+function finishPaymentSuccess(message = 'Pagamento realizado com sucesso.') {
+    const done = () => {
+        if (isPageMode) {
+            redirectToBilling('success');
+            return;
+        }
+
+        window.location.reload();
+    };
+
+    const alertPromise = window.Swal?.fire('Sucesso!', message, 'success');
+    if (alertPromise?.then) {
+        alertPromise.then(done);
+        return;
+    }
+
+    done();
+}
+
 function getActiveCycleFromUI() {
     const active = document.querySelector('.plan-billing-toggle__btn.is-active');
     if (!active) return { cycle: 'monthly', months: 1, discount: 0 };
@@ -315,6 +365,8 @@ function updateSubmitButton() {
 
 function syncPlanHiddenFields() {
     if (!currentPlanConfig) return;
+    if (!inputPlanId || !inputPlanCode || !inputPlanName || !inputPlanAmount || !inputPlanInterval || !inputPlanCycle || !inputPlanMonths || !inputPlanDiscount || !inputBaseMonthly || !inputBillingType) return;
+
     const total = calcTotal(currentPlanConfig.monthlyBase, currentPlanConfig.months, currentPlanConfig.discount);
 
     inputPlanId.value = currentPlanConfig.planId;
@@ -386,7 +438,7 @@ async function checkPendingPix() {
                 pix: { qrCodeImage: json.data.pix.qrCodeImage, payload: json.data.pix.payload }
             });
         } else if (json.data?.paid) {
-            window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado.', 'success').then(() => window.location.reload());
+            finishPaymentSuccess('Seu plano foi ativado.');
         }
     } catch (err) { /* silencioso */ }
 }
@@ -418,7 +470,7 @@ function startPaymentPolling(paymentId) {
             const json = await apiGet(resolvePremiumCheckPaymentEndpoint(paymentId));
             if (json.success && json.data?.paid) {
                 clearInterval(paymentPollingInterval);
-                window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado com sucesso.', 'success').then(() => window.location.reload());
+                finishPaymentSuccess('Seu plano foi ativado com sucesso.');
             }
         } catch (err) { console.error('[Polling] Erro:', err); }
     }, 5000);
@@ -439,7 +491,7 @@ async function checkPendingPayment() {
             showPendingPaymentSection(json.data);
             return true;
         } else if (json.data?.paid) {
-            window.Swal?.fire('Pagamento confirmado! 🎉', 'Seu plano foi ativado.', 'success').then(() => window.location.reload());
+            finishPaymentSuccess('Seu plano foi ativado.');
             return true;
         }
         hasPendingPayment = false;
@@ -528,11 +580,17 @@ async function openBillingModal(planConfig) {
     currentBillingType = 'CREDIT_CARD';
     if (modalTitle) modalTitle.textContent = 'Pagamento Seguro';
 
-    modal.classList.add('payment-modal--open');
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
+    if (!modal) {
+        return;
+    }
 
-    if (!modalSystem) {
+    if (!isPageMode) {
+        modal.classList.add('payment-modal--open');
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    if (!modalSystem && !isPageMode) {
         document.body.style.overflow = 'hidden';
     }
 
@@ -545,6 +603,15 @@ async function openBillingModal(planConfig) {
 }
 
 function closeBillingModal() {
+    if (isPageMode) {
+        redirectToBilling();
+        return;
+    }
+
+    if (!modal) {
+        return;
+    }
+
     modal.classList.remove('payment-modal--open');
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
@@ -632,12 +699,23 @@ document.querySelectorAll('.plan-billing-toggle').forEach((group) => {
             currentPlanConfig.cycle = b.dataset.cycle || 'monthly';
             currentPlanConfig.months = Number(b.dataset.months || '1');
             currentPlanConfig.discount = Number(b.dataset.discount || '0');
-            if (modal?.classList.contains('payment-modal--open')) syncPlanHiddenFields();
+            if (isPageMode || modal?.classList.contains('payment-modal--open')) syncPlanHiddenFields();
         });
     });
 });
 
 // ─── Form Submit ────────────────────────────────────────────────────────────
+
+if (isPageMode) {
+    const initialPlanConfig = readPlanConfigFromRoot();
+
+    if (initialPlanConfig) {
+        openBillingModal(initialPlanConfig);
+    } else {
+        window.Swal?.fire('Plano invalido', 'Nao foi possivel identificar o plano selecionado.', 'warning')
+            ?.then(() => redirectToBilling());
+    }
+}
 
 form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -701,8 +779,10 @@ form?.addEventListener('submit', async (e) => {
         Swal?.close();
 
         if (currentBillingType === 'CREDIT_CARD') {
-            window.Swal?.fire('Sucesso! 🎉', json?.message || 'Pagamento realizado com sucesso.', 'success').then(() => window.location.reload());
-            closeBillingModal();
+            finishPaymentSuccess(json?.message || 'Pagamento realizado com sucesso.');
+            if (!isPageMode) {
+                closeBillingModal();
+            }
         } else if (currentBillingType === 'PIX') {
             const pix = json.data?.pix;
             if (pix) {

@@ -9,7 +9,7 @@ export function createMetasUi({
     isDemoItem,
 }) {
     function setupMoneyInputs() {
-        const moneyFields = ['metaValorAlvo', 'metaValorAtual', 'aporteValor'];
+        const moneyFields = ['metaValorAlvo', 'metaValorAtual'];
         moneyFields.forEach((id) => {
             const input = document.getElementById(id);
             if (input) {
@@ -263,7 +263,6 @@ export function createMetasUi({
                     ? `Para recuperar o prazo, tente reforcar em ${Utils.formatCurrency(overdue.aporte_mensal_sugerido)} por mes.`
                     : `Faltam ${Utils.formatCurrency(overdue.valor_restante || 0)} para concluir esta meta.`,
                 icon: 'triangle-alert',
-                action: 'deposit',
                 metaId: overdue.id,
             });
         }
@@ -274,7 +273,6 @@ export function createMetasUi({
                 titulo: `${closestMeta.titulo} esta mais perto de sair do papel`,
                 mensagem: `Faltam ${Utils.formatCurrency(closestMeta.valor_restante || 0)} para concluir.`,
                 icon: 'target',
-                action: 'deposit',
                 metaId: closestMeta.id,
             });
         }
@@ -285,7 +283,6 @@ export function createMetasUi({
                 titulo: 'Sua meta de alta prioridade pede atencao',
                 mensagem: `${highestPriority.titulo} ainda esta em ${(highestPriority.progresso || 0).toFixed(1)}% de progresso.`,
                 icon: 'flag',
-                action: 'review',
                 metaId: highestPriority.id,
             });
         }

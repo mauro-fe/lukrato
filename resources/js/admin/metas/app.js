@@ -1,12 +1,11 @@
 /**
  * Metas – Main application logic
- * Data loading, rendering, CRUD, aportes, templates
+ * Data loading, rendering, CRUD, templates
  */
 
 import { CONFIG, STATE, Utils, getCategoryIconColor } from './state.js';
 import {
     resolveAccountsEndpoint,
-    resolveFinanceGoalContributionEndpoint,
     resolveFinanceGoalEndpoint,
     resolveFinanceGoalTemplatesEndpoint,
     resolveFinanceGoalsEndpoint,
@@ -164,7 +163,6 @@ export const MetasApp = {
         document.getElementById('btnTemplatesEmpty')?.addEventListener('click', () => MetasApp.openTemplates());
         document.getElementById('btnNovaMetaEmpty')?.addEventListener('click', () => MetasApp.openMetaModal());
         document.getElementById('formMeta')?.addEventListener('submit', (e) => MetasApp.handleMetaSubmit(e));
-        document.getElementById('formAporte')?.addEventListener('submit', (e) => MetasApp.handleAporteSubmit(e));
         document.getElementById('metSearchInput')?.addEventListener('input', (e) => {
             STATE.ui.query = e.target.value || '';
             MetasApp.renderMetas();
@@ -478,62 +476,6 @@ export const MetasApp = {
         }
     },
 
-    // ==================== APORTE ====================
-
-    openAporteModal(metaId) {
-        const meta = STATE.metas.find(m => m.id === metaId);
-        if (!meta) return;
-        if (preventDemoAction(meta)) return;
-        Swal.fire({
-            icon: 'info',
-            title: 'Use lançamentos para metas',
-            html: `Para movimentar a meta <strong>${Utils.escHtml(meta.titulo)}</strong>, crie uma receita, despesa ou transferência e vincule a meta no lançamento.`,
-            confirmButtonText: 'Entendi'
-        });
-    },
-
-    async handleAporteSubmit(e) {
-        e.preventDefault();
-        MetasApp.closeModal('modalAporte');
-        Utils.showToast('Para movimentar metas, use lançamentos com vínculo de meta.', 'info');
-        return;
-
-        const metaId = document.getElementById('aporteMetaId').value;
-        const valor = Utils.parseMoney(document.getElementById('aporteValor').value);
-
-        if (valor <= 0) return Utils.showToast('Informe um valor válido', 'error');
-
-        try {
-            const res = await apiPost(resolveFinanceGoalContributionEndpoint(metaId), { valor });
-
-            if (res.success !== false) {
-                MetasApp.closeModal('modalAporte');
-
-                const responseData = res.data;
-                const meta = responseData?.meta || responseData;
-                const gamification = responseData?.gamification || res.gamification;
-
-                if (meta?.status === 'concluida') {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '🎉 Meta concluída!',
-                        html: `Parabéns! Você atingiu <strong>${Utils.formatCurrency(meta.valor_alvo)}</strong> na meta <strong>${Utils.escHtml(meta.titulo)}</strong>!`,
-                        confirmButtonText: 'Celebrar! 🎊'
-                    });
-                } else {
-                    Utils.showToast('Aporte registrado!', 'success');
-                }
-
-                processGamification(gamification);
-                await MetasApp.loadAll();
-            } else {
-                Utils.showToast(res.message || 'Erro ao registrar aporte', 'error');
-            }
-        } catch (e) {
-            Utils.showToast(requestErrorMessage(e, 'Erro ao registrar aporte'), 'error');
-        }
-    },
-
     // ==================== TEMPLATES ====================
 
     async openTemplates() {
@@ -580,9 +522,6 @@ export const MetasApp = {
     },
 
     useTemplate(tmpl) {
-        if (!MetasApp.isTemplatesPage()) {
-            MetasApp.closeModal('modalTemplates');
-        }
         MetasApp.openMetaModal();
 
         setTimeout(() => {

@@ -23,3 +23,4 @@ Router::add('GET', '/importacoes/historico', 'Admin\\ImportacoesHistoricoControl
 
 // Billing/plans
 Router::add('GET', '/billing', 'Admin\\BillingController@index', ['auth']);
+Router::add('GET', '/billing/checkout', 'Admin\\BillingController@checkout', ['auth']);

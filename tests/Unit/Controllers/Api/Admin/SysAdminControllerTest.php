@@ -69,7 +69,7 @@ class SysAdminControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
         $this->assertSame([
             'success' => false,
-            'message' => 'Email ou ID do usuario e obrigatorio',
+            'message' => 'E-mail ou ID do usuário é obrigatório',
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 

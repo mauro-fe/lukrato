@@ -10,6 +10,140 @@ import { STATE, Utils } from './state.js';
 import { apiFetch, getErrorMessage } from '../shared/api.js';
 import { resolveReportsExportEndpoint } from '../api/endpoints/reports.js';
 
+function getFocusableElements(container) {
+    return Array.from(container.querySelectorAll(
+        'button:not([disabled]), select:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+    )).filter((element) => element.offsetParent !== null);
+}
+
+function showExportToast(type, message, detail = '') {
+    const text = detail ? `${message}: ${detail}` : message;
+
+    if (typeof window.showToast === 'function') {
+        window.showToast(text, type, type === 'error' ? 4500 : 3000);
+        return;
+    }
+
+    let container = document.getElementById('relExportToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'relExportToastContainer';
+        container.className = 'rel-export-toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `rel-export-toast rel-export-toast--${type}`;
+    toast.textContent = text;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('is-visible'));
+    setTimeout(() => {
+        toast.classList.remove('is-visible');
+        setTimeout(() => toast.remove(), 220);
+    }, type === 'error' ? 4500 : 3000);
+}
+
+function openExportDialog(currentType) {
+    const overlay = document.getElementById('relExportModalOverlay');
+    const modal = overlay?.querySelector('.rel-export-modal');
+    const form = document.getElementById('relExportForm');
+    const typeSelect = document.getElementById('relExportType');
+
+    if (!overlay || !modal || !form || !typeSelect) {
+        return Promise.resolve(null);
+    }
+
+    const hasCurrentType = Array.from(typeSelect.options).some((option) => option.value === currentType);
+    typeSelect.value = hasCurrentType ? currentType : 'despesas_por_categoria';
+
+    const pdfInput = form.querySelector('input[name="format"][value="pdf"]');
+    if (pdfInput) {
+        pdfInput.checked = true;
+    }
+
+    const previousFocus = document.activeElement;
+
+    return new Promise((resolve) => {
+        let resolved = false;
+
+        const cleanup = () => {
+            form.removeEventListener('submit', onSubmit);
+            overlay.removeEventListener('click', onOverlayClick);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        const close = (value = null) => {
+            if (resolved) return;
+            resolved = true;
+            cleanup();
+            overlay.classList.remove('is-open');
+            document.body.classList.remove('rel-export-modal-open');
+            setTimeout(() => {
+                overlay.hidden = true;
+                if (previousFocus && typeof previousFocus.focus === 'function') {
+                    previousFocus.focus();
+                }
+            }, 140);
+            resolve(value);
+        };
+
+        function onSubmit(event) {
+            event.preventDefault();
+            close({
+                type: typeSelect.value,
+                format: form.elements.format?.value || 'pdf',
+            });
+        }
+
+        function onOverlayClick(event) {
+            if (event.target === overlay || event.target.closest('[data-rel-export-close]')) {
+                event.preventDefault();
+                close(null);
+            }
+        }
+
+        function onKeyDown(event) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                close(null);
+                return;
+            }
+
+            if (event.key !== 'Tab') {
+                return;
+            }
+
+            const focusable = getFocusableElements(modal);
+            if (focusable.length === 0) {
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+
+        form.addEventListener('submit', onSubmit);
+        overlay.addEventListener('click', onOverlayClick);
+        document.addEventListener('keydown', onKeyDown);
+
+        overlay.hidden = false;
+        document.body.classList.add('rel-export-modal-open');
+        requestAnimationFrame(() => {
+            overlay.classList.add('is-open');
+            window.lucide?.createIcons?.();
+            typeSelect.focus();
+        });
+    });
+}
+
 export function createExportHandler({
     getReportType,
     showRestrictionAlert,
@@ -17,44 +151,11 @@ export function createExportHandler({
 }) {
     return async function handleExport() {
         if (!window.IS_PRO) {
-            return showRestrictionAlert('Exportação de relatórios é exclusiva do plano PRO.');
+            return showRestrictionAlert('Exportacao de relatorios e exclusiva do plano PRO.');
         }
 
         const currentType = getReportType() || 'despesas_por_categoria';
-
-        const { value: formValues } = await Swal.fire({
-            title: 'Exportar Relatório',
-            html: `
-                <div style="text-align:left;display:flex;flex-direction:column;gap:12px;padding-top:8px;">
-                    <label style="font-weight:600;font-size:0.85rem;color:var(--color-text-muted);">Tipo de Relatório</label>
-                    <select id="swalExportType" class="swal2-select" style="width:100%;font-size:0.9rem;">
-                        <option value="despesas_por_categoria" ${currentType === 'despesas_por_categoria' ? 'selected' : ''}>Despesas por Categoria</option>
-                        <option value="receitas_por_categoria" ${currentType === 'receitas_por_categoria' ? 'selected' : ''}>Receitas por Categoria</option>
-                        <option value="saldo_mensal" ${currentType === 'saldo_mensal' ? 'selected' : ''}>Saldo Diário</option>
-                        <option value="receitas_despesas_diario" ${currentType === 'receitas_despesas_diario' ? 'selected' : ''}>Receitas x Despesas Diário</option>
-                        <option value="evolucao_12m" ${currentType === 'evolucao_12m' ? 'selected' : ''}>Evolução 12 Meses</option>
-                        <option value="receitas_despesas_por_conta" ${currentType === 'receitas_despesas_por_conta' ? 'selected' : ''}>Receitas x Despesas por Conta</option>
-                        <option value="cartoes_credito" ${currentType === 'cartoes_credito' ? 'selected' : ''}>Relatório de Cartões</option>
-                        <option value="resumo_anual" ${currentType === 'resumo_anual' ? 'selected' : ''}>Resumo Anual</option>
-                        <option value="despesas_anuais_por_categoria" ${currentType === 'despesas_anuais_por_categoria' ? 'selected' : ''}>Despesas Anuais por Categoria</option>
-                        <option value="receitas_anuais_por_categoria" ${currentType === 'receitas_anuais_por_categoria' ? 'selected' : ''}>Receitas Anuais por Categoria</option>
-                    </select>
-                    <label style="font-weight:600;font-size:0.85rem;color:var(--color-text-muted);">Formato</label>
-                    <select id="swalExportFormat" class="swal2-select" style="width:100%;font-size:0.9rem;">
-                        <option value="pdf">PDF</option>
-                        <option value="excel">Excel (.xlsx)</option>
-                    </select>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Exportar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#e67e22',
-            preConfirm: () => ({
-                type: document.getElementById('swalExportType').value,
-                format: document.getElementById('swalExportFormat').value,
-            }),
-        });
+        const formValues = await openExportDialog(currentType);
 
         if (!formValues) return;
 
@@ -103,37 +204,14 @@ export function createExportHandler({
             link.remove();
             URL.revokeObjectURL(url);
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: 'Relatório exportado!',
-                    text: filename,
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true,
-                });
-            }
+            showExportToast('success', 'Relatorio exportado', filename);
         } catch (error) {
             if (await handleRestrictedAccess(error)) {
                 return;
             }
             console.error('Export error:', error);
-            const message = getErrorMessage(error, 'Erro ao exportar relatório. Tente novamente.');
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: 'Erro ao exportar',
-                    text: message,
-                    showConfirmButton: false,
-                    timer: 3000,
-                });
-            } else {
-                alert(message);
-            }
+            const message = getErrorMessage(error, 'Erro ao exportar relatorio. Tente novamente.');
+            showExportToast('error', 'Erro ao exportar', message);
         } finally {
             if (exportBtn) {
                 exportBtn.disabled = false;

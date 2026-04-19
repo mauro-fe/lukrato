@@ -96,7 +96,7 @@ class BaseControllerTest extends TestCase
 
     public function testNormalizeYearMonthFallsBackToProvidedMonth(): void
     {
-        $result = $this->controller->callNormalizeYearMonth('invalido', '2026-04');
+        $result = $this->controller->callNormalizeYearMonth('inválido', '2026-04');
 
         $this->assertSame('2026-04', $result['month']);
         $this->assertSame('2026-04-01', $result['start']);
@@ -331,7 +331,7 @@ class BaseControllerTest extends TestCase
     {
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('hasJsonError')->once()->andReturnTrue();
-        $request->shouldReceive('jsonError')->once()->andReturn('JSON invalido na requisicao.');
+        $request->shouldReceive('jsonError')->once()->andReturn('JSON inválido na requisição.');
 
         $controller = new TestableBaseController(
             Mockery::mock(Auth::class),

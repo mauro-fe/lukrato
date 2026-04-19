@@ -123,6 +123,53 @@ class ReportApiWorkflowServiceTest extends TestCase
         ]);
     }
 
+    public function testGenerateAnnualCategoryReportUsesOnlySelectedCalendarYear(): void
+    {
+        $reportService = Mockery::mock(ReportService::class);
+        $reportService
+            ->shouldReceive('generateReport')
+            ->once()
+            ->with(
+                ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
+                Mockery::on(static function (ReportParameters $params): bool {
+                    return $params->userId === 77
+                        && $params->accountId === 12
+                        && $params->includeTransfers === false
+                        && $params->start->toDateString() === '2026-01-01'
+                        && $params->end->toDateString() === '2026-12-31';
+                }),
+                true
+            )
+            ->andReturn(['labels' => ['Moradia'], 'values' => [500.0]]);
+
+        $service = new ReportApiWorkflowService(
+            $reportService,
+            Mockery::mock(ReportExportBuilder::class),
+            Mockery::mock(PdfExportService::class),
+            Mockery::mock(ExcelExportService::class),
+            Mockery::mock(InsightsService::class),
+            Mockery::mock(ComparativesService::class),
+        );
+
+        $user = new class extends Usuario {
+            public function isPro(): bool
+            {
+                return true;
+            }
+        };
+
+        $result = $service->generateReport(77, $user, [
+            'year' => '2026',
+            'month' => '04',
+            'account_id' => '12',
+            'type' => 'despesas_anuais_por_categoria',
+        ]);
+
+        $this->assertSame(ReportType::DESPESAS_ANUAIS_POR_CATEGORIA, $result['type']);
+        $this->assertSame('2026-01-01', $result['params']->start->toDateString());
+        $this->assertSame('2026-12-31', $result['params']->end->toDateString());
+    }
+
     public function testExportReportBuildsExcelFileMetadata(): void
     {
         $reportService = Mockery::mock(ReportService::class);

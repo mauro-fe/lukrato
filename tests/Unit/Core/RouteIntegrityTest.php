@@ -82,7 +82,7 @@ class RouteIntegrityTest extends TestCase
         $this->assertSame(
             [],
             $invalidCallbacks,
-            "Callbacks de rotas invalidos:\n" . implode("\n", $invalidCallbacks)
+            "Callbacks de rotas inválidos:\n" . implode("\n", $invalidCallbacks)
         );
     }
 
@@ -117,4 +117,3 @@ class RouteIntegrityTest extends TestCase
         return is_array($routes) ? $routes : [];
     }
 }
-

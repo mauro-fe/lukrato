@@ -192,7 +192,7 @@ class HealthScoreService
         $date = DateTimeImmutable::createFromFormat('!Y-m', $month);
 
         if (!$date || $date->format('Y-m') !== $month) {
-            throw new InvalidArgumentException('Formato de mes invalido');
+            throw new InvalidArgumentException('Formato de mês inválido');
         }
 
         return [
