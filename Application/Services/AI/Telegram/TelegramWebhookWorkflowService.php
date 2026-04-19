@@ -890,6 +890,12 @@ class TelegramWebhookWorkflowService
         string $intent
     ): void {
         $msgRecord->markFailed("telegram_send_failed: {$operation}");
+        $telegramError = $this->telegram()->lastErrorMessage();
+        $errorMessage = "Falha ao enviar resposta para o Telegram ({$operation}).";
+
+        if ($telegramError !== null && $telegramError !== '') {
+            $errorMessage .= " Detalhe: {$telegramError}";
+        }
 
         AiLogService::log([
             'user_id' => $msgRecord->user_id,
@@ -904,7 +910,7 @@ class TelegramWebhookWorkflowService
             'tokens_total' => 0,
             'response_time_ms' => 0,
             'success' => false,
-            'error_message' => mb_substr("Falha ao enviar resposta para o Telegram ({$operation}).", 0, 1000),
+            'error_message' => mb_substr($errorMessage, 0, 1000),
             'source' => 'delivery',
             'confidence' => 0,
             'prompt_version' => 'telegram_delivery_v1',
@@ -920,6 +926,7 @@ class TelegramWebhookWorkflowService
                 'operation' => $operation,
                 'intent' => $intent,
                 'telegram_message_id' => $msgRecord->id ?? null,
+                'telegram_error' => $telegramError,
             ],
         );
     }
@@ -1055,6 +1062,23 @@ class TelegramWebhookWorkflowService
         foreach ($chunks as $index => $chunk) {
             if ($index === $lastIndex) {
                 if (!$this->telegram()->sendInlineKeyboard($chatId, $chunk, $rows)) {
+                    $inlineKeyboardError = $this->telegram()->lastErrorMessage();
+
+                    if ($this->sendQuickReplyFallbackText($chatId, $chunk, $normalizedReplies)) {
+                        LogService::persist(
+                            LogLevel::WARNING,
+                            LogCategory::WEBHOOK,
+                            'Botoes rapidos do Telegram falharam; resposta enviada como texto',
+                            [
+                                'action' => 'telegram_quick_reply_fallback',
+                                'chat_id' => $chatId,
+                                'telegram_error' => $inlineKeyboardError,
+                            ],
+                        );
+
+                        return true;
+                    }
+
                     return false;
                 }
 
@@ -1067,6 +1091,32 @@ class TelegramWebhookWorkflowService
         }
 
         return true;
+    }
+
+    /**
+     * @param array<int, array{label:string,message:string}> $quickReplies
+     */
+    private function sendQuickReplyFallbackText(string $chatId, string $htmlText, array $quickReplies): bool
+    {
+        $plainText = $this->telegramHtmlToPlainText($htmlText);
+        $labels = array_values(array_filter(array_map(
+            static fn(array $reply): string => trim((string) ($reply['label'] ?? '')),
+            $quickReplies,
+        )));
+
+        if ($labels !== []) {
+            $plainText .= "\n\nOpcoes: " . implode(' | ', $labels);
+        }
+
+        return $this->telegram()->sendPlainText($chatId, $plainText);
+    }
+
+    private function telegramHtmlToPlainText(string $htmlText): string
+    {
+        $plainText = strip_tags($htmlText);
+        $plainText = html_entity_decode($plainText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim($plainText) !== '' ? trim($plainText) : 'Resposta pronta.';
     }
 
     private function appendSuggestion(string $text, ?string $suggestion = null): string

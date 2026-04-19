@@ -30,6 +30,7 @@ class TelegramService
     private Client $http;
     private string $token;
     private TelegramRuntimeConfig $runtimeConfig;
+    private ?string $lastErrorMessage = null;
 
     public function __construct(?Client $http = null, ?TelegramRuntimeConfig $runtimeConfig = null)
     {
@@ -56,6 +57,18 @@ class TelegramService
             'chat_id' => $chatId,
             'text' => mb_substr($text, 0, 4096),
             'parse_mode' => 'HTML',
+            'disable_web_page_preview' => true,
+        ]);
+    }
+
+    /**
+     * Envia texto sem parse_mode. Usado como fallback quando HTML ou reply_markup falham.
+     */
+    public function sendPlainText(string $chatId, string $text): bool
+    {
+        return $this->request('sendMessage', [
+            'chat_id' => $chatId,
+            'text' => mb_substr($text, 0, 4096),
             'disable_web_page_preview' => true,
         ]);
     }
@@ -148,6 +161,11 @@ class TelegramService
         return self::runtimeConfig()->webhookSecret();
     }
 
+    public function lastErrorMessage(): ?string
+    {
+        return $this->lastErrorMessage;
+    }
+
     // ─── Internal ──────────────────────────────────────────
 
     /**
@@ -177,6 +195,7 @@ class TelegramService
                 && is_array($body)
                 && ($body['ok'] ?? false) === true
             ) {
+                $this->lastErrorMessage = null;
                 return true;
             }
 
@@ -220,6 +239,10 @@ class TelegramService
             $body = json_decode($response->getBody()->getContents(), true);
 
             if (!is_array($body)) {
+                $this->logFailure($method, 'Telegram API retornou resposta invalida.', [
+                    'reason' => 'invalid_response',
+                ]);
+
                 return ['ok' => false, 'description' => 'Resposta invalida da API'];
             }
 
@@ -228,6 +251,8 @@ class TelegramService
                 $this->logFailure($method, "Telegram API retornou falha: {$description}", [
                     'description' => $description,
                 ]);
+            } else {
+                $this->lastErrorMessage = null;
             }
 
             return $body;
@@ -245,6 +270,9 @@ class TelegramService
      */
     private function logFailure(string $method, string $message, array $context = []): void
     {
+        $message = $this->sanitizeErrorMessage($message);
+        $this->lastErrorMessage = $message;
+
         $context = array_merge([
             'action' => 'telegram_api_request',
             'method' => $method,
@@ -260,6 +288,15 @@ class TelegramService
         } catch (\Throwable) {
             LogService::safeErrorLog("[Telegram] {$method} falhou: {$message}");
         }
+    }
+
+    private function sanitizeErrorMessage(string $message): string
+    {
+        if ($this->token !== '') {
+            $message = str_replace($this->token, '[telegram-token]', $message);
+        }
+
+        return (string) preg_replace('/bot\d+:[A-Za-z0-9_-]+/', 'bot[telegram-token]', $message);
     }
 
     private static function runtimeConfig(): TelegramRuntimeConfig

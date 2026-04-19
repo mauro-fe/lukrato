@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\AI;
 
 use Application\Models\TelegramMessage;
+use Application\Services\AI\Telegram\TelegramService;
 use Application\Services\AI\Telegram\TelegramWebhookWorkflowService;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use PHPUnit\Framework\TestCase;
@@ -77,5 +78,51 @@ class TelegramWebhookWorkflowServiceTest extends TestCase
         $this->assertSame('Teste', $log->prompt);
         $this->assertSame(0, (int) $log->success);
         $this->assertStringContainsString('Falha ao enviar resposta para o Telegram', $log->error_message);
+    }
+
+    public function testQuickReplyButtonsFallbackToPlainTextWhenInlineKeyboardFails(): void
+    {
+        $telegram = new class extends TelegramService {
+            public int $inlineAttempts = 0;
+            public int $plainAttempts = 0;
+            public string $plainText = '';
+
+            public function __construct()
+            {
+            }
+
+            public function sendInlineKeyboard(string $chatId, string $text, array $rows): bool
+            {
+                $this->inlineAttempts++;
+                return false;
+            }
+
+            public function sendPlainText(string $chatId, string $text): bool
+            {
+                $this->plainAttempts++;
+                $this->plainText = $text;
+                return true;
+            }
+
+            public function lastErrorMessage(): ?string
+            {
+                return 'Bad Request: reply markup invalid';
+            }
+        };
+
+        $service = new TelegramWebhookWorkflowService($telegram);
+        $method = (new ReflectionClass($service))->getMethod('sendQuickReplyButtons');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($service, '123456', 'Teste **ok** & pronto', [
+            ['label' => 'Registrar gasto', 'message' => 'quero registrar um gasto'],
+            ['label' => 'Ver gastos', 'message' => 'quanto gastei este mes?'],
+        ]);
+
+        $this->assertTrue($result);
+        $this->assertSame(1, $telegram->inlineAttempts);
+        $this->assertSame(1, $telegram->plainAttempts);
+        $this->assertStringContainsString('Teste ok & pronto', $telegram->plainText);
+        $this->assertStringContainsString('Opcoes: Registrar gasto | Ver gastos', $telegram->plainText);
     }
 }

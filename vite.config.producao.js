@@ -13,7 +13,7 @@ export default defineConfig({
     base: './',
     build: {
         outDir: resolve(__dirname, 'public/build'),
-        emptyOutDir: false,
+        emptyOutDir: true,
         manifest: 'manifest.json',
         sourcemap: false,
         minify: 'terser',

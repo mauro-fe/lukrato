@@ -1,1 +1,0 @@
-function a(){return"api/v1/suporte/enviar"}function r(){return"api/v1/feedback"}function e(){return"api/v1/feedback/check-nps"}function n(){return"api/v1/feedback/can-micro"}function t(){return"api/v1/referral/validate"}function i(){return"api/v1/referral/stats"}export{n as a,e as b,r as c,i as d,t as e,a as r};
