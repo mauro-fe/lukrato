@@ -6,7 +6,42 @@
 
 .cartoes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: var(--spacing-5);
+}
+
+.cartoes-grid:not(.list-view)[data-card-count="1"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1180px) {
+  .cartoes-grid:not(.list-view)[data-card-count="1"] .credit-card {
+    grid-template-columns: 72px minmax(0, 1fr) minmax(320px, 1.08fr) auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "media header header actions"
+      "content content limit limit"
+      "details details progress progress";
+    min-width: 0;
+    align-items: start;
+  }
+
+  .cartoes-grid:not(.list-view)[data-card-count="1"] .card-content {
+    max-width: 540px;
+  }
+
+  .cartoes-grid:not(.list-view)[data-card-count="1"] .card-limit-panel {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    padding: var(--spacing-5);
+  }
+
+  .cartoes-grid:not(.list-view)[data-card-count="1"] .card-details,
+  .cartoes-grid:not(.list-view)[data-card-count="1"] .card-progress {
+    min-width: 0;
+  }
 }
 

@@ -9,12 +9,14 @@ import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-p
 
 /** Map: checkbox ID -> section ID */
 const SECTION_MAP = {
+    toggleLanHero: 'lanHeroSection',
     toggleLanSummary: 'lanSummaryStrip',
     toggleLanExport: 'exportCard',
     toggleLanFilters: 'lanFiltersSection'
 };
 
 const COMPLETE_DEFAULTS = {
+    toggleLanHero: true,
     toggleLanSummary: true,
     toggleLanExport: true,
     toggleLanFilters: true
@@ -34,6 +36,34 @@ async function saveLancamentosPrefs(prefs) {
     await persistUiPagePreferences('lancamentos', prefs);
 }
 
+function isVisible(element) {
+    return !!element && getComputedStyle(element).display !== 'none';
+}
+
+function syncVisibleChildren(container) {
+    if (!container) return 0;
+
+    const visibleCount = Array.from(container.children).filter(isVisible).length;
+    container.dataset.visibleCount = String(visibleCount);
+    container.style.display = visibleCount > 0 ? '' : 'none';
+    return visibleCount;
+}
+
+function syncLancamentosLayout() {
+    const overviewStage = document.querySelector('.lan-stage--overview');
+    const overviewTop = document.querySelector('.lan-overview-top');
+    const overviewBottom = document.querySelector('.lan-overview-bottom');
+
+    const topCount = syncVisibleChildren(overviewTop);
+    const bottomCount = syncVisibleChildren(overviewBottom);
+
+    if (overviewStage) {
+        const visibleBlocks = (topCount > 0 ? 1 : 0) + (bottomCount > 0 ? 1 : 0);
+        overviewStage.dataset.visibleCount = String(visibleBlocks);
+        overviewStage.style.display = visibleBlocks > 0 ? '' : 'none';
+    }
+}
+
 const lancamentosCustomizer = createPageCustomizer({
     storageKey: 'lk_lancamentos_prefs',
     sectionMap: SECTION_MAP,
@@ -41,6 +71,7 @@ const lancamentosCustomizer = createPageCustomizer({
     essentialDefaults: ESSENTIAL_DEFAULTS,
     loadPreferences: loadLancamentosPrefs,
     savePreferences: saveLancamentosPrefs,
+    onApply: syncLancamentosLayout,
     modal: {
         overlayId: 'lanCustomizeModalOverlay',
         openButtonId: 'btnCustomizeLancamentos',

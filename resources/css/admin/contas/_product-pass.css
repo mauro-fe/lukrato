@@ -1,0 +1,541 @@
+/* ============================================================================
+   CONTAS PRODUCT PASS
+  Alinha a pagina ao padrao de stages + hierarquia executiva.
+   ============================================================================ */
+
+.cont-page {
+  gap: clamp(0.9rem, 1.15vw, 1.1rem);
+  padding: clamp(1rem, 1.45vw, 1.2rem) clamp(0.9rem, 1.35vw, 1.1rem);
+}
+
+.cont-stage {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.85rem, 1vw, 1rem);
+}
+
+.cont-overview-top,
+.cont-overview-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+body[data-lk-menu="contas"] .fab-container {
+  display: none !important;
+}
+
+.cont-hero,
+.cont-kpi,
+.cont-distribution,
+.cont-list-section {
+  border-radius: 18px;
+}
+
+.cont-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.35rem, 2vw, 1.75rem) clamp(1rem, 1.7vw, 1.3rem);
+}
+
+.cont-hero__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.34rem 0.68rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card-border) 82%, transparent);
+}
+
+.cont-hero__insight {
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+}
+
+.cont-kpi {
+  padding: 1rem 1.05rem;
+}
+
+.cont-kpi__label {
+  font-size: 0.66rem;
+}
+
+.cont-kpi__value {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+}
+
+.cont-kpi__sub {
+  font-size: clamp(1.05rem, 1.75vw, 1.22rem);
+}
+
+.cont-distribution {
+  padding: 1.05rem 1.1rem;
+}
+
+.cont-section-header {
+  margin-bottom: 0.9rem;
+}
+
+.contas-distribution-list {
+  gap: 0.75rem;
+}
+
+.contas-distribution-item {
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+}
+
+.contas-distribution-item-head {
+  margin-bottom: 0.45rem;
+}
+
+.cont-list-section {
+  padding: 1.05rem 1.1rem 1.1rem;
+}
+
+.cont-list-header {
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cont-list-heading {
+  max-width: 560px;
+}
+
+.cont-list-controls {
+  gap: 0.75rem;
+}
+
+.cont-list-right {
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.contas-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.contas-filter-summary {
+  min-height: 0;
+  margin-bottom: 0.8rem;
+}
+
+.acc-grid {
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+}
+
+.account-card {
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+}
+
+.account-card.is-featured {
+  background: linear-gradient(180deg, rgba(230, 126, 34, 0.07), rgba(230, 126, 34, 0.02));
+}
+
+.account-card.is-zero-balance {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.008));
+  border-color: color-mix(in srgb, var(--color-card-border) 88%, transparent);
+  box-shadow: none;
+}
+
+.account-card.is-zero-balance:not(:hover) {
+  opacity: 0.8;
+}
+
+.account-card.is-zero-balance:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.account-card.is-zero-balance .account-name,
+.account-card.is-zero-balance .account-balance {
+  color: color-mix(in srgb, var(--color-text) 78%, var(--color-text-muted));
+}
+
+.account-card.is-zero-balance .account-institution,
+.account-card.is-zero-balance .account-balance-caption,
+.account-card.is-zero-balance .account-progress-head {
+  color: var(--color-text-muted);
+}
+
+.account-card.is-zero-balance .account-progress-bar {
+  opacity: 0.72;
+}
+
+.account-card.is-zero-balance .account-chip,
+.account-card.is-zero-balance .account-type-badge {
+  filter: saturate(0.82);
+}
+
+.account-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.account-name {
+  font-size: 1rem;
+}
+
+.account-institution {
+  font-size: 0.72rem;
+}
+
+.account-type-badge,
+.account-chip {
+  padding: 3px 8px;
+  font-size: 0.62rem;
+}
+
+.account-balance {
+  font-size: 1.35rem;
+}
+
+.account-progress {
+  padding-top: 0.65rem;
+  margin-top: auto;
+}
+
+.account-progress-head {
+  margin-bottom: 0.35rem;
+}
+
+.account-menu {
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.cont-list-customize-btn {
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+  border-radius: 14px;
+  white-space: nowrap;
+}
+
+.cont-list-footer {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+}
+
+@media (min-width: 1080px) {
+  .cont-stage--overview {
+    gap: 0.95rem;
+  }
+
+  .cont-overview-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.16fr) minmax(300px, 0.84fr);
+    gap: 0.95rem;
+    align-items: stretch;
+  }
+
+  .cont-overview-top[data-visible-count="1"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cont-overview-top[data-visible-count="1"] > * {
+    grid-column: 1 / -1;
+  }
+
+  .cont-hero {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    background:
+      radial-gradient(circle at top right, rgba(230, 126, 34, 0.14), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
+  }
+
+  .cont-hero__title {
+    font-size: 0.95rem;
+  }
+
+  .cont-hero__balance {
+    font-size: clamp(2.25rem, 3.15vw, 3rem);
+    letter-spacing: -0.03em;
+  }
+
+  .cont-hero__meta {
+    justify-content: flex-start;
+    gap: 0.55rem;
+  }
+
+  .cont-hero__meta-divider {
+    display: none;
+  }
+
+  .cont-hero__insight {
+    margin: 0.95rem 0 0;
+    max-width: 400px;
+  }
+
+  .cont-kpis {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    align-self: stretch;
+    height: 100%;
+  }
+
+  .cont-kpi {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .cont-kpi__detail {
+    margin-top: 0.2rem;
+  }
+
+  .cont-overview-bottom {
+    gap: 0;
+  }
+
+  .cont-list-header {
+    align-items: flex-start;
+  }
+
+  .cont-list-controls {
+    align-items: flex-end;
+  }
+
+  .cont-list-actions .btn,
+  .cont-list-right .btn {
+    min-height: 42px;
+    border-radius: 14px;
+  }
+
+  .view-toggle {
+    border-radius: 14px;
+  }
+
+  .view-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+}
+
+@media (max-width: 1024px) {
+  .cont-page {
+    gap: 0.82rem;
+    padding: 0.9rem;
+  }
+
+  .cont-stage,
+  .cont-overview-top,
+  .cont-overview-bottom {
+    gap: 0.82rem;
+  }
+
+  .contas-toolbar {
+    grid-template-columns: minmax(0, 1fr) 200px;
+  }
+
+  .cont-list-header {
+    align-items: stretch;
+  }
+
+  .cont-list-controls {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .cont-list-actions,
+  .cont-list-right {
+    flex-wrap: wrap;
+  }
+
+  .cont-list-right {
+    justify-content: flex-start;
+  }
+
+  .acc-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .cont-page {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .cont-stage,
+  .cont-overview-top,
+  .cont-overview-bottom {
+    gap: 0.75rem;
+  }
+
+  .cont-hero,
+  .cont-kpi,
+  .cont-distribution,
+  .cont-list-section {
+    border-radius: 16px;
+  }
+
+  .cont-hero {
+    padding: 1rem 0.95rem;
+  }
+
+  .cont-hero__meta-item {
+    padding: 0.28rem 0.58rem;
+  }
+
+  .cont-hero__insight {
+    margin-top: 0.75rem;
+    padding: 0.8rem;
+  }
+
+  .cont-distribution,
+  .cont-list-section {
+    padding: 0.95rem;
+  }
+
+  .contas-toolbar {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .cont-list-controls {
+    width: 100%;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .cont-list-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    width: 100%;
+  }
+
+  .cont-list-actions .btn {
+    justify-content: center;
+  }
+
+  .cont-list-actions #btnReload {
+    width: 42px;
+    padding-inline: 0;
+  }
+
+  .cont-list-right {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    width: 100%;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .cont-list-right > .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .acc-grid {
+    gap: 0.75rem;
+  }
+
+  .account-card {
+    border-radius: 16px;
+    padding: 0.88rem;
+  }
+
+  .cont-list-footer {
+    justify-content: stretch;
+  }
+
+  .cont-list-customize-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .cont-page {
+    gap: 0.68rem;
+    padding: 0.68rem 0.45rem 0.9rem;
+  }
+
+  .cont-hero,
+  .cont-kpi,
+  .cont-distribution,
+  .cont-list-section {
+    border-radius: 15px;
+  }
+
+  .cont-hero {
+    padding: 0.88rem 0.82rem;
+  }
+
+  .cont-hero__balance {
+    font-size: 1.72rem;
+  }
+
+  .cont-distribution,
+  .cont-list-section {
+    padding: 0.82rem;
+  }
+
+  .contas-toolbar {
+    gap: 0.55rem;
+  }
+
+  .contas-search-input,
+  .contas-type-filter {
+    min-height: 40px;
+    font-size: 16px;
+  }
+
+  .cont-list-actions {
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+
+  .cont-list-actions #btnReload {
+    width: 40px;
+  }
+
+  .cont-list-right {
+    grid-template-columns: 1fr;
+  }
+
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contas-distribution-item {
+    padding: 0.72rem 0.78rem;
+  }
+
+  .contas-distribution-item-values strong {
+    font-size: 0.82rem;
+  }
+
+  .contas-distribution-item-values span {
+    font-size: 0.7rem;
+  }
+
+  .account-card {
+    padding: 0.8rem;
+  }
+
+  .account-name {
+    font-size: 0.92rem;
+  }
+
+  .account-balance {
+    font-size: 1.2rem;
+  }
+}

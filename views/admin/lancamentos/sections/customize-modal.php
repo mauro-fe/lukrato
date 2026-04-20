@@ -25,6 +25,10 @@
             <div class="lan-customize-group">
                 <p class="lan-customize-group-title">Blocos da pagina</p>
                 <label class="lan-customize-toggle">
+                    <span>Fluxo financeiro</span>
+                    <input type="checkbox" id="toggleLanHero" checked>
+                </label>
+                <label class="lan-customize-toggle">
                     <span>Resumo do periodo</span>
                     <input type="checkbox" id="toggleLanSummary" checked>
                 </label>

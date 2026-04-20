@@ -7,14 +7,14 @@
         <span class="cont-section__eyebrow">Distribuição</span>
         <h2 class="cont-section__title">Onde seu dinheiro está</h2>
         <p class="cont-section__desc" id="contasDistributionSummary">
-            Veja como seus saldos positivos estão distribuídos por tipo de conta.
+            Um retrato rápido de como seu saldo positivo está distribuído por tipo de conta.
         </p>
     </div>
 
     <div class="contas-distribution-list" id="contasDistributionList">
         <div class="contas-distribution-empty">
             <i data-lucide="wallet"></i>
-            <span>Assim que houver saldo nas contas, a distribuição aparece aqui.</span>
+            <span>Quando houver saldo positivo, a leitura por tipo aparece aqui.</span>
         </div>
     </div>
 </section>

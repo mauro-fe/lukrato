@@ -10,6 +10,7 @@
 import { init as initThemeToggle } from './landing/theme-toggle.js';
 import { init as initScrollRouting } from './landing/scroll-routing.js';
 import { init as initMenu } from './landing/menu.js';
+import { init as initHeaderBridge } from './landing/header-bridge.js';
 import { init as initHeroHeadline } from './landing/hero-headline.js';
 import { init as initHeroCarousel } from './landing/hero-carousel.js';
 import { init as initGallery } from './landing/gallery.js';
@@ -22,6 +23,7 @@ import { init as initLeakCalculator } from './landing/leak-calculator.js';
 initThemeToggle();
 
 function bootstrap() {
+    initHeaderBridge();
     initScrollRouting();
     initMenu();
     initHeroHeadline();

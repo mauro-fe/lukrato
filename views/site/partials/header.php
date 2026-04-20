@@ -347,7 +347,7 @@ $isLandingPage = $isLandingPage ?? false;
 
 </head>
 
-<body class="antialiased" x-data="{ mobileMenuOpen: false }">
+<body class="antialiased" x-data="{ mobileMenuOpen: false, aprendaOpen: false, aprendaMobileOpen: false }" data-landing-body>
     <!-- Preloader anti-FOUC -->
     <div id="lk-preloader">
         <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Carregando Lukrato..." width="120" height="42">
@@ -376,26 +376,24 @@ $isLandingPage = $isLandingPage ?? false;
     </script>
 
     <!-- Header Premium -->
-    <header x-data="{ scrolled: false }" @scroll.window="scrolled = window.scrollY > 50"
-        :class="scrolled ? 'bg-white/80 dark:bg-[#1c2c3c]/80 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)] border-b border-gray-200/50 dark:border-white/10' : 'bg-transparent backdrop-blur-none border-b border-transparent'"
-        class="fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out header-navbar" role="banner">
+    <header data-landing-header data-scrolled="false"
+        class="fixed top-0 left-0 right-0 z-50 border-b border-transparent bg-transparent backdrop-blur-none transition-all duration-500 ease-out header-navbar"
+        role="banner">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between transition-all duration-500"
-                :class="scrolled ? 'h-16' : 'h-20'">
+            <div class="flex h-20 items-center justify-between transition-all duration-500" data-landing-header-inner>
                 <!-- Logo com animação -->
                 <a href="<?= BASE_URL ?>" class="flex-shrink-0 group" aria-label="Lukrato - Página Inicial">
                     <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato - Controle Financeiro Pessoal Gratuito"
                         title="Lukrato - Organize suas Finanças"
                         class="w-auto max-w-[120px] sm:max-w-none transition-all duration-500 group-hover:scale-105"
-                        :class="scrolled ? 'h-7 sm:h-12' : 'h-8 sm:h-14'" loading="eager" width="180" height="64"
+                        data-landing-logo loading="eager" width="180" height="64"
                         onerror="this.style.display='none'">
                 </a>
 
                 <!-- Desktop Navigation Premium -->
                 <nav class="hidden lg:flex items-center gap-7" aria-label="Navegação principal" role="navigation">
                     <a href="<?= BASE_URL ?>#como-funciona"
-                        class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                        class="relative font-semibold text-gray-700 transition-all duration-300 group dark:text-gray-300 hover:text-primary"
                         aria-label="Como funciona o Lukrato">
                         Como Funciona
                         <span
@@ -403,32 +401,31 @@ $isLandingPage = $isLandingPage ?? false;
                             aria-hidden="true"></span>
                     </a>
                     <a href="<?= BASE_URL ?>#funcionalidades"
-                        class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                        class="relative font-semibold text-gray-700 transition-all duration-300 group dark:text-gray-300 hover:text-primary"
                         aria-label="Ver funcionalidades do app">
                         Funcionalidades
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
                     </a>
-                    <a href="<?= BASE_URL ?>#planos" class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                    <a href="<?= BASE_URL ?>#planos"
+                        class="relative font-semibold text-gray-700 transition-all duration-300 group dark:text-gray-300 hover:text-primary"
                         aria-label="Ver planos e preços">
                         Planos
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
                     </a>
-                    <a href="<?= BASE_URL ?>#faq" class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                    <a href="<?= BASE_URL ?>#faq"
+                        class="relative font-semibold text-gray-700 transition-all duration-300 group dark:text-gray-300 hover:text-primary"
                         aria-label="Perguntas frequentes">
                         FAQ
                         <span
                             class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-orange-600 group-hover:w-full transition-all duration-300"
                             aria-hidden="true"></span>
                     </a>
-                    <a href="<?= BASE_URL ?>#contato" class="relative font-semibold transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                    <a href="<?= BASE_URL ?>#contato"
+                        class="relative font-semibold text-gray-700 transition-all duration-300 group dark:text-gray-300 hover:text-primary"
                         aria-label="Entre em contato conosco">
                         Contato
                         <span
@@ -437,11 +434,9 @@ $isLandingPage = $isLandingPage ?? false;
                     </a>
 
                     <!-- Aprenda Dropdown -->
-                    <div class="relative" x-data="{ aprendaOpen: false }" @mouseenter="aprendaOpen = true"
-                        @mouseleave="aprendaOpen = false">
+                    <div class="relative" @mouseenter="aprendaOpen = true" @mouseleave="aprendaOpen = false">
                         <a href="<?= BASE_URL ?>blog"
-                            class="relative font-semibold transition-all duration-300 group inline-flex items-center gap-1"
-                            :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-primary'"
+                            class="relative inline-flex items-center gap-1 font-semibold text-gray-700 transition-all duration-300 group dark:text-gray-300 hover:text-primary"
                             aria-label="Aprenda sobre finanças">
                             Aprenda
                             <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-200"
@@ -484,15 +479,13 @@ $isLandingPage = $isLandingPage ?? false;
                 <div class="hidden lg:flex items-center gap-3">
                     <!-- Theme Toggle -->
                     <button id="landingThemeToggle"
-                        class="lk-theme-toggle relative w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300 overflow-hidden"
-                        :class="scrolled ? 'text-gray-600 hover:bg-orange-50 dark:hover:bg-white/10' : 'text-gray-700 hover:bg-white/20 dark:hover:bg-white/10'"
+                        class="lk-theme-toggle relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl text-gray-700 transition-all duration-300 hover:bg-white/20 dark:text-gray-300 dark:hover:bg-white/10"
                         type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
                         <i data-lucide="sun" class="w-5 h-5" aria-hidden="true"></i>
                         <i data-lucide="moon" class="w-5 h-5" aria-hidden="true"></i>
                     </button>
                     <a href="<?= BASE_URL ?>login"
-                        class="inline-flex items-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all duration-300 group"
-                        :class="scrolled ? 'text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-orange-50 dark:hover:bg-white/10' : 'text-gray-700 dark:text-gray-300 hover:text-primary hover:bg-white/20 dark:hover:bg-white/10'"
+                        class="group inline-flex items-center gap-2 rounded-lg px-4 py-2 font-semibold text-gray-700 transition-all duration-300 hover:bg-white/20 hover:text-primary dark:text-gray-300 dark:hover:bg-white/10"
                         aria-label="Entrar na sua conta">
                         <i data-lucide="user" class="text-sm transition-transform group-hover:scale-110"
                             aria-hidden="true"></i>
@@ -509,8 +502,7 @@ $isLandingPage = $isLandingPage ?? false;
 
                 <!-- Mobile Menu Button Premium -->
                 <button @click="mobileMenuOpen = !mobileMenuOpen"
-                    class="lg:hidden relative p-2.5 hover:text-primary hover:bg-orange-50 dark:hover:bg-white/10 rounded-xl transition-all duration-300"
-                    :class="scrolled ? 'text-gray-700 dark:text-gray-300' : 'text-gray-700 dark:text-gray-300'"
+                    class="relative rounded-xl p-2.5 text-gray-700 transition-all duration-300 hover:bg-orange-50 hover:text-primary dark:text-gray-300 dark:hover:bg-white/10 lg:hidden"
                     type="button" aria-label="Abrir menu de navegação" aria-expanded="false"
                     :aria-expanded="mobileMenuOpen">
                     <i data-lucide="menu" class="text-2xl" x-show="!mobileMenuOpen" aria-hidden="true"></i>
@@ -603,7 +595,7 @@ $isLandingPage = $isLandingPage ?? false;
                 </a>
 
                 <!-- Aprenda (mobile accordion) -->
-                <div x-data="{ aprendaMobileOpen: false }">
+                <div>
                     <button @click="aprendaMobileOpen = !aprendaMobileOpen"
                         class="w-full flex items-center justify-between text-gray-700 dark:text-gray-200 hover:text-primary font-medium py-3 px-4 rounded-lg hover:bg-orange-50 dark:hover:bg-white/10 transition-colors">
                         <span>Aprenda</span>

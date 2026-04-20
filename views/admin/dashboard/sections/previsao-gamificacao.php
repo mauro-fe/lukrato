@@ -1,12 +1,12 @@
 <!-- ============================================================
          PREVISÃO + GAMIFICAÇÃO — lado a lado
          ============================================================ -->
-<div class="dash-duo-row dash-duo-row--flexible">
+<div class="dash-duo-row dash-duo-row--flexible dash-duo-row--decision">
 
     <!-- PREVISÃO FINANCEIRA — toggled via personalização -->
     <section class="provisao-section surface-card surface-card--interactive surface-card--clip" id="sectionPrevisao"
         style="display:none;">
-        <h2 class="provisao-title" id="provisaoTitle">Previsão financeira</h2>
+        <h2 class="provisao-title" id="provisaoTitle">Panorama projetado</h2>
         <p class="provisao-headline" id="provisaoHeadline"></p>
 
         <!-- Alertas de vencidos -->
@@ -115,7 +115,7 @@
     <section class="gamification-section surface-card surface-card--interactive surface-card--clip"
         id="sectionGamificacao" style="display:none;">
         <div class="gamification-header">
-            <h2 class="gamification-title"><i data-lucide="trophy"></i> Gamificação</h2>
+            <h2 class="gamification-title"><i data-lucide="trophy"></i> Progresso</h2>
             <div class="level-badge" id="userLevel"><i data-lucide="star"></i> <span>Nível 1</span></div>
         </div>
 

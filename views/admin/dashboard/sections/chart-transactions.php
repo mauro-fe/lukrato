@@ -1,10 +1,10 @@
 <!-- ============================================================
          GRID — Gráfico + Transações lado a lado
          ============================================================ -->
-<div class="dash-duo-row">
+<div class="dash-duo-row dash-duo-row--insights">
     <section class="dash-chart-section surface-card surface-card--interactive" id="chart-section">
         <div class="dash-section-header">
-            <h2 class="dash-section-title">Despesas por categoria</h2>
+            <h2 class="dash-section-title">Saídas por categoria</h2>
             <div class="dash-chart-toggle" id="chartToggle">
                 <button class="dash-chart-toggle__btn is-active" data-mode="donut" type="button">
                     <i data-lucide="pie-chart"></i>
@@ -22,7 +22,7 @@
 
     <section class="dash-transactions-section surface-card surface-card--interactive" id="table-section">
         <div class="dash-section-header">
-            <h2 class="dash-section-title">Últimas transações</h2>
+            <h2 class="dash-section-title">Transações recentes</h2>
             <a href="<?= BASE_URL ?>lancamentos" class="dash-section-link">
                 Ver todas <i data-lucide="arrow-right"></i>
             </a>

@@ -1,15 +1,7 @@
 <!-- Sticky CTA Mobile — Fixo no bottom em dispositivos móveis -->
 <div
     x-data="{ showSticky: false }"
-    x-init="
-        const hero = document.querySelector('section[aria-label*=principal]');
-        if (hero) {
-            const observer = new IntersectionObserver(([entry]) => {
-                showSticky = !entry.isIntersecting;
-            }, { threshold: 0 });
-            observer.observe(hero);
-        }
-    "
+    data-sticky-cta
     x-show="showSticky"
     x-transition:enter="transition ease-out duration-300"
     x-transition:enter-start="translate-y-full opacity-0"

@@ -3,12 +3,25 @@
 <?php $isPro = $isPro ?? false; ?>
 
 <section class="lan-page">
-<?php include __DIR__ . '/sections/hero.php'; ?>
-<?php include __DIR__ . '/sections/summary-strip.php'; ?>
-<?php include __DIR__ . '/sections/export-card.php'; ?>
-<?php include __DIR__ . '/sections/filters.php'; ?>
-<?php include __DIR__ . '/sections/table.php'; ?>
-<?php include __DIR__ . '/sections/customize-modal.php'; ?>
+    <div class="lan-stage lan-stage--overview">
+        <div class="lan-overview-top">
+            <?php include __DIR__ . '/sections/hero.php'; ?>
+            <?php include __DIR__ . '/sections/summary-strip.php'; ?>
+        </div>
+
+        <div class="lan-overview-bottom">
+            <?php include __DIR__ . '/sections/filters.php'; ?>
+            <?php include __DIR__ . '/sections/export-card.php'; ?>
+        </div>
+    </div>
+
+    <div class="lan-stage lan-stage--listing">
+        <?php include __DIR__ . '/sections/table.php'; ?>
+    </div>
+
+    <div class="lan-stage lan-stage--secondary">
+        <?php include __DIR__ . '/sections/customize-modal.php'; ?>
+    </div>
 </section>
 
 <?php include __DIR__ . '/../partials/modals/editar-lancamentos.php'; ?>

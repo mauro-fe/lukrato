@@ -41,7 +41,10 @@ class EvolucaoCharts {
         <div class="evo-header">
           <div class="evo-title-group">
             <i data-lucide="trending-up" class="evo-title-icon"></i>
-            <h2 class="evo-title">Evolução financeira</h2>
+                        <div class="evo-title-stack">
+                            <h2 class="evo-title">Fluxo do período</h2>
+                            <p class="evo-subtitle">Entradas, saídas e resultado em contexto.</p>
+                        </div>
           </div>
           <div class="evo-tabs" role="tablist">
             <button class="evo-tab evo-tab--active" data-tab="mensal" role="tab" aria-selected="true">Mensal</button>
@@ -126,6 +129,10 @@ class EvolucaoCharts {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v ?? 0);
     }
 
+    _chartHeight() {
+        return window.matchMedia('(max-width: 768px)').matches ? 176 : 188;
+    }
+
     _drawMensal(mensal) {
         const el = document.getElementById('evoChartMensal');
         if (!el || !Array.isArray(mensal)) return;
@@ -140,7 +147,7 @@ class EvolucaoCharts {
         this._chartMensal = new ApexCharts(el, {
             chart: {
                 type: 'bar',
-                height: 220,
+                height: this._chartHeight(),
                 toolbar: { show: false },
                 background: 'transparent',
                 fontFamily: 'Inter, Arial, sans-serif',
@@ -216,7 +223,7 @@ class EvolucaoCharts {
         this._chartAnual = new ApexCharts(el, {
             chart: {
                 type: 'line',
-                height: 220,
+                height: this._chartHeight(),
                 toolbar: { show: false },
                 background: 'transparent',
                 fontFamily: 'Inter, Arial, sans-serif',

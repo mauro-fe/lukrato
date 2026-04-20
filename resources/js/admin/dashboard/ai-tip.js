@@ -36,7 +36,7 @@ class AiTipCard {
       <div class="ai-tip-card surface-card surface-card--interactive" data-aos="fade-up" data-aos-duration="400" data-aos-delay="100">
         <div class="ai-tip-header">
           <i data-lucide="sparkles" class="ai-tip-header-icon"></i>
-          <h2 class="ai-tip-title">Dicas do Lukrato</h2>
+          <h2 class="ai-tip-title">Prioridades do mês</h2>
           <span class="ai-tip-badge" id="aiTipBadge" style="display:none;"></span>
         </div>
         <div class="ai-tip-list" id="aiTipList">

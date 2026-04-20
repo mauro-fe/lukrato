@@ -373,3 +373,133 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
+
+@media (max-width: 768px) {
+  .gamification-section {
+    padding: 14px;
+  }
+
+  .gamification-section::before {
+    width: 120px;
+    height: 120px;
+    top: -32%;
+    right: -18%;
+    opacity: 0.55;
+  }
+
+  .gamification-header {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .gamification-title {
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .level-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .gamification-grid {
+    gap: 6px;
+  }
+
+  .streak-card,
+  .progress-card,
+  .badges-card {
+    padding: 10px;
+    border-radius: 9px;
+  }
+
+  .streak-icon {
+    font-size: 22px;
+    margin-bottom: 2px;
+  }
+
+  .streak-number {
+    font-size: 22px;
+  }
+
+  .streak-label {
+    font-size: 9px;
+  }
+
+  .progress-header {
+    margin-bottom: 6px;
+  }
+
+  .progress-title {
+    font-size: 11px;
+  }
+
+  .progress-percentage {
+    font-size: 14px;
+  }
+
+  .progress-bar-container {
+    height: 7px;
+  }
+
+  .progress-text {
+    font-size: 9px;
+  }
+
+  .badges-title {
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+
+  .badges-grid {
+    gap: 4px;
+  }
+
+  .badge-item {
+    padding: 6px 3px;
+  }
+
+  .badge-icon {
+    font-size: 18px;
+  }
+
+  .badge-name {
+    font-size: 7px;
+  }
+
+  .stats-row {
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .stat-mini {
+    padding: 7px 5px;
+  }
+
+  .stat-mini-value {
+    font-size: 13px;
+  }
+
+  .stat-mini-label {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gamification-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .gamification-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .badges-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

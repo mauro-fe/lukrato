@@ -310,6 +310,7 @@ export const CartoesUI = {
 
         CartoesUI.closeCardMenu();
         grid.setAttribute('aria-busy', 'false');
+        grid.dataset.cardCount = String(STATE.filteredCartoes.length);
         CartoesUI.updateEmptyState();
 
         if (STATE.filteredCartoes.length === 0) {

@@ -19,8 +19,8 @@
 
 /* Main FAB Button */
 .fab-main {
-  width: 64px;
-  height: 64px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--color-primary) 0%, #f39c12 100%);
   border: none;
@@ -28,17 +28,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(230, 126, 34, 0.4);
+  box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
   color: white;
-  font-size: 28px;
+  font-size: 24px;
 }
 
 .fab-main:hover {
-  transform: scale(1.12);
-  box-shadow: 0 12px 32px rgba(230, 126, 34, 0.6);
+  transform: scale(1.06);
+  box-shadow: 0 12px 28px rgba(230, 126, 34, 0.42);
 }
 
 .fab-main:active {
@@ -53,10 +53,10 @@
   left: 50%;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  animation: fab-pulse 2s ease-in-out infinite;
+  animation: fab-pulse 3s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -66,7 +66,7 @@
     opacity: 1;
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1.12);
     opacity: 0;
   }
 }
@@ -177,26 +177,50 @@
 /* Mobile Adjustments */
 @media (max-width: 768px) {
   #fabContainer.fab-container {
-    bottom: 20px !important;
-    right: 16px !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    right: 12px !important;
+    gap: 8px;
   }
 
   .fab-main {
-    width: 56px;
-    height: 56px;
-    font-size: 24px;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    box-shadow: 0 6px 16px rgba(230, 126, 34, 0.24);
+  }
+
+  .fab-main::before {
+    animation: none;
   }
 
   .fab-item {
-    width: 52px;
-    height: 52px;
-    font-size: 20px;
+    width: 46px;
+    height: 46px;
+    font-size: 18px;
   }
 
   .fab-label {
-    right: 68px;
-    font-size: 12px;
-    padding: 6px 12px;
+    display: none;
+  }
+
+  .fab-container.first-time .fab-main {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  #fabContainer.fab-container {
+    right: 10px !important;
+  }
+
+  .fab-main {
+    width: 46px;
+    height: 46px;
+  }
+
+  .fab-item {
+    width: 44px;
+    height: 44px;
   }
 }
 

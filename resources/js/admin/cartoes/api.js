@@ -75,6 +75,7 @@ export const CartoesAPI = {
             STATE.isLoading = true;
             grid.setAttribute('aria-busy', 'true');
             container?.setAttribute('aria-busy', 'true');
+            delete grid.dataset.cardCount;
             // Mostrar skeleton
             grid.innerHTML = `
                 <div class="lk-skeleton lk-skeleton--card"></div>

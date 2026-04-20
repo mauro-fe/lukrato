@@ -1,5 +1,5 @@
 <!-- ─── HERO ──────────────────────────────────────────────────────── -->
-<section class="lan-hero surface-card surface-card--interactive" data-aos="fade-up" data-aos-delay="50"
+<section class="lan-hero surface-card surface-card--interactive" id="lanHeroSection" data-aos="fade-up" data-aos-delay="50"
     aria-label="Resumo da pagina de lancamentos">
     <div class="lan-hero-copy">
         <span class="lan-hero-eyebrow">Fluxo financeiro</span>

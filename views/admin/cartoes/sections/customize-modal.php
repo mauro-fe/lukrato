@@ -26,7 +26,7 @@
             <div class="cart-customize-group">
                 <p class="cart-customize-group-title">Blocos da tela</p>
                 <label class="cart-customize-toggle">
-                    <span>Hero de contexto</span>
+                    <span>Visão consolidada</span>
                     <input type="checkbox" id="toggleCartoesHero" checked>
                 </label>
                 <label class="cart-customize-toggle">

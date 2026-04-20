@@ -78,6 +78,13 @@
         <div class="lk-skeleton lk-skeleton--card" aria-hidden="true"></div>
     </div>
 
+    <div class="cont-list-footer">
+        <button class="btn btn-ghost cont-list-customize-btn" id="btnCustomizeContas" type="button"
+            aria-label="Personalizar tela de contas">
+            <i data-lucide="sliders-horizontal"></i> Personalizar tela
+        </button>
+    </div>
+
     <noscript>
         <div class="empty-state" style="text-align:center;padding:3rem 1rem;">
             <div class="empty-icon" style="font-size:3rem;margin-bottom:1rem;">

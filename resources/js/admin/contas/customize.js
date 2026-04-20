@@ -34,6 +34,34 @@ async function saveContasPrefs(prefs) {
     await persistUiPagePreferences('contas', prefs);
 }
 
+function isVisible(element) {
+    return !!element && getComputedStyle(element).display !== 'none';
+}
+
+function syncVisibleChildren(container) {
+    if (!container) return 0;
+
+    const visibleCount = Array.from(container.children).filter(isVisible).length;
+    container.dataset.visibleCount = String(visibleCount);
+    container.style.display = visibleCount > 0 ? '' : 'none';
+    return visibleCount;
+}
+
+function syncContasLayout() {
+    const overviewStage = document.querySelector('.cont-stage--overview');
+    const overviewTop = document.querySelector('.cont-overview-top');
+    const overviewBottom = document.querySelector('.cont-overview-bottom');
+
+    const topCount = syncVisibleChildren(overviewTop);
+    const bottomCount = syncVisibleChildren(overviewBottom);
+
+    if (overviewStage) {
+        const visibleBlocks = (topCount > 0 ? 1 : 0) + (bottomCount > 0 ? 1 : 0);
+        overviewStage.dataset.visibleCount = String(visibleBlocks);
+        overviewStage.style.display = visibleBlocks > 0 ? '' : 'none';
+    }
+}
+
 const contasCustomizer = createPageCustomizer({
     storageKey: 'lk_contas_prefs',
     sectionMap: SECTION_MAP,
@@ -41,6 +69,7 @@ const contasCustomizer = createPageCustomizer({
     essentialDefaults: ESSENTIAL_DEFAULTS,
     loadPreferences: loadContasPrefs,
     savePreferences: saveContasPrefs,
+    onApply: syncContasLayout,
     modal: {
         overlayId: 'contasCustomizeModalOverlay',
         openButtonId: 'btnCustomizeContas',

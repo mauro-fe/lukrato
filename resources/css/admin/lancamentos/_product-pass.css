@@ -1,0 +1,1018 @@
+/* ============================================================================
+   LANCAMENTOS PRODUCT PASS
+   Refina hierarquia, compacta a primeira dobra e melhora a leitura mobile.
+   ============================================================================ */
+
+.lan-page {
+  gap: clamp(0.9rem, 1.15vw, 1.1rem);
+  padding: clamp(1rem, 1.5vw, 1.2rem) clamp(0.9rem, 1.4vw, 1.1rem);
+}
+
+.lan-stage {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.85rem, 1.05vw, 1rem);
+}
+
+.lan-overview-top,
+.lan-overview-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.lan-hero,
+.modern-card.export-card,
+.lk-filters-section,
+.modern-table-wrapper {
+  border-radius: 18px;
+}
+
+.lan-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.4rem, 2.2vw, 1.85rem) clamp(1rem, 1.8vw, 1.35rem);
+}
+
+.lan-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.lan-hero-subtitle {
+  max-width: 48ch;
+}
+
+.lan-hero-dynamic {
+  gap: 0.8rem 1rem;
+  margin-top: 0.95rem;
+  padding-top: 0.85rem;
+}
+
+.lan-hero-stat {
+  font-size: 0.82rem;
+}
+
+.lan-summary-strip {
+  gap: 0.85rem;
+}
+
+.lan-summary-card {
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+}
+
+.lan-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.lan-summary-icon i,
+.lan-summary-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.lan-summary-value {
+  font-size: clamp(1rem, 1.45vw, 1.12rem);
+}
+
+.card-header-icon {
+  padding: 1rem 1.1rem;
+}
+
+.card-title {
+  font-size: 1rem;
+}
+
+.export-card-toolbar,
+.lk-filters-header,
+.lk-filters-body,
+.table-header-info,
+.lk-table-context,
+.lk-selection-toolbar {
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+}
+
+.export-card-toolbar {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+}
+
+.lk-filters-header,
+.table-header-info,
+.lk-selection-toolbar {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+}
+
+.lk-filters-body {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.info-group {
+  gap: 0.7rem;
+  font-size: clamp(1rem, 1.3vw, 1.08rem);
+}
+
+.table-actions {
+  gap: 0.65rem;
+}
+
+.lk-table-context-main {
+  gap: 0.6rem;
+}
+
+.lk-selection-toolbar-actions {
+  gap: 0.65rem;
+}
+
+.lk-feed-toolbar {
+  padding: 0.75rem 1.1rem;
+}
+
+.lk-feed-date-group {
+  padding: 0.8rem 1.1rem 0.35rem;
+}
+
+.lk-txn-card {
+  margin: 0 0.85rem;
+  border-radius: 16px;
+}
+
+.lk-txn-body {
+  min-height: 58px;
+  padding: 0.78rem 0.85rem 0.78rem calc(0.85rem + 8px);
+}
+
+.lk-txn-icon {
+  width: 38px;
+  height: 38px;
+}
+
+.lk-txn-icon i,
+.lk-txn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.lk-txn-desc {
+  font-size: 0.86rem;
+}
+
+.lk-txn-meta {
+  gap: 0.25rem 0.55rem;
+  font-size: 0.73rem;
+}
+
+.lk-txn-amount-wrap {
+  min-width: 90px;
+}
+
+.lk-txn-amount {
+  font-size: 0.98rem;
+}
+
+.lk-pago-badge {
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: 0.6rem;
+}
+
+.lk-pago-badge i,
+.lk-pago-badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+.lk-txn-expand-btn {
+  font-size: 0.68rem;
+}
+
+@media (min-width: 1180px) {
+  .lan-stage--overview {
+    gap: 0.95rem;
+  }
+
+  .lan-overview-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.16fr) minmax(300px, 0.84fr);
+    gap: 0.95rem;
+    align-items: stretch;
+  }
+
+  .lan-overview-bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+    gap: 0.95rem;
+    align-items: start;
+  }
+
+  .lan-overview-top[data-visible-count="1"],
+  .lan-overview-bottom[data-visible-count="1"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lan-overview-top[data-visible-count="1"] > *,
+  .lan-overview-bottom[data-visible-count="1"] > * {
+    grid-column: 1 / -1;
+  }
+
+  .lan-hero {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    padding: 1.25rem 1.35rem 1.2rem;
+    background:
+      radial-gradient(circle at top right, rgba(230, 126, 34, 0.14), transparent 30%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
+  }
+
+  .lan-hero-copy {
+    max-width: 520px;
+    margin-inline: 0;
+  }
+
+  .lan-hero-title {
+    font-size: clamp(1.8rem, 2.4vw, 2.25rem);
+    letter-spacing: -0.03em;
+  }
+
+  .lan-hero-subtitle {
+    max-width: 46ch;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .lan-hero-dynamic {
+    justify-content: flex-start;
+    margin-top: 1rem;
+    padding-top: 0.95rem;
+    gap: 0.6rem;
+  }
+
+  .lan-hero-stat {
+    padding: 0.38rem 0.72rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-card-border) 84%, transparent);
+    font-size: 0.76rem;
+  }
+
+  .lan-summary-strip {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    align-content: start;
+  }
+
+  .lan-summary-card {
+    min-height: 0;
+    gap: 0.75rem;
+    padding: 0.95rem 1rem;
+  }
+
+  .lan-summary-card.saldo {
+    order: -1;
+    background: linear-gradient(180deg, rgba(230, 126, 34, 0.08), rgba(230, 126, 34, 0.02));
+    border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-card-border));
+  }
+
+  .lan-summary-card.saldo .lan-summary-icon {
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  }
+
+  .lk-filters-section,
+  .modern-card.export-card {
+    min-height: 100%;
+  }
+
+  .lk-filters-header,
+  .card-header-icon {
+    min-height: 72px;
+  }
+
+  .lk-filters-header {
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+  }
+
+  .lk-filters-body {
+    gap: 0.95rem;
+  }
+
+  .lk-filters-grid {
+    grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(160px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .lk-filter-search {
+    min-width: 0;
+  }
+
+  .lk-period-presets {
+    gap: 0.5rem;
+  }
+
+  .lk-period-preset-btn,
+  .lk-period-month-btn {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .modern-card.export-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .modern-card.export-card.expanded {
+    grid-column: 1 / -1;
+  }
+
+  .export-card-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .export-actions-group {
+    gap: 0.6rem;
+  }
+
+  .export-card-body {
+    padding-top: 1rem;
+  }
+
+  .table-header-info {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .lk-table-context {
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+  }
+
+  .lk-feed-toolbar {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+
+  .lk-feed-sort-btn {
+    padding: 0.48rem 0.75rem;
+  }
+
+  .lk-feed-date-group {
+    padding-top: 0.95rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .lk-txn-card {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  .lk-txn-body {
+    gap: 0.75rem;
+    padding-top: 0.72rem;
+    padding-bottom: 0.72rem;
+  }
+
+  .lk-txn-content {
+    gap: 2px;
+  }
+
+  .lk-txn-meta {
+    gap: 0.2rem 0.55rem;
+  }
+
+  .lk-txn-actions {
+    opacity: 0.75;
+  }
+
+  .lk-txn-card:hover .lk-txn-actions,
+  .lk-txn-card.details-open .lk-txn-actions {
+    opacity: 1;
+  }
+
+  .lk-txn-expand-btn {
+    padding-top: 0.32rem;
+    padding-bottom: 0.32rem;
+  }
+
+  .lk-txn-detail-panel.is-open {
+    padding-top: 0.75rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .lk-detail-chips {
+    gap: 0.55rem;
+  }
+
+  .lk-detail-chip {
+    min-width: 168px;
+    padding: 0.48rem 0.68rem;
+    font-size: 0.74rem;
+  }
+
+  .lan-stage--secondary {
+    align-items: flex-end;
+  }
+
+  .lan-customize-trigger .modern-btn {
+    min-height: 42px;
+    padding: 0.65rem 0.9rem;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .lan-page {
+    gap: 0.8rem;
+    padding: 0.85rem;
+  }
+
+  .lan-stage {
+    gap: 0.8rem;
+  }
+
+  .lan-hero {
+    text-align: left;
+    padding: 1.05rem 1rem 1rem;
+  }
+
+  .lan-hero-copy {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .lan-hero-title {
+    font-size: clamp(1.25rem, 4vw, 1.65rem);
+  }
+
+  .lan-hero-subtitle {
+    max-width: none;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .lan-hero-dynamic {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    justify-content: stretch;
+    gap: 0.45rem 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.7rem;
+  }
+
+  .lan-hero-stat {
+    min-width: 0;
+    justify-content: flex-start;
+    font-size: 0.72rem;
+  }
+
+  .lan-hero-stat.total {
+    grid-column: 1 / -1;
+  }
+
+  .lan-summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .lan-summary-card {
+    gap: 0.65rem;
+    padding: 0.78rem 0.82rem;
+    border-radius: 16px;
+  }
+
+  .lan-summary-card.saldo {
+    grid-column: 1 / -1;
+  }
+
+  .lan-summary-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .lan-summary-icon i,
+  .lan-summary-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .lan-summary-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+  }
+
+  .lan-summary-value {
+    font-size: 0.94rem;
+    line-height: 1.05;
+  }
+
+  .card-header-icon {
+    padding: 0.85rem 0.9rem;
+    gap: 0.7rem;
+  }
+
+  .icon-wrapper {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .icon-wrapper i,
+  .icon-wrapper svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .card-title {
+    font-size: 0.92rem;
+  }
+
+  .pro-badge {
+    padding: 0.18rem 0.55rem;
+    font-size: 0.6rem;
+  }
+
+  .card-collapse-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .export-card-toolbar,
+  .lk-filters-header,
+  .lk-filters-body,
+  .table-header-info,
+  .lk-table-context,
+  .lk-selection-toolbar {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+
+  .export-card-toolbar {
+    gap: 0.7rem;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+  }
+
+  .export-toolbar-label {
+    font-size: 0.58rem;
+  }
+
+  .export-toolbar-text {
+    font-size: 0.68rem;
+  }
+
+  .export-actions-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+    gap: 0.55rem;
+  }
+
+  .export-actions-group .modern-select,
+  .export-actions-group .modern-btn {
+    min-height: 40px;
+  }
+
+  .lk-filters-header {
+    gap: 0.75rem;
+  }
+
+  .lk-filters-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .lk-filters-icon i,
+  .lk-filters-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .lk-filters-text .lk-filters-title {
+    font-size: 0.92rem;
+  }
+
+  .lk-filters-subtitle {
+    font-size: 0.68rem;
+  }
+
+  .lk-filters-body {
+    gap: 0.85rem;
+    padding-top: 0.85rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .lk-filters-grid {
+    gap: 0.65rem;
+  }
+
+  .lk-filter-search-input,
+  .lk-filter-select,
+  .lk-filter-date-input,
+  .modern-input,
+  .modern-select {
+    min-height: 40px;
+    padding-top: 0.68rem;
+    padding-bottom: 0.68rem;
+  }
+
+  .lk-filter-label,
+  .export-filter-label,
+  .input-label,
+  .lk-period-field-label {
+    font-size: 0.56rem;
+  }
+
+  .lk-period-presets {
+    gap: 0.45rem;
+  }
+
+  .lk-period-preset-btn,
+  .lk-period-month-btn {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.63rem;
+  }
+
+  .lk-period-filter-label {
+    font-size: 0.58rem;
+  }
+
+  .lk-active-filters {
+    gap: 0.4rem;
+    padding-top: 0.65rem;
+  }
+
+  .lk-filter-badge {
+    padding: 0.22rem 0.5rem;
+    font-size: 0.62rem;
+  }
+
+  .modern-table-wrapper {
+    border-radius: 16px;
+  }
+
+  .table-header-info {
+    gap: 0.65rem;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+
+  .info-group {
+    gap: 0.55rem;
+    font-size: 0.94rem;
+  }
+
+  .info-group i,
+  .info-group svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .table-actions {
+    gap: 0.5rem;
+  }
+
+  .table-actions .modern-btn {
+    min-height: 40px;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.76rem;
+  }
+
+  .table-actions .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .lk-table-context {
+    gap: 0.45rem;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .lk-table-context-main {
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    flex-wrap: wrap;
+  }
+
+  .lk-selection-hint {
+    max-width: none;
+    font-size: 0.64rem;
+    line-height: 1.35;
+  }
+
+  .lk-selection-toolbar {
+    gap: 0.65rem;
+    padding-top: 0.72rem;
+    padding-bottom: 0.72rem;
+  }
+
+  .lk-selection-toolbar-count {
+    font-size: 0.76rem;
+  }
+
+  .lk-selection-toolbar-text {
+    font-size: 0.66rem;
+  }
+
+  .lk-selection-toolbar .modern-btn,
+  .lk-selection-clear-btn {
+    min-height: 40px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.74rem;
+  }
+
+  .lan-cards-wrapper {
+    margin-top: 0.25rem;
+  }
+
+  .lan-cards-header {
+    column-gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.62rem;
+  }
+
+  .badge-tipo {
+    min-width: 66px;
+    padding: 4px 8px;
+    font-size: 0.58rem;
+  }
+
+  .badge-status {
+    gap: 4px;
+    padding: 3px 7px;
+    font-size: 0.56rem;
+  }
+
+  .badge-status i,
+  .badge-status svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .lan-card {
+    margin-bottom: 0.45rem;
+    border-radius: 14px;
+  }
+
+  .lan-card-main {
+    column-gap: 0.55rem;
+    padding: 0.65rem 0.75rem 0.52rem;
+  }
+
+  .lan-card-date {
+    font-size: 0.68rem;
+  }
+
+  .lan-card-value {
+    font-size: 0.88rem;
+  }
+
+  .lan-card-summary {
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 0 0.75rem 0.62rem;
+  }
+
+  .lan-card-summary-title {
+    font-size: 0.8rem;
+  }
+
+  .lan-card-summary-subtitle {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    font-size: 0.66rem;
+  }
+
+  .lan-card-toggle {
+    padding: 0.42rem 0.75rem;
+    font-size: 0.62rem;
+  }
+
+  .lan-card[aria-expanded="true"] .lan-card-details {
+    padding: 0.65rem 0.75rem 0.75rem;
+  }
+
+  .lan-card-detail-row {
+    padding: 0.42rem 0;
+  }
+
+  .lan-card-detail-label {
+    font-size: 0.58rem;
+  }
+
+  .lan-card-detail-value {
+    font-size: 0.72rem;
+  }
+
+  .lan-card .lk-dropdown-trigger {
+    width: 32px;
+    height: 32px;
+  }
+
+  .lan-card .lk-dropdown-trigger i,
+  .lan-card .lk-dropdown-trigger svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .lan-cards-pager {
+    gap: 0.55rem;
+    padding: 0.75rem;
+  }
+
+  .lan-pager-btn,
+  .pager-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .lan-pager-info,
+  .pager-info {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lan-page {
+    gap: 0.7rem;
+    padding: 0.7rem 0.45rem 0.9rem;
+  }
+
+  .lan-hero,
+  .modern-card.export-card,
+  .lk-filters-section,
+  .modern-table-wrapper {
+    border-radius: 16px;
+  }
+
+  .lan-hero {
+    padding: 0.88rem 0.84rem 0.82rem;
+  }
+
+  .lan-hero-eyebrow {
+    margin-bottom: 0.2rem;
+    font-size: 0.54rem;
+  }
+
+  .lan-hero-title {
+    margin-bottom: 0.15rem;
+    font-size: 1.15rem;
+  }
+
+  .lan-hero-subtitle {
+    font-size: 0.72rem;
+    line-height: 1.34;
+  }
+
+  .lan-hero-dynamic {
+    gap: 0.35rem 0.55rem;
+    margin-top: 0.68rem;
+    padding-top: 0.62rem;
+  }
+
+  .lan-hero-stat {
+    font-size: 0.66rem;
+  }
+
+  .lan-summary-strip {
+    gap: 0.45rem;
+  }
+
+  .lan-summary-card {
+    gap: 0.55rem;
+    padding: 0.68rem 0.72rem;
+  }
+
+  .lan-summary-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .lan-summary-icon i,
+  .lan-summary-icon svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .lan-summary-label {
+    font-size: 0.5rem;
+  }
+
+  .lan-summary-value {
+    font-size: 0.84rem;
+  }
+
+  .card-header-icon,
+  .export-card-toolbar,
+  .lk-filters-header,
+  .lk-filters-body,
+  .table-header-info,
+  .lk-table-context,
+  .lk-selection-toolbar {
+    padding-left: 0.78rem;
+    padding-right: 0.78rem;
+  }
+
+  .export-actions-group {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  #btnExportar {
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  #btnExportar span {
+    display: none;
+  }
+
+  .lk-filter-search-input,
+  .lk-filter-select,
+  .lk-filter-date-input,
+  .modern-input,
+  .modern-select {
+    font-size: 16px;
+  }
+
+  .lan-cards-header {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.58rem;
+  }
+
+  .lan-card-main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "date value"
+      "type value";
+    row-gap: 0.35rem;
+  }
+
+  .lan-card-date {
+    grid-area: date;
+  }
+
+  .lan-card-type {
+    grid-area: type;
+  }
+
+  .lan-card-value {
+    grid-area: value;
+    align-self: center;
+  }
+
+  .lan-card-summary {
+    gap: 0.45rem;
+    padding: 0 0.65rem 0.55rem;
+  }
+
+  .badge-status {
+    align-self: flex-start;
+  }
+
+  .lan-card-toggle {
+    padding: 0.38rem 0.65rem;
+  }
+
+  .lan-card[aria-expanded="true"] .lan-card-details {
+    padding: 0.55rem 0.65rem 0.7rem;
+  }
+
+  .lan-card-detail-label {
+    font-size: 0.54rem;
+  }
+
+  .lan-card-detail-value {
+    font-size: 0.68rem;
+  }
+
+  .lan-card .lk-dropdown-trigger {
+    width: 30px;
+    height: 30px;
+  }
+
+  .lan-pager-info,
+  .pager-info {
+    font-size: 0.68rem;
+  }
+}

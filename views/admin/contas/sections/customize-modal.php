@@ -1,9 +1,3 @@
-<div class="cont-customize-trigger surface-card">
-    <button class="btn btn-ghost" id="btnCustomizeContas" type="button">
-        <i data-lucide="sliders-horizontal"></i> Personalizar tela
-    </button>
-</div>
-
 <div class="cont-customize-overlay" id="contasCustomizeModalOverlay" style="display:none;">
     <div class="cont-customize-modal surface-card" role="dialog" aria-modal="true"
         aria-labelledby="contasCustomizeModalTitle">

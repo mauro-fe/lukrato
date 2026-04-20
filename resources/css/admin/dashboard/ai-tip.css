@@ -270,16 +270,91 @@
 }
 
 /* --- Responsive --- */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .ai-tip-card {
-    padding: var(--spacing-3);
+    padding: 0.9rem;
+    gap: 0.75rem;
   }
 
+  .ai-tip-header {
+    gap: 8px;
+  }
+
+  .ai-tip-header-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .ai-tip-title {
+    font-size: 0.82rem;
+  }
+
+  .ai-tip-badge {
+    padding: 2px 6px;
+    font-size: 9px;
+  }
+
+  .ai-tip-list {
+    gap: 6px;
+  }
+
+  .ai-tip-content {
+    gap: 8px;
+    padding: 9px 10px;
+  }
+
+  .ai-tip-item-icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 7px;
+  }
+
+  .ai-tip-item-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .ai-tip-item-title {
+    font-size: 0.72rem;
+    line-height: 1.28;
+  }
+
+  .ai-tip-item-desc {
+    font-size: 0.63rem;
+    line-height: 1.25;
+  }
+
+  .ai-tip-metric {
+    min-width: 42px;
+    padding: 0 8px;
+  }
+
+  .ai-tip-metric-value {
+    font-size: 12px;
+  }
+
+  .ai-tip-metric-label {
+    font-size: 8px;
+  }
+
+  .ai-tip-item-arrow {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 640px) {
   .ai-tip-metric {
     display: none;
   }
 
   .ai-tip-item-desc {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .ai-tip-card {
+    padding: 0.8rem;
   }
 }

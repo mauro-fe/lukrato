@@ -358,6 +358,123 @@
   box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
 }
 
+@media (max-width: 768px) {
+  .provisao-section {
+    padding: 14px;
+  }
+
+  .provisao-title {
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .provisao-title::before {
+    height: 18px;
+  }
+
+  .provisao-headline {
+    margin: -4px 0 10px 0;
+    font-size: 11px;
+  }
+
+  .provisao-alerts-container {
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+
+  .provisao-alert {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .provisao-alert-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+  }
+
+  .provisao-alert-text {
+    font-size: 12px;
+  }
+
+  .provisao-alert-link {
+    gap: 3px;
+    font-size: 11px;
+  }
+
+  .provisao-grid {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .provisao-card {
+    gap: 8px;
+    padding: 9px 10px;
+  }
+
+  .provisao-card-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .provisao-card-label {
+    font-size: 9px;
+  }
+
+  .provisao-card-value {
+    font-size: clamp(13px, 4vw, 16px);
+  }
+
+  .provisao-card-count {
+    font-size: 9px;
+  }
+
+  .provisao-proximos {
+    margin-bottom: 8px;
+  }
+
+  .provisao-proximos-header {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .provisao-proximos-title {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .provisao-ver-todos {
+    font-size: 11px;
+  }
+
+  .provisao-proximos-list {
+    max-height: none;
+  }
+
+  .provisao-item {
+    gap: 8px;
+    padding: 7px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .provisao-alert {
+    padding: 7px 9px;
+  }
+
+  .provisao-alert-link {
+    display: none;
+  }
+
+  .provisao-proximos-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .provisao-item-info {
   flex: 1;
   min-width: 0;

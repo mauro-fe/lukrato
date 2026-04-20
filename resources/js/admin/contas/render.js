@@ -6,7 +6,7 @@
  * ============================================================================
  */
 
-import { CONFIG, STATE, Utils, Modules, escapeHtml } from './state.js';
+import { STATE, Utils, Modules, escapeHtml } from './state.js';
 import { buildAssetUrl } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
 
@@ -374,18 +374,21 @@ export const ContasRender = {
         if (!listEl || !summaryEl) return;
 
         if (!portfolio.distribution.length) {
-            summaryEl.textContent = 'Quando houver saldo positivo nas contas, mostramos a distribuicao por tipo aqui.';
+            summaryEl.textContent = 'Quando houver saldo positivo, mostramos aqui a leitura por tipo de conta.';
             listEl.innerHTML = `
                 <div class="contas-distribution-empty">
                     <i data-lucide="wallet"></i>
-                    <span>Sem saldo positivo para distribuir no momento.</span>
+                    <span>A distribuicao por tipo volta a aparecer assim que houver saldo positivo.</span>
                 </div>
             `;
+            refreshIcons();
             return;
         }
 
         const topType = portfolio.distribution[0];
-        summaryEl.textContent = `${topType.label} concentra ${formatPercent(topType.percent)} do seu dinheiro positivo hoje.`;
+        summaryEl.textContent = portfolio.distribution.length === 1
+            ? `${topType.label} responde por ${formatPercent(topType.percent)} do saldo positivo hoje.`
+            : `${topType.label} lidera a composicao hoje, com ${formatPercent(topType.percent)} do saldo positivo.`;
 
         listEl.innerHTML = portfolio.distribution.map((item) => `
             <article class="contas-distribution-item" style="--distribution-color:${item.color};">
@@ -396,12 +399,12 @@ export const ContasRender = {
                         </span>
                         <div>
                             <strong>${escapeHtml(item.label)}</strong>
-                            <span>${pluralizeContas(item.count)}</span>
+                            <span>${pluralizeContas(item.count)} neste tipo</span>
                         </div>
                     </div>
                     <div class="contas-distribution-item-values">
                         <strong>${Utils.formatCurrency(item.total)}</strong>
-                        <span>${formatPercent(item.percent)}</span>
+                        <span>${formatPercent(item.percent)} do saldo</span>
                     </div>
                 </div>
                 <div class="contas-distribution-bar">
@@ -409,6 +412,8 @@ export const ContasRender = {
                 </div>
             </article>
         `).join('');
+
+        refreshIcons();
     },
 
     renderContas() {
@@ -499,7 +504,7 @@ export const ContasRender = {
                </span>`
             : '';
         const reserveBadge = isReserve
-            ? `<span class="account-chip account-chip--reserve" ${buildTooltipAttrs('Saldo guardado', 'Essa conta esta marcada como reserva para dinheiro separado do uso do dia a dia.')}>
+            ? `<span class="account-chip account-chip--reserve" ${buildTooltipAttrs('Saldo guardado', 'Essa conta está marcada como reserva para dinheiro separado do uso do dia a dia.')}>
                     <i data-lucide="piggy-bank"></i>
                     Saldo guardado
                </span>`
@@ -510,24 +515,25 @@ export const ContasRender = {
                     Exemplo
                </span>`
             : '';
+        const isZeroBalance = balance === 0 && !isFeatured;
         const menuMarkup = conta?.is_demo
-            ? `<span class="account-chip account-chip--reserve" ${buildTooltipAttrs('Somente visualizacao', 'Itens de exemplo nao podem ser editados nem arquivados.')}>
+            ? `<span class="account-chip account-chip--reserve" ${buildTooltipAttrs('Somente visualização', 'Itens de exemplo não podem ser editados nem arquivados.')}>
                     <i data-lucide="eye"></i>
-                    Somente visualizacao
+                    Somente visualização
                </span>`
             : `
                 <button
                     type="button"
                     class="btn-icon btn-icon--soft"
                     onclick="contasManager.moreConta(${conta.id}, event)"
-                    aria-label="Abrir acoes da conta"
-                    ${buildTooltipAttrs('Acoes da conta', 'Abra o menu para editar ou arquivar esta conta.')}>
+                    aria-label="Abrir ações da conta"
+                    ${buildTooltipAttrs('Ações da conta', 'Abra o menu para editar ou arquivar esta conta.')}>
                     <i data-lucide="more-horizontal"></i>
                 </button>
             `;
 
         return `
-            <article class="account-card surface-card ${isFeatured ? 'is-featured' : ''}" data-account-id="${conta.id}" style="--account-accent:${accentColor};">
+            <article class="account-card surface-card ${isFeatured ? 'is-featured' : ''} ${isZeroBalance ? 'is-zero-balance' : ''}" data-account-id="${conta.id}" style="--account-accent:${accentColor};">
                 <div class="account-media">
                     <div class="account-logo">
                         <img src="${logoUrl}" alt="${escapeHtml(conta.nome)}" />
@@ -548,11 +554,11 @@ export const ContasRender = {
 
                 <div class="account-content">
                     <h3 class="account-name">${escapeHtml(conta.nome)}</h3>
-                    <p class="account-institution">${escapeHtml(instituicao?.nome || 'Instituicao nao definida')}</p>
+                    <p class="account-institution">${escapeHtml(instituicao?.nome || 'Instituição não definida')}</p>
                 </div>
 
                 <div class="account-balance-panel">
-                    <span class="account-balance-caption">${balance >= 0 ? 'Saldo disponivel' : 'Saldo atual'}</span>
+                    <span class="account-balance-caption">${balance >= 0 ? 'Saldo disponível' : 'Saldo atual'}</span>
                     <strong class="account-balance ${balanceClass}">${Utils.formatCurrency(balance)}</strong>
                 </div>
 
@@ -633,8 +639,8 @@ export const ContasRender = {
 
         if (mainAccountShareEl) {
             mainAccountShareEl.textContent = portfolio.primaryAccount && portfolio.primaryShare > 0
-                ? `${formatPercent(portfolio.primaryShare)} do saldo positivo esta concentrado aqui`
-                : 'Sem concentracao relevante no momento';
+                ? `${formatPercent(portfolio.primaryShare)} do saldo positivo está concentrado aqui`
+                : 'Sem concentração relevante no momento';
         }
 
         if (reserveLabelEl) {
@@ -643,7 +649,7 @@ export const ContasRender = {
 
         if (reserveShareEl) {
             reserveShareEl.textContent = portfolio.reserveShare > 0
-                ? `${formatPercent(portfolio.reserveShare)} do saldo positivo esta protegido em reserva`
+                ? `${formatPercent(portfolio.reserveShare)} do saldo positivo está protegido em reserva`
                 : 'Nenhum valor guardado em reserva';
         }
 
