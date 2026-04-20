@@ -1,0 +1,1 @@
+import{d as e}from"./runtime-config-BOFrxEfg.js";function r(){return"api/v1/perfil/dashboard-preferences"}function a(){return{profile:"api/v1/perfil",avatar:"api/v1/perfil/avatar",displayName:e(),dashboardPreferences:"api/v1/perfil/dashboard-preferences",password:"api/v1/perfil/senha",deleteAccount:"api/v1/perfil/delete"}}export{a as c,r};

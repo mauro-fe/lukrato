@@ -26,3 +26,6 @@
 @import './finance-overview.css';
 @import './evolucao-charts.css';
 @import './celebration-animations.css';
+
+/* Preview reversivel: remova este import se nao gostar do resultado. */
+@import './_hierarchy-preview.css';

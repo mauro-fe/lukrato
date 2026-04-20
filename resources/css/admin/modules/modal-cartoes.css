@@ -23,8 +23,8 @@
 
 .modal-container {
     --surface-modal-accent: #0ea5e9;
-    max-width: 600px;
     width: 100%;
+    max-width: 600px;
     max-height: 90vh;
     overflow: hidden;
     display: flex;

@@ -9,7 +9,7 @@ $planLabel         = $planLabel         ?? 'FREE';
 $currentBreadcrumbs = $currentBreadcrumbs ?? [];
 ?>
 
-<div class="top-navbar">
+<div class="top-navbar surface-card">
     <div class="top-navbar-container">
         <!-- Menu Button (Mobile Only) -->
         <button id="mobileMenuBtn" class="top-navbar-menu-btn" aria-label="Abrir/fechar menu" aria-expanded="false"

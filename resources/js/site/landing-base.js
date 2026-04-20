@@ -10,6 +10,8 @@
 import { init as initThemeToggle } from './landing/theme-toggle.js';
 import { init as initScrollRouting } from './landing/scroll-routing.js';
 import { init as initMenu } from './landing/menu.js';
+import { init as initHeroHeadline } from './landing/hero-headline.js';
+import { init as initHeroCarousel } from './landing/hero-carousel.js';
 import { init as initGallery } from './landing/gallery.js';
 import { init as initContact } from './landing/contact.js';
 import { init as initBackToTop } from './landing/back-to-top.js';
@@ -22,6 +24,8 @@ initThemeToggle();
 function bootstrap() {
     initScrollRouting();
     initMenu();
+    initHeroHeadline();
+    initHeroCarousel();
     initGallery();
     initContact();
     initBackToTop();

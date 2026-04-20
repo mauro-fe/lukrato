@@ -5,7 +5,7 @@ $loginUrl = $loginUrl ?? rtrim(BASE_URL, '/') . '/login';
 $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
 ?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 
 <head>
     <link rel="icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
@@ -16,6 +16,18 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
 
     <!-- CSRF Meta Tags para renovação automática -->
     <?= csrf_meta('reset_form') ?>
+
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('lukrato-theme');
+                var normalizedTheme = savedTheme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', normalizedTheme);
+            } catch (error) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 
     <title>Redefinir Senha - Lukrato</title>
     <!-- Lucide Icons + FA Brands -->
@@ -36,7 +48,7 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
             <section class="login-left">
                 <div class="brand">
                     <div class="imagem-logo">
-                        <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato">
+                        <img src="<?= ASSETS_URL ?>img/logo-top.png" alt="Lukrato">
                     </div>
                 </div>
 
@@ -48,9 +60,13 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
 
             <section class="login-right">
                 <div class="card">
-                    <h3 class="card-title">Nova senha</h3>
+                    <div class="card-panel-head">
+                        <p class="card-kicker">Atualização de acesso</p>
+                        <h3 class="card-title">Crie uma nova senha</h3>
+                        <p class="card-subtitle">Escolha uma senha forte para proteger sua conta e concluir a recuperação.</p>
+                    </div>
 
-                    <div id="messageContainer">Validando seu link de redefinição...</div>
+                    <div id="messageContainer" class="card-status">Validando seu link de redefinição...</div>
 
                     <form action="<?= htmlspecialchars($currentFormAction, ENT_QUOTES, 'UTF-8') ?>" method="POST" novalidate id="resetForm">
                         <?= csrf_input('reset_form') ?>
@@ -60,7 +76,7 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
                         <div class="field">
                             <input type="password" name="password" id="password"
                                 placeholder="Nova senha (mínimo 8 caracteres)" required minlength="8"
-                                aria-label="Nova senha">
+                                aria-label="Nova senha" autocomplete="new-password">
                             <button type="button" class="toggle-password" data-target="password">
                                 <i data-lucide="eye"></i>
                             </button>
@@ -76,7 +92,7 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
                         <div class="field">
                             <input type="password" name="password_confirmation" id="password_confirmation"
                                 placeholder="Confirmar nova senha" required minlength="8"
-                                aria-label="Confirmar nova senha">
+                                aria-label="Confirmar nova senha" autocomplete="new-password">
                             <button type="button" class="toggle-password" data-target="password_confirmation">
                                 <i data-lucide="eye"></i>
                             </button>

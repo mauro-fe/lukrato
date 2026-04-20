@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <?php
 $activeTab = isset($activeTab) && $activeTab === 'register' ? 'register' : 'login';
 $registerErrorMessage = $registerErrorMessage ?? '';
 $favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 $loginPageUrl = rtrim(BASE_URL, '/') . '/login';
+$forgotPasswordUrl = rtrim(BASE_URL, '/') . '/recuperar-senha';
 $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verificar-email/aviso';
 
 ?>
@@ -25,6 +26,18 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
     <?= csrf_meta('login_form') ?>
     <meta name="csrf-token-register"
         content="<?= htmlspecialchars(csrf_token('register_form'), ENT_QUOTES, 'UTF-8') ?>">
+
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('lukrato-theme');
+                var normalizedTheme = savedTheme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', normalizedTheme);
+            } catch (error) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 
     <title>Login / Cadastro - Lukrato</title>
     <!-- Lucide Icons + FA Brands -->
@@ -69,19 +82,27 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
     <main class="lukrato-auth">
         <div class="login-wrapper">
             <section class="login-left">
-                <div class="brand">
-                    <div class="imagem-logo" aria-label="Lukrato">
-                        <img src="<?= ASSETS_URL ?>img/logo-top.png" alt="Lukrato">
+                <div class="login-left-card">
+                    <div class="brand">
+                        <div class="brand-stage">
+                            <div class="imagem-logo" aria-label="Lukrato">
+                                <img src="<?= ASSETS_URL ?>img/logo-top.png" alt="Lukrato">
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <header class="welcome">
-                    <h2>Bem-vindo</h2>
-                    <p>
-                        Acompanhe saldos, contas e objetivos em um único lugar.
-                        Entre para gerenciar suas finanças com segurança e performance.
-                    </p>
-                </header>
+                    <header class="welcome">
+                        <p class="welcome-kicker">Finanças pessoais, sem ruído</p>
+                        <h2>
+                            <span>Clareza</span>
+                            <span>para decidir</span>
+                            <span>melhor.</span>
+                        </h2>
+                        <p class="welcome-lead">
+                            Organize contas, acompanhe metas e veja o mês com mais precisão em um único espaço.
+                        </p>
+                    </header>
+                </div>
             </section>
 
             <section class="login-right">
@@ -93,8 +114,7 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
                             Entrar
                         </button>
                         <button class="tab-btn <?= $activeTab === 'register' ? 'is-active' : '' ?>" data-tab="register"
-                            type="button" role="tab"
-                            aria-selected="<?= $activeTab === 'register' ? 'true' : 'false' ?>"
+                            type="button" role="tab" aria-selected="<?= $activeTab === 'register' ? 'true' : 'false' ?>"
                             aria-controls="authPanelRegister" id="authTabRegister">
                             Cadastrar
                         </button>
@@ -104,49 +124,44 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
                     <div class="flip-container">
                         <div class="flip-inner">
                             <!-- LOGIN -->
-                            <div class="flip-face flip-login <?= $activeTab === 'login' ? 'is-active' : '' ?>" id="authPanelLogin" role="tabpanel"
-                                aria-labelledby="authTabLogin" aria-hidden="<?= $activeTab === 'login' ? 'false' : 'true' ?>">
-                                <h3 class="card-title">Entrar</h3>
+                            <div class="flip-face flip-login <?= $activeTab === 'login' ? 'is-active' : '' ?>"
+                                id="authPanelLogin" role="tabpanel" aria-labelledby="authTabLogin"
+                                aria-hidden="<?= $activeTab === 'login' ? 'false' : 'true' ?>">
+                                <div class="card-panel-head">
+                                    <p class="card-kicker">Acesso com e-mail</p>
+                                    <h3 class="card-title">Entre na sua conta</h3>
+                                </div>
 
-                                <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" class="google-sign-in-button" data-google-auth="login">
-                                    <svg class="google-icon" viewBox="0 0 48 48">
-                                        <path fill="#EA4335"
-                                            d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
-                                        <path fill="#4285F4"
-                                            d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
-                                        <path fill="#FBBC05"
-                                            d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
-                                        <path fill="#34A853"
-                                            d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
-                                    </svg>
-                                    <span>Com Google</span>
-                                </a>
-
-                                <div class="auth-separator"><span>ou</span></div>
-
-                                <form action="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST" id="loginForm" novalidate>
+                                <form action="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST"
+                                    id="loginForm" novalidate>
                                     <?= csrf_input('login_form') ?>
                                     <div class="field">
                                         <input type="email" id="email" name="email" placeholder="E-mail"
-                                            aria-label="E-mail" required>
+                                            aria-label="E-mail" autocomplete="email" autocapitalize="off"
+                                            spellcheck="false" required>
                                         <small class="field-error" id="emailError"></small>
                                     </div>
 
                                     <div class="field">
                                         <input type="password" id="password" name="password" placeholder="Senha"
-                                            aria-label="Senha" required>
+                                            aria-label="Senha" autocomplete="current-password" required>
                                         <button type="button" class="toggle-password" data-target="password">
                                             <i data-lucide="eye"></i>
                                         </button>
                                         <small class="field-error" id="passwordError"></small>
                                     </div>
 
-                                    <div class="remember-me">
-                                        <label class="checkbox-container">
-                                            <input type="checkbox" id="remember" name="remember" value="1">
-                                            <span class="checkmark"></span>
-                                            <span class="checkbox-label">Lembrar de mim</span>
-                                        </label>
+                                    <div class="auth-utilities">
+                                        <div class="remember-me">
+                                            <label class="checkbox-container">
+                                                <input type="checkbox" id="remember" name="remember" value="1">
+                                                <span class="checkmark"></span>
+                                                <span class="checkbox-label">Lembrar de mim</span>
+                                            </label>
+                                        </div>
+
+                                        <a href="<?= htmlspecialchars($forgotPasswordUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                            class="auth-link-inline">Esqueceu a senha?</a>
                                     </div>
 
                                     <!-- Turnstile CAPTCHA (progressivo — oculto até atingir threshold de falhas) -->
@@ -159,46 +174,52 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
                                         <span>Entrar</span>
                                     </button>
 
-                                    <p class="extra-link">
-                                        <a href="<?= BASE_URL ?>recuperar-senha">Esqueceu a senha?</a>
-
-                                    </p>
-
                                     <div id="generalError" class="msg msg-error general-message"></div>
                                     <div id="generalSuccess" class="msg msg-success general-message"></div>
                                 </form>
+
+                                <div class="auth-social-actions">
+                                    <div class="auth-separator"><span>ou continue com</span></div>
+
+                                    <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                        class="google-sign-in-button" data-google-auth="login">
+                                        <svg class="google-icon" viewBox="0 0 48 48">
+                                            <path fill="#EA4335"
+                                                d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
+                                            <path fill="#4285F4"
+                                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
+                                            <path fill="#FBBC05"
+                                                d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
+                                            <path fill="#34A853"
+                                                d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
+                                        </svg>
+                                        <span>Entrar com Google</span>
+                                    </a>
+                                </div>
                             </div>
 
                             <!-- REGISTER -->
-                            <div class="flip-face flip-register <?= $activeTab === 'register' ? 'is-active' : '' ?>" id="authPanelRegister" role="tabpanel"
-                                aria-labelledby="authTabRegister" aria-hidden="<?= $activeTab === 'register' ? 'false' : 'true' ?>">
-                                <h3 class="card-title">Cadastrar</h3>
+                            <div class="flip-face flip-register <?= $activeTab === 'register' ? 'is-active' : '' ?>"
+                                id="authPanelRegister" role="tabpanel" aria-labelledby="authTabRegister"
+                                aria-hidden="<?= $activeTab === 'register' ? 'false' : 'true' ?>">
+                                <div class="card-panel-head">
+                                    <p class="card-kicker">Cadastro com e-mail</p>
+                                    <h3 class="card-title">Crie sua conta</h3>
+                                </div>
 
-                                <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" class="google-sign-in-button" data-google-auth="register">
-                                    <svg class="google-icon" viewBox="0 0 48 48">
-                                        <path fill="#EA4335"
-                                            d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
-                                        <path fill="#4285F4"
-                                            d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
-                                        <path fill="#FBBC05"
-                                            d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
-                                        <path fill="#34A853"
-                                            d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
-                                    </svg>
-                                    <span>Com Google</span>
-                                </a>
-                                <div class="auth-separator"><span>ou</span></div>
-                                <form action="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST" id="registerForm" novalidate>
+                                <form action="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST"
+                                    id="registerForm" novalidate>
                                     <?= csrf_input('register_form') ?>
                                     <div class="field">
                                         <input type="email" id="reg_email" name="email" placeholder="E-mail"
-                                            aria-label="E-mail" required>
+                                            aria-label="E-mail" autocomplete="email" autocapitalize="off"
+                                            spellcheck="false" required>
                                         <small class="field-error" id="regEmailError"></small>
                                     </div>
 
                                     <div class="field">
                                         <input type="password" id="reg_password" name="password" placeholder="Senha"
-                                            aria-label="Senha" required>
+                                            aria-label="Senha" autocomplete="new-password" required>
                                         <button type="button" class="toggle-password" data-target="reg_password">
                                             <i data-lucide="eye"></i>
                                         </button>
@@ -229,7 +250,8 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
 
                                     <div class="field">
                                         <input type="password" id="reg_password_confirm" name="password_confirmation"
-                                            placeholder="Confirmar senha" aria-label="Confirmar senha" required>
+                                            placeholder="Confirmar senha" aria-label="Confirmar senha"
+                                            autocomplete="new-password" required>
                                         <button type="button" class="toggle-password"
                                             data-target="reg_password_confirm">
                                             <i data-lucide="eye"></i>
@@ -247,6 +269,7 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
                                             <i data-lucide="gift" class="referral-icon"></i>
                                             <input type="text" id="referral_code" name="referral_code"
                                                 placeholder="Código de indicação (opcional)" maxlength="8"
+                                                autocapitalize="characters" spellcheck="false"
                                                 style="text-transform: uppercase;">
                                         </div>
                                         <small class="field-hint" id="referralHint"></small>
@@ -275,6 +298,25 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
                                     </div>
                                     <div id="registerGeneralSuccess" class="msg msg-success general-message"></div>
                                 </form>
+
+                                <div class="auth-social-actions auth-social-actions--register">
+                                    <div class="auth-separator"><span>ou continue com</span></div>
+
+                                    <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                        class="google-sign-in-button" data-google-auth="register">
+                                        <svg class="google-icon" viewBox="0 0 48 48">
+                                            <path fill="#EA4335"
+                                                d="M24 9.5c3.3 0 6.2 1.1 8.5 3.2l6.3-6.3C34.6 2.4 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.4 5.7C12 13.1 17.5 9.5 24 9.5z" />
+                                            <path fill="#4285F4"
+                                                d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7c4.3-4 6.8-9.8 6.8-17.4z" />
+                                            <path fill="#FBBC05"
+                                                d="M10.1 28.9c-.8-2.3-.8-4.8 0-7.1l-7.4-5.7c-3.2 6.4-3.2 13.9 0 20.3l7.4-5.7z" />
+                                            <path fill="#34A853"
+                                                d="M24 48c6.5 0 12.1-2.1 16.1-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.7 2.3-6.5 0-12-4.1-14-9.9l-7.4 5.7C6.6 42.6 14.6 48 24 48z" />
+                                        </svg>
+                                        <span>Criar conta com Google</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

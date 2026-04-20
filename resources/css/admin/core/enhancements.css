@@ -28,7 +28,7 @@
 
 .lk-main .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--theme-surface-card-shadow-hover);
 }
 
 /* Efeito de reflexo ao passar o mouse */
@@ -56,7 +56,7 @@
 /* KPI Cards específicos */
 .kpi-card {
   /* Removido animation-delay para não conflitar com AOS */
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--theme-surface-card-border);
   backdrop-filter: var(--glass-backdrop);
 }
 
@@ -139,22 +139,17 @@
     .lk-support-button
   ):not(.modern-btn):hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--theme-control-shadow);
 }
 
 /* Botão primário especial */
 .btn-primary,
 .btn.btn-primary {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in srgb, var(--color-primary) 85%, #000)
-  );
-    color: var(--color-text);
+  background: var(--theme-button-primary-bg);
+    color: var(--theme-button-primary-color);
 
   border: none;
-  box-shadow: 0 4px 12px
-    color-mix(in srgb, var(--color-primary) 30%, transparent);
+  box-shadow: var(--theme-button-primary-shadow);
     padding: var(--spacing-2) var(--spacing-4); 
     border-radius: var(--radius-md);
 }
@@ -165,13 +160,8 @@
 .btn.btn-primary:hover:not(#btnNovoCartao):not(#btnNovaConta):not(
     #btnNovoCartaoEmpty
   ):not(.btn-pagar-fatura) {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary) 110%, white),
-    var(--color-primary)
-  );
-  box-shadow: 0 6px 20px
-    color-mix(in srgb, var(--color-primary) 50%, transparent);
+  background: var(--theme-button-primary-bg-hover);
+  box-shadow: var(--theme-button-primary-shadow-hover);
 }
 
 /* Loading state */
@@ -211,8 +201,8 @@
 .lk-main select,
 .lk-main textarea {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid var(--glass-border);
-  background: var(--color-bg) !important;
+  border: 1px solid var(--theme-input-border);
+  background: var(--theme-input-bg) !important;
   color: var(--color-text) !important;
 }
 
@@ -221,9 +211,8 @@
 .lk-main input:focus,
 .lk-main select:focus,
 .lk-main textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px
-    color-mix(in srgb, var(--color-primary) 15%, transparent);
+  border-color: var(--theme-input-border-focus);
+  box-shadow: 0 0 0 4px var(--ring);
   transform: translateY(-1px);
   outline: none;
 }
@@ -250,9 +239,9 @@
 }
 
 .lk-main .table tbody tr:hover {
-  background: var(--glass-bg);
+  background: var(--theme-control-bg-hover);
   transform: scale(1.01);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--theme-control-shadow);
 }
 
 /* Animação de entrada das linhas */
@@ -334,9 +323,9 @@
   left: 50%;
   transform: translateX(-50%) translateY(-8px);
   padding: 8px 12px;
-  background: var(--color-surface);
+  background: var(--theme-surface-card-bg);
   color: var(--color-text);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--theme-surface-card-border);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   white-space: nowrap;
@@ -413,10 +402,10 @@
 
 .dropdown-menu {
   animation: slideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 1px solid var(--glass-border);
-  background: var(--color-surface);
+  border: 1px solid var(--theme-surface-card-border);
+  background: var(--theme-surface-card-bg);
   backdrop-filter: var(--glass-backdrop);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--theme-surface-card-shadow);
 }
 
 .dropdown-item {

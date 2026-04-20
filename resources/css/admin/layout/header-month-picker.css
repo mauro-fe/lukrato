@@ -39,12 +39,12 @@
     display: inline-flex;
     align-items: center;
     gap: 0;
-    background: var(--color-bg);
+    background: var(--theme-control-bg);
     backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--theme-control-border);
     border-radius: var(--radius-md);
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--theme-control-shadow);
 }
 
 .dash-lk-header .month-nav-btn,
@@ -56,7 +56,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-text);
+    color: var(--theme-control-text);
     font-family: var(--font-primary);
     position: relative;
     height: 36px;
@@ -64,18 +64,18 @@
 
 .dash-lk-header .month-nav-btn {
     width: 36px;
-    color: var(--color-text-muted);
-    border-right: 1px solid var(--glass-border);
+    color: var(--theme-control-icon);
+    border-right: 1px solid var(--theme-control-divider);
 }
 
 .dash-lk-header .month-nav-btn:last-child {
     border-right: 0;
-    border-left: 1px solid var(--glass-border);
+    border-left: 1px solid var(--theme-control-divider);
 }
 
 .dash-lk-header .month-nav-btn:hover {
-    background-color: var(--color-primary);
-    color: white;
+    background-color: var(--theme-control-hover-bg);
+    color: var(--theme-control-hover-text);
 }
 
 .dash-lk-header .month-nav-btn:active {
@@ -91,7 +91,7 @@
 
 .dash-lk-header .month-nav-btn:focus-visible,
 .dash-lk-header .month-dropdown-btn:focus-visible {
-    outline: 3px solid var(--color-primary);
+    outline: 3px solid var(--theme-focus-ring);
     outline-offset: 2px;
 }
 
@@ -100,12 +100,12 @@
     font-weight: 600;
     font-size: var(--font-size-sm);
     padding: 0 var(--spacing-3);
-    color: var(--color-text);
+    color: var(--theme-control-text);
 }
 
 .dash-lk-header .month-dropdown-btn:hover {
-    background: rgba(230, 126, 34, 0.08);
-    color: var(--color-primary);
+    background: var(--theme-control-hover-bg);
+    color: var(--theme-control-hover-text);
 }
 
 .dash-lk-header .month-dropdown-btn i,
@@ -131,20 +131,20 @@
     padding: var(--spacing-2) var(--spacing-4);
     height: 36px;
     border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary) 40%));
-    color: #fff;
+    background: var(--theme-button-primary-bg);
+    color: var(--theme-button-primary-text);
     font-weight: 600;
     font-size: var(--font-size-sm);
     text-decoration: none;
     transition: all var(--transition-fast);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--theme-button-primary-shadow);
     white-space: nowrap;
 }
 
 .lk-pro-cta:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-    color: #fff;
+    box-shadow: var(--theme-button-primary-shadow-hover);
+    color: var(--theme-button-primary-text);
 }
 
 .lk-pro-cta i,
@@ -166,10 +166,10 @@
     top: calc(100% + 8px);
     right: 0;
     width: 280px;
-    background: var(--color-surface);
-    border: 1px solid var(--glass-border);
+    background: var(--theme-modal-surface);
+    border: 1px solid var(--theme-modal-border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--theme-modal-shadow);
     z-index: 1000;
     max-height: 380px;
     overflow-y: auto;
@@ -194,7 +194,7 @@
 }
 
 .dash-lk-header .month-dropdown::-webkit-scrollbar-track {
-    background: var(--glass-bg);
+    background: var(--theme-control-bg);
     border-radius: var(--radius-sm);
 }
 
@@ -204,7 +204,7 @@
 }
 
 .dash-lk-header .month-dropdown::-webkit-scrollbar-thumb:hover {
-    background: var(--color-secondary);
+    background: var(--theme-button-primary-bg);
 }
 
 .dash-lk-header .month-dropdown .year-row {
@@ -218,10 +218,10 @@
     grid-column: 1 / -1;
     font-weight: 700;
     font-size: var(--font-size-lg);
-    color: var(--color-text);
+    color: var(--theme-control-text);
     padding: var(--spacing-3) var(--spacing-2);
     text-align: center;
-    background: var(--glass-bg);
+    background: var(--theme-control-bg);
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing-2);
 }
@@ -264,9 +264,9 @@ body.show-year-picker #yearPicker {
    MONTH BUTTONS (DROPDOWN)
    =================================================================== */
 .dash-lk-header .month-dropdown .m-btn {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    color: var(--color-text);
+    background: var(--theme-control-bg);
+    border: 1px solid var(--theme-control-border);
+    color: var(--theme-control-text);
     padding: var(--spacing-3) var(--spacing-2);
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -283,7 +283,7 @@ body.show-year-picker #yearPicker {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    background: var(--theme-control-hover-bg);
     opacity: 0;
     transition: opacity var(--transition-fast);
 }
@@ -293,9 +293,9 @@ body.show-year-picker #yearPicker {
 }
 
 .dash-lk-header .month-dropdown .m-btn:hover {
-    border-color: var(--color-primary);
+    border-color: var(--theme-control-hover-border);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--theme-control-shadow);
 }
 
 .dash-lk-header .month-dropdown .m-btn:active {
@@ -303,11 +303,11 @@ body.show-year-picker #yearPicker {
 }
 
 .dash-lk-header .month-dropdown .m-btn.is-current {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
+    background: var(--theme-button-primary-bg);
+    border-color: transparent;
+    color: var(--theme-button-primary-text);
     font-weight: 600;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--theme-button-primary-shadow);
 }
 
 .dash-lk-header .month-dropdown .m-btn.is-current::before {
@@ -315,8 +315,8 @@ body.show-year-picker #yearPicker {
 }
 
 .dash-lk-header .month-dropdown .m-btn.is-current:hover {
-    background: var(--color-secondary);
-    border-color: var(--color-secondary);
+    background: var(--theme-button-primary-bg-hover);
+    border-color: transparent;
     transform: translateY(-2px) scale(1.02);
 }
 

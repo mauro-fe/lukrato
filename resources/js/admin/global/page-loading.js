@@ -389,8 +389,8 @@
         boot.finished = false;
         boot.pending = 0;
         boot.release = startNavigationLoading({
-            message: 'Carregando pagina...',
-            subtitle: 'Preparando conteudo',
+            message: 'Carregando página...',
+            subtitle: 'Preparando conteúdo',
             delay: 0,
         });
 

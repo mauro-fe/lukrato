@@ -4,6 +4,7 @@
 
 .lk-modal-root {
   pointer-events: none;
+
 }
 
 .lk-modal-root > * {

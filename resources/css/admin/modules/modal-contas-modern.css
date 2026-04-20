@@ -856,8 +856,8 @@
 /* Container do Modal */
 .modal-container {
   --surface-modal-accent: #3b82f6;
-  max-width: 580px;
   width: 100%;
+  max-width: 580px;
   max-height: 90vh;
   overflow: hidden;
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);

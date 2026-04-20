@@ -1,121 +1,155 @@
 /* ===============================
    ERROR PAGES
-   Páginas de erro consistentes com o Design System
-   Usa tokens de variables.css — respeita data-theme (light/dark)
+   Consistentes com o design system e o novo visual publico/admin
    =============================== */
 
-/* ── Reset (standalone only — app shell já tem o próprio) ── */
 .lk-error-standalone *,
 .lk-error-standalone *::before,
 .lk-error-standalone *::after {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-/* ── Main Container ── */
 .lk-error-page {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
   padding: var(--spacing-8);
   font-family: var(--font-primary);
   color: var(--color-text);
+  text-align: center;
 }
 
-/* Standalone: viewport inteiro com gradiente de fundo */
 .lk-error-standalone {
   min-height: 100vh;
-  background:
-    radial-gradient(1200px 800px at 100% 0%,
-      color-mix(in oklab, var(--color-primary) 18%, transparent) 0%,
-      transparent 60%),
-    radial-gradient(1200px 800px at 0% 100%,
-      color-mix(in oklab, var(--color-secondary, var(--color-primary)) 18%, transparent) 0%,
-      transparent 60%),
-    var(--color-bg);
+  background: var(--theme-auth-page-bg);
   overflow: hidden;
-  position: relative;
 }
 
-/* In-app: dentro do content wrapper */
+.lk-error-standalone::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right,
+      color-mix(in oklab, var(--theme-auth-accent) 14%, transparent) 0%,
+      transparent 38%),
+    radial-gradient(circle at bottom left,
+      color-mix(in oklab, var(--color-primary) 14%, transparent) 0%,
+      transparent 42%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      var(--theme-auth-grid-line) 1px,
+      transparent 2px,
+      transparent 92px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      var(--theme-auth-grid-line) 1px,
+      transparent 2px,
+      transparent 92px
+    );
+  opacity: 0.78;
+  pointer-events: none;
+}
+
 .lk-error-inapp {
   min-height: 55vh;
 }
 
-/* ── Content Box ── */
 .lk-error-content {
-  max-width: 560px;
-  width: 100%;
-  animation: lk-error-fadeIn 0.6s ease-out;
   position: relative;
   z-index: 10;
+  width: min(100%, 620px);
+  padding: 34px 32px 30px;
+  border-radius: 24px;
+  border: 1px solid var(--theme-auth-card-border);
+  background: linear-gradient(135deg, var(--theme-auth-card-1) 0%, var(--theme-auth-card-2) 100%);
+  box-shadow: var(--theme-auth-card-shadow);
+  animation: lk-error-fadeIn 0.45s ease-out;
+  overflow: hidden;
 }
 
-/* ── Error Code (número grande) ── */
+.lk-error-content::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--theme-auth-card-topline);
+}
+
+.lk-error-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.lk-error-brand-logo {
+  width: min(210px, 52vw);
+  height: auto;
+  display: block;
+  filter: var(--theme-auth-logo-glow);
+}
+
+.lk-error-kicker {
+  margin: 0 0 12px;
+  color: var(--theme-auth-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .lk-error-code {
-  font-size: clamp(4.5rem, 12vw, 9rem);
+  margin: 0 0 var(--spacing-3);
+  font-size: clamp(4rem, 10vw, 6.75rem);
   font-weight: 900;
-  line-height: 1;
-  margin: 0 0 var(--spacing-2);
-  background: linear-gradient(
-    135deg,
-    var(--color-text) 0%,
-    color-mix(in oklab, var(--color-text) 45%, transparent) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 20px color-mix(in oklab, var(--color-primary) 18%, transparent));
-  animation: lk-error-float 4s ease-in-out infinite;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: var(--theme-auth-text);
+  text-shadow: 0 18px 36px rgba(4, 11, 24, 0.18);
 }
 
-/* ── Icon ── */
 .lk-error-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--spacing-6);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    color-mix(in oklab, var(--color-primary) 70%, var(--color-warning, #f39c12))
-  );
-  border-radius: var(--radius-xl, 20px);
+  width: 74px;
+  height: 74px;
+  margin: 0 auto var(--spacing-5);
+  border-radius: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px color-mix(in oklab, var(--color-primary) 25%, transparent);
-  animation: lk-error-pulse 2.5s ease-in-out infinite;
+  background: color-mix(in oklab, var(--theme-auth-accent) 14%, var(--theme-control-bg));
+  border: 1px solid color-mix(in oklab, var(--theme-auth-accent) 30%, transparent);
+  box-shadow: 0 18px 32px rgba(4, 11, 24, 0.14);
 }
 
 .lk-error-icon svg {
-  width: 40px;
-  height: 40px;
-  stroke: #fff;
+  width: 34px;
+  height: 34px;
+  stroke: var(--theme-auth-link);
   fill: none;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-/* ── Typography ── */
 .lk-error-title {
-  font-size: clamp(1.15rem, 3vw, 1.625rem);
-  font-weight: 700;
-  color: var(--color-text);
   margin: 0 0 var(--spacing-3);
+  color: var(--theme-auth-text);
+  font-size: clamp(1.2rem, 2.8vw, 1.65rem);
+  font-weight: 800;
 }
 
 .lk-error-description {
+  max-width: 46ch;
+  margin: 0 auto var(--spacing-7);
+  color: var(--theme-auth-muted);
   font-size: var(--font-size-base, 1rem);
-  color: var(--color-text-muted);
-  line-height: 1.7;
-  margin: 0 auto var(--spacing-8);
-  max-width: 460px;
+  line-height: 1.72;
 }
 
-/* ── Actions ── */
 .lk-error-actions {
   display: flex;
   gap: var(--spacing-4);
@@ -126,49 +160,50 @@
 .lk-error-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-2);
-  padding: 0.7rem 1.6rem;
-  text-decoration: none;
-  border-radius: var(--radius-xl, 20px);
-  font-weight: 600;
-  font-size: var(--font-size-sm, 0.875rem);
-  letter-spacing: 0.02em;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
-  cursor: pointer;
+  min-width: 190px;
+  padding: 0.9rem 1.4rem;
+  border-radius: 16px;
   border: none;
-  font-family: inherit;
+  font: inherit;
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+  cursor: pointer;
 }
 
 .lk-error-btn-primary {
-  background: var(--color-primary);
-  color: #fff;
-  box-shadow: 0 4px 14px color-mix(in oklab, var(--color-primary) 30%, transparent);
+  background: var(--theme-auth-button-bg);
+  color: var(--theme-auth-button-color);
+  box-shadow: var(--theme-auth-button-shadow);
 }
 
 .lk-error-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 22px color-mix(in oklab, var(--color-primary) 40%, transparent);
-  background: color-mix(in oklab, var(--color-primary) 85%, var(--color-warning, #f39c12));
-  color: #fff;
+  background: var(--theme-auth-button-bg-hover);
+  box-shadow: var(--theme-auth-button-shadow-hover);
+  color: var(--theme-auth-button-color);
   text-decoration: none;
 }
 
 .lk-error-btn-secondary {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
-  color: var(--color-text);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  backdrop-filter: blur(8px);
+  background: var(--theme-control-bg);
+  color: var(--theme-control-text);
+  border: 1px solid var(--theme-control-border);
+  box-shadow: var(--theme-control-shadow);
 }
 
 .lk-error-btn-secondary:hover {
   transform: translateY(-2px);
-  border-color: var(--color-text-muted);
-  background: color-mix(in oklab, var(--color-surface) 60%, transparent);
-  color: var(--color-text);
+  background: var(--theme-control-bg-hover);
+  border-color: var(--theme-control-border-strong);
+  color: var(--theme-control-text);
   text-decoration: none;
 }
 
-/* ── Background Particles (standalone) ── */
 .lk-error-particles {
   position: fixed;
   inset: 0;
@@ -181,111 +216,114 @@
   position: absolute;
   width: 8px;
   height: 8px;
-  background: color-mix(in oklab, var(--color-surface-muted, var(--color-surface)) 50%, transparent);
   border-radius: 50%;
+  background: color-mix(in oklab, var(--theme-auth-accent) 18%, transparent);
   animation: lk-error-particleFloat 18s infinite linear;
 }
 
-/* ── Background Decorations (standalone) ── */
 .lk-error-decoration {
   position: fixed;
-  font-size: clamp(100px, 22vw, 260px);
+  font-size: clamp(120px, 22vw, 240px);
   font-weight: 900;
-  color: var(--color-text);
-  opacity: 0.035;
+  color: var(--theme-auth-text);
+  opacity: 0.025;
   pointer-events: none;
   user-select: none;
   z-index: 1;
 }
 
 .lk-error-decoration-1 {
-  top: -50px;
-  left: -50px;
-  transform: rotate(-15deg);
+  top: -38px;
+  left: -28px;
+  transform: rotate(-12deg);
 }
 
 .lk-error-decoration-2 {
-  bottom: -50px;
-  right: -50px;
-  transform: rotate(15deg);
+  right: -28px;
+  bottom: -48px;
+  transform: rotate(12deg);
 }
 
-/* ── Maintenance: reason box ── */
-.lk-error-reason {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  border-left: 4px solid var(--color-primary);
-  border-radius: var(--radius-md, 12px);
-  padding: var(--spacing-4) var(--spacing-5, 1.25rem);
-  margin: 0 auto var(--spacing-6);
-  text-align: left;
-  color: var(--color-text);
-  font-size: var(--font-size-sm, 0.875rem);
+.lk-error-reason,
+.lk-error-estimate,
+.lk-error-retry-info {
   max-width: 460px;
-  line-height: 1.6;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--theme-control-bg);
+  border: 1px solid var(--theme-control-border);
+  box-shadow: var(--theme-control-shadow);
+}
+
+.lk-error-reason {
+  padding: var(--spacing-4) var(--spacing-5, 1.25rem);
+  margin-bottom: var(--spacing-6);
+  border-left: 4px solid var(--theme-auth-accent);
+  border-radius: var(--radius-md, 12px);
+  text-align: left;
+  color: var(--theme-auth-text);
+  font-size: var(--font-size-sm, 0.875rem);
+  line-height: 1.68;
 }
 
 .lk-error-reason strong {
-  color: var(--color-primary);
+  color: var(--theme-auth-link-hover);
 }
 
-/* ── Maintenance: time estimate pill ── */
-.lk-error-estimate {
+.lk-error-estimate,
+.lk-error-retry-info {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-2);
-  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  border-radius: 50px;
-  padding: 0.5rem 1.25rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  color: var(--color-text-muted);
+  padding: 0.58rem 1.25rem;
   margin-bottom: var(--spacing-6);
+  border-radius: 999px;
+  color: var(--theme-auth-muted);
+  font-size: var(--font-size-sm, 0.875rem);
 }
 
 .lk-error-estimate-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-warning, #f39c12);
-  animation: lk-error-blink 1.5s ease-in-out infinite;
+  background: var(--theme-auth-accent);
+  animation: lk-error-blink 1.6s ease-in-out infinite;
 }
 
-/* ── Maintenance: progress bar ── */
 .lk-error-progress {
   width: 100%;
   max-width: 460px;
-  height: 4px;
-  background: var(--glass-border, rgba(255, 255, 255, 0.12));
-  border-radius: 4px;
-  overflow: hidden;
+  height: 6px;
   margin: 0 auto var(--spacing-8);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--theme-control-border) 75%, transparent);
+  overflow: hidden;
 }
 
 .lk-error-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-warning, #f39c12));
-  border-radius: 4px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary), var(--theme-auth-accent));
   animation: lk-error-loading 2.5s ease-in-out infinite;
 }
 
-/* ── Maintenance: logout button ── */
 .lk-error-btn-logout {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-2);
-  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  border-radius: 50px;
-  padding: 0.55rem 1.35rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  color: var(--color-text-muted);
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s ease;
+  padding: 0.58rem 1.25rem;
   margin-bottom: var(--spacing-6);
-  font-family: inherit;
+  border-radius: 999px;
+  border: 1px solid var(--theme-control-border);
+  background: var(--theme-control-bg);
+  box-shadow: var(--theme-control-shadow);
+  color: var(--theme-auth-muted);
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.22s ease, border-color 0.22s ease, color 0.22s ease, background 0.22s ease;
 }
 
 .lk-error-btn-logout svg {
@@ -299,71 +337,40 @@
 }
 
 .lk-error-btn-logout:hover {
-  background: color-mix(in oklab, var(--color-danger, #e74c3c) 12%, transparent);
-  border-color: color-mix(in oklab, var(--color-danger, #e74c3c) 40%, transparent);
-  color: var(--color-danger, #e74c3c);
+  transform: translateY(-2px);
+  background: color-mix(in oklab, var(--color-danger, #d85c4d) 10%, var(--theme-control-bg));
+  border-color: color-mix(in oklab, var(--color-danger, #d85c4d) 34%, transparent);
+  color: var(--color-danger, #d85c4d);
   text-decoration: none;
 }
 
-/* ── 429: retry info ── */
-.lk-error-retry-info {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  border-radius: 50px;
-  padding: 0.5rem 1.25rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  color: var(--color-text-muted);
-  margin-bottom: var(--spacing-6);
-}
-
-/* ── Footer (standalone) ── */
 .lk-error-footer {
   margin-top: var(--spacing-8);
+  color: var(--theme-auth-muted);
   font-size: var(--font-size-xs, 0.75rem);
-  color: var(--color-text-muted);
-  opacity: 0.6;
+  letter-spacing: 0.03em;
+  opacity: 0.82;
 }
 
 .lk-error-footer a {
-  color: var(--color-primary);
+  color: var(--theme-auth-link);
   text-decoration: none;
   font-weight: 600;
 }
 
 .lk-error-footer a:hover {
+  color: var(--theme-auth-link-hover);
   text-decoration: underline;
 }
 
-/* ===============================
-   ANIMATIONS
-   =============================== */
 @keyframes lk-error-fadeIn {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes lk-error-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-
-@keyframes lk-error-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 8px 24px color-mix(in oklab, var(--color-primary) 25%, transparent);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 12px 32px color-mix(in oklab, var(--color-primary) 35%, transparent);
   }
 }
 
@@ -372,8 +379,12 @@
     transform: translateY(100vh) translateX(0);
     opacity: 0;
   }
-  10% { opacity: 0.5; }
-  90% { opacity: 0.5; }
+  10% {
+    opacity: 0.45;
+  }
+  90% {
+    opacity: 0.45;
+  }
   to {
     transform: translateY(-100px) translateX(80px);
     opacity: 0;
@@ -381,79 +392,102 @@
 }
 
 @keyframes lk-error-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.28;
+  }
 }
 
 @keyframes lk-error-loading {
-  0% { width: 10%; margin-left: 0; }
-  50% { width: 40%; margin-left: 30%; }
-  100% { width: 10%; margin-left: 90%; }
+  0% {
+    width: 10%;
+    margin-left: 0;
+  }
+  50% {
+    width: 40%;
+    margin-left: 30%;
+  }
+  100% {
+    width: 10%;
+    margin-left: 90%;
+  }
 }
 
-/* ===============================
-   ACCESSIBILITY
-   =============================== */
 @media (prefers-reduced-motion: reduce) {
-  .lk-error-code,
-  .lk-error-icon,
+  .lk-error-content,
   .lk-error-particle,
   .lk-error-progress-fill,
-  .lk-error-estimate-dot,
-  .lk-error-content {
+  .lk-error-estimate-dot {
     animation: none !important;
   }
 }
 
-/* ===============================
-   RESPONSIVE
-   =============================== */
 @media (max-width: 768px) {
   .lk-error-page {
     padding: var(--spacing-6);
   }
 
-  .lk-error-code {
-    font-size: 4.5rem;
+  .lk-error-content {
+    padding: 28px 20px 24px;
+    border-radius: 20px;
   }
 
   .lk-error-decoration {
-    font-size: 160px;
+    font-size: 150px;
   }
 
   .lk-error-icon {
     width: 64px;
     height: 64px;
-    border-radius: var(--radius-lg, 16px);
+    border-radius: 18px;
   }
 
-  .lk-error-icon svg {
-    width: 32px;
-    height: 32px;
+  .lk-error-code {
+    font-size: 4rem;
   }
 
   .lk-error-actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
 
   .lk-error-btn {
+    min-width: 0;
     width: 100%;
-    max-width: 280px;
-    justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
+  .lk-error-page {
+    padding: 16px;
+  }
+
+  .lk-error-content {
+    padding: 24px 16px 20px;
+  }
+
+  .lk-error-brand-logo {
+    width: min(180px, 54vw);
+  }
+
   .lk-error-code {
-    font-size: 3.5rem;
+    font-size: 3.3rem;
   }
 
   .lk-error-title {
-    font-size: 1.1rem;
+    font-size: 1.08rem;
   }
 
   .lk-error-description {
     font-size: var(--font-size-sm, 0.875rem);
+  }
+
+  .lk-error-estimate,
+  .lk-error-retry-info,
+  .lk-error-btn-logout {
+    width: 100%;
   }
 }

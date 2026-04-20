@@ -6,6 +6,18 @@
 const STORAGE_KEY = 'lukrato-theme';
 const THEME_EVENT = 'lukrato:theme-changed';
 
+function syncThemeImages(theme) {
+    document.querySelectorAll('img[data-theme-image-light][data-theme-image-dark]').forEach(img => {
+        const lightSrc = img.getAttribute('data-theme-image-light');
+        const darkSrc = img.getAttribute('data-theme-image-dark');
+        const nextSrc = theme === 'dark' ? darkSrc : lightSrc;
+
+        if (nextSrc && img.getAttribute('src') !== nextSrc) {
+            img.setAttribute('src', nextSrc);
+        }
+    });
+}
+
 function getTheme() {
     const root = document.documentElement;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -27,6 +39,7 @@ function applyTheme(theme) {
     root.setAttribute('data-theme', theme);
     localStorage.setItem(STORAGE_KEY, theme);
     updateToggleIcons(theme);
+    syncThemeImages(theme);
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', theme === 'dark' ? '#092741' : '#e67e22');

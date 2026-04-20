@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <?php
 $favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 $loginUrl = $loginUrl ?? rtrim(BASE_URL, '/') . '/login';
@@ -21,6 +21,18 @@ if ($initialMessage === '') {
     <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
     <?= csrf_meta('verify_email_form') ?>
 
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('lukrato-theme');
+                var normalizedTheme = savedTheme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', normalizedTheme);
+            } catch (error) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
     <title>Verifique seu Email - Lukrato</title>
     <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
     <?= function_exists('vite_css') ? vite_css('auth-verify-email-style') : '' ?>
@@ -35,6 +47,7 @@ if ($initialMessage === '') {
             <i data-lucide="mail" style="width:64px;height:64px;" aria-hidden="true"></i>
         </div>
 
+        <p class="eyebrow">Confirmação de cadastro</p>
         <h1>Verifique seu e-mail</h1>
 
         <p class="message" data-verify-email-message>
@@ -54,19 +67,21 @@ if ($initialMessage === '') {
             </ul>
         </div>
 
-        <form class="resend-form" id="resendForm" method="POST" action="<?= htmlspecialchars($currentFormAction, ENT_QUOTES, 'UTF-8') ?>">
-            <?= csrf_input('verify_email_form') ?>
-            <input type="hidden" name="email" value="<?= htmlspecialchars($initialEmail, ENT_QUOTES, 'UTF-8') ?>" data-verify-email-input>
-            <button type="submit" class="btn btn-primary" id="resendBtn" aria-label="Reenviar e-mail de verificação">
-                <span>Reenviar e-mail de verificação</span>
-            </button>
-        </form>
+        <div class="actions">
+            <form class="resend-form" id="resendForm" method="POST" action="<?= htmlspecialchars($currentFormAction, ENT_QUOTES, 'UTF-8') ?>">
+                <?= csrf_input('verify_email_form') ?>
+                <input type="hidden" name="email" value="<?= htmlspecialchars($initialEmail, ENT_QUOTES, 'UTF-8') ?>" data-verify-email-input>
+                <button type="submit" class="btn btn-primary" id="resendBtn" aria-label="Reenviar e-mail de verificação">
+                    <span>Reenviar e-mail de verificação</span>
+                </button>
+            </form>
 
-        <div class="resend-message" id="resendMessage" aria-live="polite" role="status"></div>
+            <div class="resend-message" id="resendMessage" aria-live="polite" role="status"></div>
 
-        <a href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline" data-verify-email-login-link>
-            ← Voltar para o login
-        </a>
+            <a href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline" data-verify-email-login-link>
+                Voltar para o login
+            </a>
+        </div>
 
         <p class="footer-link">
             Precisa de ajuda? <a href="<?= BASE_URL ?>contato">Entre em contato</a>

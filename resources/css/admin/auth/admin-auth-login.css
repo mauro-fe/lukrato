@@ -3,24 +3,23 @@
 @import "../core/variables.css";
 
 :root {
-  --orange: #e67e22;
-  --orange-strong: #f39c12;
-  --orange-light: #f8b575;
-  --orange-glow: rgba(230, 126, 34, 0.4);
-  --bg-1: #0a0e1a;
-  --bg-2: #0f1625;
-  --color-bg: #092741;
-  --card: #141b2d;
-  --card-2: #1a2332;
-  --text: #f0f4f8;
-  --muted: #8f9cb3;
-  --input: #1e2639;
-  --border: #2a3651;
-  --shadow: rgba(0, 0, 0, 0.5);
-  --success: #4ade80;
-  --error: #f87171;
+  --orange: var(--theme-auth-accent);
+  --orange-strong: var(--theme-auth-accent-strong);
+  --orange-light: var(--theme-auth-accent-soft);
+  --orange-glow: var(--theme-auth-accent-glow);
+  --bg-1: var(--theme-auth-bg-1);
+  --bg-2: var(--theme-auth-bg-2);
+  --color-bg: var(--theme-auth-page-bg);
+  --card: var(--theme-auth-card-1);
+  --card-2: var(--theme-auth-card-2);
+  --text: var(--theme-auth-text);
+  --muted: var(--theme-auth-muted);
+  --input: var(--theme-auth-input);
+  --border: var(--theme-auth-border);
+  --success: var(--theme-auth-success);
+  --error: var(--theme-auth-error);
   --radius: 20px;
-  --glow: drop-shadow(0 0 20px rgba(230, 126, 34, 0.5));
+  --glow: var(--theme-auth-logo-glow);
 }
 
 * {
@@ -52,8 +51,8 @@ body {
   left: 50%;
   margin-left: -10px;
   margin-top: -10px;
-  border: 3px solid rgba(10, 14, 26, 0.3);
-  border-top-color: #0a0e1a;
+  border: 3px solid var(--theme-auth-button-spinner-track);
+  border-top-color: var(--theme-auth-button-spinner-head);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -64,7 +63,7 @@ main.lukrato-auth {
   justify-content: center;
   align-items: center;
   padding: 20px 10px;
-background:var(--color-bg);
+  background: var(--color-bg);
   background-attachment: fixed;
   position: relative;
   overflow: hidden;
@@ -78,14 +77,14 @@ main.lukrato-auth::before {
     repeating-linear-gradient(
       90deg,
       transparent,
-      rgba(230, 126, 34, 0.03) 1px,
+      var(--theme-auth-grid-line) 1px,
       transparent 2px,
       transparent 80px
     ),
     repeating-linear-gradient(
       0deg,
       transparent,
-      rgba(230, 126, 34, 0.03) 1px,
+      var(--theme-auth-grid-line) 1px,
       transparent 2px,
       transparent 80px
     );
@@ -108,7 +107,7 @@ main.lukrato-auth::before {
   position: absolute;
   width: 6px;
   height: 6px;
-  background: radial-gradient(circle, var(--orange) 0%, transparent 70%);
+  background: var(--theme-auth-particle);
   border-radius: 50%;
   opacity: 0;
   animation: float 10s ease-in-out infinite;
@@ -116,9 +115,10 @@ main.lukrato-auth::before {
 }
 
 .login-wrapper {
-  display: flex;
-  gap: 60px;
-  max-width: 1200px;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.88fr) minmax(380px, 1fr);
+  gap: clamp(32px, 4vw, 52px);
+  max-width: 1160px;
   width: 100%;
   align-items: center;
   position: relative;
@@ -130,15 +130,54 @@ main.lukrato-auth::before {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   flex: 1;
+  max-width: 418px;
+  padding: 0;
   animation: slideInLeft 0.8s ease;
+}
+
+.login-left-card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 372px;
+  padding: 30px 30px 28px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 12%, transparent) 0%, color-mix(in srgb, var(--card-2) 8%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--border) 36%, transparent);
+  box-shadow: 0 18px 40px rgba(0, 7, 18, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+
+.login-left-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--orange) 42%, transparent) 0%, color-mix(in srgb, var(--orange) 10%, transparent) 28%, transparent 66%);
+  opacity: 0.7;
+}
+
+.login-left-card::after {
+  content: "";
+  position: absolute;
+  right: -140px;
+  bottom: -140px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 8%, transparent) 0%, transparent 74%);
+  opacity: 0.28;
+  pointer-events: none;
 }
 
 @keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateX(-28px);
   }
   to {
     opacity: 1;
@@ -147,16 +186,25 @@ main.lukrato-auth::before {
 }
 
 .brand {
-  margin-bottom: 32px;
+  margin-bottom: 14px;
   width: 100%;
   display: flex;
+  justify-content: flex-start;
+  animation: none;
+}
+
+.brand-stage {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  animation: logoFloat 3s ease-in-out infinite;
+  padding: 0;
 }
 
 .imagem-logo {
+  position: relative;
   display: flex;
   justify-content: center;
+  z-index: 1;
 }
 
 @keyframes logoFloat {
@@ -172,30 +220,52 @@ main.lukrato-auth::before {
 
 /* a logo em si */
 .imagem-logo img {
-  width: min(280px, 70vw);
+  width: min(160px, 42vw);
   height: auto;
   display: block;
 
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s ease, filter 0.25s ease;
+  filter: drop-shadow(0 8px 20px rgba(230, 126, 34, 0.12));
 }
 
 .imagem-logo img:hover {
-  transform: translateY(-8px) scale(1.05);
+  transform: translateY(-2px);
 }
 
 .welcome {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.welcome-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  color: color-mix(in srgb, var(--orange) 64%, var(--muted));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .welcome h2 {
-  font-size: 42px;
-  line-height: 1.1;
-  margin: 0 0 16px 0;
-  background: linear-gradient(135deg, var(--text), var(--orange-light));
+  font-size: clamp(2.18rem, 3.4vw, 2.84rem);
+  line-height: 1.02;
+  margin: 0;
+  width: fit-content;
+  max-width: none;
+  background: linear-gradient(180deg, #f8fafc 0%, color-mix(in srgb, var(--text) 74%, #ffffff 26%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: titleShine 3s ease infinite;
+  animation: none;
+  letter-spacing: -0.04em;
+}
+
+.welcome h2 span {
+  display: block;
 }
 
 @keyframes titleShine {
@@ -209,38 +279,32 @@ main.lukrato-auth::before {
   }
 }
 
-.welcome p {
-  color: var(--muted);
-  line-height: 1.65;
-  max-width: 50ch;
-  font-size: 17px;
+.welcome-lead {
+  color: color-mix(in srgb, var(--muted) 90%, #ffffff 10%);
+  line-height: 1.75;
+  max-width: 28ch;
+  font-size: 15px;
 }
 
 .login-right {
   flex: 1;
   width: 100%;
-  max-width: 560px;
+  max-width: 468px;
+  justify-self: end;
   animation: slideInRight 0.8s ease;
 }
 
 .card {
-  background: linear-gradient(
-    135deg,
-    rgba(20, 27, 45, 0.95) 0%,
-    rgba(26, 35, 50, 0.9) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 2px solid rgba(230, 126, 34, 0.2);
-  border-radius: var(--radius);
+ background: linear-gradient(180deg, color-mix(in srgb, var(--card) 12%, transparent) 0%, color-mix(in srgb, var(--card-2) 8%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, rgba(255, 255, 255, 0.04));
+  border-radius: 24px;
   padding: 0;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(230, 126, 34, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 34px 72px rgba(0, 8, 18, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   width: 100%;
+  backdrop-filter: blur(14px);
   transition:
     transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.35s ease,
@@ -248,30 +312,68 @@ main.lukrato-auth::before {
   height: auto;
 }
 
-.card:hover::before {
-  opacity: 1;
+.card::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 22px;
+  right: 22px;
+  height: 2px;
+  background: var(--theme-auth-card-topline);
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  top: auto;
+  right: -110px;
+  bottom: -130px;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 10%, transparent) 0%, transparent 74%);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .card:hover {
-  transform: translateY(-8px);
-  border-color: rgba(230, 126, 34, 0.4);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--orange) 16%, var(--border));
+  box-shadow: 0 38px 78px rgba(0, 8, 18, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* TABS */
 .tabs {
   display: flex;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
+  padding: 16px 22px 0;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+.tabs::after {
+  content: "";
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--border) 64%, transparent);
 }
 
 .tab-btn {
   flex: 1;
   background: transparent;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 88%, #ffffff 12%);
   font-weight: 700;
-  font-size: 17px;
-  padding: 20px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 14px 10px 15px;
   border: none;
+  border-radius: 0;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -280,17 +382,19 @@ main.lukrato-auth::before {
 .tab-btn::after {
   content: "";
   position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--orange);
+  bottom: 0;
+  left: 18px;
+  right: 18px;
+  height: 2px;
+  background: var(--theme-auth-card-topline);
+  border-radius: 999px;
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .tab-btn.is-active {
   color: var(--text);
+  background: transparent;
 }
 
 .tab-btn.is-active::after {
@@ -298,8 +402,8 @@ main.lukrato-auth::before {
 }
 
 .tab-btn:hover:not(.is-active) {
-  color: var(--orange-light);
-  background: rgba(230, 126, 34, 0.05);
+  color: var(--text);
+  background: transparent;
 }
 
 /* FLIP CONTAINER */
@@ -334,11 +438,12 @@ main.lukrato-auth::before {
   top: 0;
   left: 0;
   width: 100%;
-  padding: 18px 24px 24px;
+  padding: 30px 32px 30px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   pointer-events: none;
   user-select: none;
+  z-index: 1;
 }
 
 .flip-login {
@@ -374,37 +479,66 @@ main.lukrato-auth::before {
 }
 
 .card-title {
-  text-align: center;
-  font-size: 26px;
-  margin: 0 0 20px;
+  text-align: left;
+  font-size: clamp(2rem, 2.4vw, 2.45rem);
+  margin: 0;
   position: relative;
   display: inline-block;
   width: 100%;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--text), var(--orange-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
+  max-width: none;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  background: none;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
 }
 
 .card-title::after {
+  display: none;
+}
+
+.card-panel-head {
+  width: min(100%, 360px);
+  margin: 0 auto 24px;
+  padding-bottom: 0;
+  text-align: left;
+  border-bottom: none;
+  position: relative;
+}
+
+.card-panel-head::after {
   content: "";
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, var(--orange), transparent);
-  border-radius: 4px;
-  box-shadow: 0 2px 10px var(--orange-glow);
+  display: block;
+  width: 46px;
+  height: 1px;
+  margin-top: 18px;
+  background: color-mix(in srgb, var(--orange) 48%, var(--border));
+}
+
+.card-kicker {
+  margin-bottom: 12px;
+  color: color-mix(in srgb, var(--orange) 62%, var(--muted));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
 }
 
 #loginForm,
 #registerForm {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  width: min(100%, 360px);
+  margin-inline: auto;
+}
+
+.auth-social-actions {
+  width: min(100%, 360px);
+  margin: 8px auto 0;
 }
 
 /* FIELDS */
@@ -423,65 +557,79 @@ main.lukrato-auth::before {
 
 .field input {
   width: 100%;
-  background: rgba(30, 38, 57, 0.6);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 12%, transparent) 0%, color-mix(in srgb, var(--card-2) 8%, transparent) 100%);
   color: var(--text);
-  border: 2px solid rgba(42, 54, 81, 0.8);
-  border-radius: 12px;
-  padding: 14px 45px 14px 12px;
-  font-size: 15px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 15px;
+  min-height: 54px;
+  padding: 15px 46px 15px 16px;
+  font-size: 14px;
   outline: none;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.3),
-    0 1px 0 rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.25s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.field input:hover {
+  border-color: color-mix(in srgb, var(--orange) 16%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--input) 88%, transparent) 0%, color-mix(in srgb, var(--card) 84%, transparent) 100%);
 }
 
 .field input::placeholder {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 90%, #ffffff 10%);
+  letter-spacing: 0.01em;
   transition: all 0.3s ease;
+}
+
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  border-color: color-mix(in srgb, var(--theme-auth-accent) 24%, transparent);
+  box-shadow:
+    0 0 0 1000px var(--theme-auth-input-strong) inset,
+    0 0 0 1px color-mix(in srgb, var(--theme-auth-accent) 20%, transparent),
+    0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: background-color 9999s ease-out 0s;
 }
 
 .field input:focus::placeholder {
   opacity: 0.4;
-  transform: translateX(5px);
+  transform: translateX(3px);
 }
 
 .field input:focus {
-  border-color: var(--orange);
-  background: rgba(30, 38, 57, 0.9);
+  border-color: color-mix(in srgb, var(--orange) 72%, #ffffff 28%);
+  background: color-mix(in srgb, var(--theme-auth-input-strong) 96%, transparent);
   box-shadow:
-    0 0 0 4px rgba(230, 126, 34, 0.2),
-    0 0 20px rgba(230, 126, 34, 0.3),
-    inset 0 2px 4px rgba(0, 0, 0, 0.3),
-    0 8px 16px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
+    0 0 0 3px var(--theme-auth-ring),
+    0 16px 26px rgba(0, 0, 0, 0.16);
+  transform: none;
 }
 
 .field input:not(:placeholder-shown) {
-  border-color: rgba(230, 126, 34, 0.3);
+  border-color: color-mix(in srgb, var(--theme-auth-accent) 12%, var(--border));
 }
 
 /* Toggle password */
 .toggle-password {
   position: absolute;
   right: 12px;
-  top: 22px;
+  top: 50%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
   color: var(--muted);
   cursor: pointer;
-  padding: 8px;
+  padding: 7px;
   transition: all 0.3s ease;
-  border-radius: 6px;
+  border-radius: 999px;
 }
 
 .toggle-password:hover {
   color: var(--orange);
-  background: rgba(230, 126, 34, 0.1);
-  transform: translateY(-50%) scale(1.1);
+  background: var(--theme-auth-tab-hover-bg);
+  transform: translateY(-50%);
 }
 
 .toggle-password:focus {
@@ -490,9 +638,30 @@ main.lukrato-auth::before {
 
 /* Remember Me Checkbox */
 .remember-me {
-  margin: 0.75rem 0 1.25rem;
+  margin: 0;
   display: flex;
   align-items: center;
+}
+
+.auth-utilities {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 2px 0 6px;
+}
+
+.auth-link-inline {
+  color: var(--theme-auth-link);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+.auth-link-inline:hover {
+  color: var(--theme-auth-link-hover);
 }
 
 .checkbox-container {
@@ -513,18 +682,18 @@ main.lukrato-auth::before {
 
 .checkmark {
   position: relative;
-  height: 20px;
-  width: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  height: 18px;
+  width: 18px;
+  background: var(--theme-auth-checkbox-bg);
+  border: 2px solid var(--theme-auth-checkbox-border);
+  border-radius: 4px;
   transition: all 0.25s ease;
   flex-shrink: 0;
 }
 
 .checkbox-container:hover .checkmark {
   border-color: var(--orange);
-  background: rgba(230, 126, 34, 0.1);
+  background: var(--theme-auth-checkbox-hover-bg);
 }
 
 .checkbox-container input[type="checkbox"]:checked ~ .checkmark {
@@ -536,10 +705,10 @@ main.lukrato-auth::before {
   content: "";
   position: absolute;
   display: none;
-  left: 6px;
-  top: 2px;
-  width: 5px;
-  height: 10px;
+  left: 5px;
+  top: 1px;
+  width: 4px;
+  height: 9px;
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
@@ -550,13 +719,13 @@ main.lukrato-auth::before {
 }
 
 .checkbox-label {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+  color: var(--theme-auth-checkbox-label);
+  font-size: 12.5px;
   transition: color 0.25s ease;
 }
 
 .checkbox-container:hover .checkbox-label {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
 }
 
 .field-error {
@@ -574,27 +743,21 @@ main.lukrato-auth::before {
 /* BUTTONS */
 .btn-primary {
   width: 100%;
-  background: linear-gradient(
-    135deg,
-    var(--orange) 0%,
-    var(--orange-strong) 100%
-  );
-  color: #0a0e1a;
+  background: var(--theme-auth-button-bg);
+  color: var(--theme-auth-button-color);
   border: none;
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 17px;
+  border-radius: 15px;
+  min-height: 54px;
+  padding: 14px 18px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow:
-    0 4px 20px rgba(230, 126, 34, 0.5),
-    0 1px 0 rgba(255, 255, 255, 0.2) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.2) inset;
+  box-shadow: 0 18px 30px rgba(230, 126, 34, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
 }
 
 .btn-primary::before {
@@ -607,7 +770,7 @@ main.lukrato-auth::before {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.4),
+    var(--theme-auth-button-shine),
     transparent
   );
   transition: left 0.6s ease;
@@ -617,9 +780,9 @@ main.lukrato-auth::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 12px;
-  padding: 2px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
+  border-radius: 15px;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -641,18 +804,14 @@ main.lukrato-auth::before {
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow:
-    0 8px 30px rgba(230, 126, 34, 0.6),
-    0 0 40px rgba(230, 126, 34, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  transform: translateY(-1px);
+  background: var(--theme-auth-button-bg-hover);
+  box-shadow: 0 22px 34px rgba(230, 126, 34, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-primary:active {
-  transform: translateY(-1px) scale(1);
-  box-shadow:
-    0 2px 10px rgba(230, 126, 34, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  transform: translateY(-1px);
+  box-shadow: var(--theme-auth-button-shadow);
 }
 
 .btn-primary:disabled {
@@ -661,38 +820,35 @@ main.lukrato-auth::before {
   transform: none;
 }
 
-.btn-primary:hover::before {
-  left: 100%;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(230, 126, 34, 0.5);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
 /* AUTH SEPARATOR */
 .auth-separator {
   display: flex;
   align-items: center;
-  margin: 16px 0;
-  color: var(--muted);
-  font-size: 14px;
+  margin: 22px 0 14px;
+  color: color-mix(in srgb, var(--muted) 82%, #ffffff 18%);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
 }
 
 .auth-separator::before,
 .auth-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
 }
 
 .auth-separator span {
-  padding: 0 16px;
-  font-weight: 500;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.auth-social-actions {
+  margin-top: 2px;
+}
+
+.auth-social-actions--register {
+  margin-top: 4px;
 }
 
 /* GOOGLE BUTTON */
@@ -701,52 +857,38 @@ main.lukrato-auth::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
-  border: 2px solid #dadce0;
-  border-radius: 12px;
-  padding: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--theme-control-bg) 82%, transparent) 0%, color-mix(in srgb, var(--card) 78%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--theme-control-border) 82%, transparent);
+  border-radius: 15px;
+  min-height: 54px;
+  padding: 13px 16px;
   text-decoration: none;
-  color: #3c4043;
-  font-size: 16px;
+  color: var(--theme-control-text);
+  font-size: 13.5px;
   font-weight: 700;
   transition: all 0.3s ease;
   cursor: pointer;
   gap: 10px;
   position: relative;
   overflow: hidden;
-  margin-bottom: var(--spacing-2);
+  margin-bottom: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .google-sign-in-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 0, 0, 0.05),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.google-sign-in-button:hover::before {
-  left: 100%;
+  display: none;
 }
 
 .google-sign-in-button:hover {
-  transform: translateY(-2px);
-  background: #f8f9fa;
-  border-color: #c1c1c1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--theme-control-bg-hover) 82%, transparent) 0%, color-mix(in srgb, var(--card) 80%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--orange) 18%, var(--theme-control-border-strong));
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.14);
 }
 
 .google-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 /* EXTRA LINKS */
@@ -756,14 +898,14 @@ main.lukrato-auth::before {
 }
 
 .extra-link a {
-  color: var(--orange-strong);
+  color: var(--theme-auth-link);
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .extra-link a:hover {
-  color: var(--orange-light);
+  color: var(--theme-auth-link-hover);
   text-decoration: underline;
 }
 
@@ -776,7 +918,7 @@ main.lukrato-auth::before {
 }
 
 .terms-link a {
-  color: var(--orange);
+  color: var(--theme-auth-link);
   text-decoration: none;
   font-weight: 600;
 }
@@ -799,8 +941,6 @@ main.lukrato-auth::before {
   border: 2px solid;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .msg::before {
@@ -825,8 +965,8 @@ main.lukrato-auth::before {
 }
 
 .msg-error {
-  background: rgba(248, 113, 113, 0.15);
-  border-color: rgba(248, 113, 113, 0.5);
+  background: var(--theme-auth-error-bg);
+  border-color: var(--theme-auth-error-border);
   color: var(--error);
   box-shadow: 0 4px 20px rgba(248, 113, 113, 0.2);
 }
@@ -840,8 +980,8 @@ main.lukrato-auth::before {
 }
 
 .msg-success {
-  background: rgba(74, 222, 128, 0.15);
-  border-color: rgba(74, 222, 128, 0.5);
+  background: var(--theme-auth-success-bg);
+  border-color: var(--theme-auth-success-border);
   color: var(--success);
   box-shadow: 0 4px 20px rgba(74, 222, 128, 0.2);
 }
@@ -852,16 +992,6 @@ main.lukrato-auth::before {
 
 .msg-success::after {
   background: var(--success);
-}
-
-.msg-success {
-  background: rgba(121, 230, 160, 0.1);
-  border: 1px solid rgba(121, 230, 160, 0.3);
-  color: var(--success);
-}
-
-.msg-success::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%234ade80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
 }
 
 .general-message {
@@ -875,17 +1005,43 @@ main.lukrato-auth::before {
 /* RESPONSIVE */
 @media (max-width: 1024px) {
   .login-wrapper {
-    display: flex;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    gap: 34px;
   }
 
   .login-left,
   .login-right {
     width: 100% !important;
+    max-width: 560px;
+    justify-self: center;
+  }
+
+  .login-left {
+    align-items: center;
+  }
+
+  .login-left-card {
+    width: min(100%, 420px);
+    min-height: auto;
+    padding: 28px 24px 24px;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .welcome {
+    align-items: center;
+    text-align: center;
+  }
+
+  .welcome-kicker {
+    justify-content: center;
   }
 
   .login-right {
     margin: 0 auto;
+    max-width: 468px;
   }
 
   .card {
@@ -893,7 +1049,7 @@ main.lukrato-auth::before {
   }
 
   .imagem-logo img {
-    width: min(220px, 60vw);
+    width: min(156px, 48vw);
   }
 
   .card-title {
@@ -910,35 +1066,65 @@ main.lukrato-auth::before {
     padding: 24px 16px;
   }
 
-  .welcome h2 {
-    font-size: 30px;
+  .login-left-card {
+    padding: 24px 18px 22px;
+    border-radius: 24px;
   }
 
-  .welcome p {
-    font-size: 16px;
+  .welcome h2 {
+    font-size: 28px;
+  }
+
+  .welcome-lead {
+    font-size: 14px;
   }
 
   .flip-face {
-    padding: 22px 18px 20px;
+    padding: 26px 22px 22px;
   }
 
   .card-title {
-    font-size: 22px;
+    font-size: 26px;
   }
 
   .imagem-logo img {
-    width: 180px;
+    width: 138px;
+  }
+
+  .card-panel-head,
+  #loginForm,
+  #registerForm,
+  .auth-social-actions {
+    width: 100%;
+  }
+
+  .card-panel-head::after {
+    width: 40px;
+    margin-top: 16px;
+  }
+
+  .auth-utilities {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .auth-link-inline {
+    margin-left: auto;
   }
 }
 
 @media (max-width: 480px) {
   .card {
-    border-radius: 16px;
+    border-radius: 20px;
+  }
+
+  .login-left-card {
+    padding: 22px 16px 18px;
+    border-radius: 20px;
   }
 
   .card-title {
-    font-size: 22px;
-    margin-bottom: 16px;
+    font-size: 23px;
   }
 
   .field {
@@ -946,13 +1132,14 @@ main.lukrato-auth::before {
   }
 
   .field input {
-    padding: 11px 40px 11px 11px;
+    padding: 14px 42px 14px 13px;
+    min-height: 52px;
     font-size: 15px;
   }
 
   .btn-primary {
-    padding: 12px;
-    font-size: 15px;
+    padding: 14px 16px;
+    font-size: 13px;
   }
 
   .google-btn {
@@ -961,11 +1148,37 @@ main.lukrato-auth::before {
   }
 
   .imagem-logo img {
-    width: min(180px, 55vw);
+    width: min(126px, 40vw);
+  }
+
+  .welcome h2 {
+    font-size: 24px;
+  }
+
+  .welcome-lead {
+    font-size: 13px;
   }
 
   .auth-separator {
-    margin: 14px 0;
+    margin: 18px 0 14px;
+  }
+
+  .tab-btn {
+    font-size: 11px;
+    padding: 13px 8px 14px;
+  }
+
+  .flip-face {
+    padding: 22px 16px 18px;
+  }
+
+  .tabs {
+    padding: 14px 16px 0;
+  }
+
+  .tabs::after {
+    left: 20px;
+    right: 20px;
   }
 }
 
@@ -998,7 +1211,7 @@ main.lukrato-auth::before {
 .referral-field .referral-icon {
   position: absolute;
   left: 14px;
-  color: var(--orange);
+  color: var(--theme-auth-accent);
   font-size: 16px;
   pointer-events: none;
   z-index: 1;
@@ -1048,12 +1261,10 @@ main.lukrato-auth::before {
     display: none;
     margin-top: 10px;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--theme-auth-input-strong) 70%, transparent) 0%, color-mix(in srgb, var(--theme-auth-input) 76%, transparent) 100%);
+  border: 1px solid var(--theme-auth-border);
     padding: 14px 16px 12px;
     animation: pwd-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     margin-bottom: 6px;
 }
 
@@ -1084,7 +1295,7 @@ main.lukrato-auth::before {
 }
 
 .pwd-bar-label span:first-child {
-    color: rgba(255, 255, 255, 0.3);
+  color: var(--theme-auth-password-label);
     text-transform: uppercase;
 }
 
@@ -1093,16 +1304,16 @@ main.lukrato-auth::before {
     font-weight: 700;
 }
 
-.pwd-level.s1 { color: #ef4444; }
-.pwd-level.s2 { color: #f97316; }
-.pwd-level.s3 { color: #eab308; }
-.pwd-level.s4 { color: #22d3ee; }
-.pwd-level.s5 { color: #22c55e; }
+.pwd-level.s1 { color: var(--theme-auth-password-s1); }
+.pwd-level.s2 { color: var(--theme-auth-password-s2); }
+.pwd-level.s3 { color: var(--theme-auth-password-s3); }
+.pwd-level.s4 { color: var(--theme-auth-password-s4); }
+.pwd-level.s5 { color: var(--theme-auth-password-s5); }
 
 .pwd-bar-wrap {
     height: 6px;
     border-radius: 3px;
-    background: rgba(255, 255, 255, 0.06);
+  background: var(--theme-auth-password-track);
     margin-bottom: 14px;
     overflow: hidden;
 }
@@ -1116,38 +1327,38 @@ main.lukrato-auth::before {
 
 .pwd-bar-fill.s1 {
     width: 20%;
-    background: #ef4444;
+  background: var(--theme-auth-password-s1);
     box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
 .pwd-bar-fill.s2 {
     width: 40%;
-    background: #f97316;
+  background: var(--theme-auth-password-s2);
     box-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
 }
 
 .pwd-bar-fill.s3 {
     width: 60%;
-    background: #eab308;
+  background: var(--theme-auth-password-s3);
     box-shadow: 0 0 8px rgba(234, 179, 8, 0.3);
 }
 
 .pwd-bar-fill.s4 {
     width: 80%;
-    background: #22d3ee;
+  background: var(--theme-auth-password-s4);
     box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
 }
 
 .pwd-bar-fill.s5 {
     width: 100%;
-    background: linear-gradient(90deg, #22d3ee, #22c55e);
+  background: linear-gradient(90deg, var(--theme-auth-password-s4), var(--theme-auth-password-s5));
     box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
 }
 
 /* Divider line */
 .pwd-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.06);
+  background: var(--theme-auth-password-divider);
     margin-bottom: 12px;
 }
 
@@ -1160,7 +1371,7 @@ main.lukrato-auth::before {
 
 .pwd-req {
     font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.3);
+  color: var(--theme-auth-password-label);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1172,7 +1383,7 @@ main.lukrato-auth::before {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border: 1.5px solid var(--theme-auth-password-divider);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1182,12 +1393,12 @@ main.lukrato-auth::before {
 }
 
 .pwd-req.pass {
-    color: rgba(255, 255, 255, 0.7);
+  color: var(--theme-auth-checkbox-label);
 }
 
 .pwd-req.pass .req-icon {
-    background: #22c55e;
-    border-color: #22c55e;
+  background: var(--theme-auth-password-s5);
+  border-color: var(--theme-auth-password-s5);
     box-shadow: 0 0 8px rgba(34, 197, 94, 0.35);
     transform: scale(1.05);
 }
@@ -1232,25 +1443,25 @@ main.lukrato-auth::before {
 }
 
 .pwd-match.match {
-    color: #22c55e;
-    background: rgba(34, 197, 94, 0.08);
-    border: 1px solid rgba(34, 197, 94, 0.15);
+  color: var(--theme-auth-success);
+  background: var(--theme-auth-success-bg);
+  border: 1px solid var(--theme-auth-success-border);
 }
 
 .pwd-match.match .match-icon {
-    background: #22c55e;
+  background: var(--theme-auth-success);
     color: #fff;
     box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
 }
 
 .pwd-match.no-match {
-    color: #f87171;
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.15);
+  color: var(--theme-auth-error);
+  background: var(--theme-auth-error-bg);
+  border: 1px solid var(--theme-auth-error-border);
 }
 
 .pwd-match.no-match .match-icon {
-    background: #ef4444;
+  background: var(--theme-auth-password-s1);
     color: #fff;
     box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
 }

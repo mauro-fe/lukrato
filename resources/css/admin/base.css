@@ -26,3 +26,6 @@
 @import "./modules/birthday-modal.css";
 @import "./modules/session-manager.css";
 @import "./core/enhancements.css";
+
+/* Preview reversivel: remova este import se nao gostar do resultado. */
+@import "./layout/_hierarchy-preview.css";

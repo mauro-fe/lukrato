@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,18 @@
     <meta name="description" content="Lukrato - Controle suas finanças de forma inteligente e simples">
     <meta name="theme-color" content="#e67e22">
     <title>Lukrato - Links</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= BASE_URL ?>assets/img/icone.png?v=1">
+    <script>
+    (function() {
+        try {
+            var savedTheme = localStorage.getItem('lukrato-theme');
+            var normalizedTheme = savedTheme === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', normalizedTheme);
+        } catch (error) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    })();
+    </script>
     <?= function_exists('vite_css') ? vite_css('site-card-style') : '' ?>
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
@@ -18,15 +30,17 @@
         <!-- Header com Logo -->
         <header class="card-header">
             <div class="logo-container">
-                <img src="<?= BASE_URL ?>assets/img/logo.png" alt="Lukrato Logo" class="logo" onerror="this.style.display='none'">
+                <img src="<?= BASE_URL ?>assets/img/logo-top.png" alt="Lukrato Logo" class="logo"
+                    onerror="this.style.display='none'">
             </div>
+            <p class="eyebrow">Links oficiais</p>
             <h1 class="title">Lukrato</h1>
-            <p class="subtitle">Controle financeiro inteligente para sua vida</p>
+            <p class="subtitle">Acesse login, planos, recursos e suporte a partir de um único hub da marca.</p>
         </header>
 
         <!-- Botão Principal (CTA) -->
         <section class="cta-section">
-            <a href="<?= BASE_URL ?>" class="btn btn-primary" target="_blank">
+            <a href="<?= BASE_URL ?>" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
                 <i data-lucide="rocket"></i>
                 <span>Começar Grátis Agora</span>
             </a>
@@ -34,7 +48,7 @@
 
         <!-- Links Principais -->
         <section class="links-section">
-            <a href="<?= BASE_URL ?>login" class="link-card" target="_blank">
+            <a href="<?= BASE_URL ?>login" class="link-card" target="_blank" rel="noopener noreferrer">
                 <div class="link-icon">
                     <i data-lucide="log-in"></i>
                 </div>
@@ -45,7 +59,7 @@
                 <i data-lucide="chevron-right" class="link-arrow"></i>
             </a>
 
-            <a href="<?= BASE_URL ?>#planos" class="link-card" target="_blank">
+            <a href="<?= BASE_URL ?>#planos" class="link-card" target="_blank" rel="noopener noreferrer">
                 <div class="link-icon">
                     <i data-lucide="crown"></i>
                 </div>
@@ -56,7 +70,7 @@
                 <i data-lucide="chevron-right" class="link-arrow"></i>
             </a>
 
-            <a href="<?= BASE_URL ?>#funcionalidades" class="link-card" target="_blank">
+            <a href="<?= BASE_URL ?>#funcionalidades" class="link-card" target="_blank" rel="noopener noreferrer">
                 <div class="link-icon">
                     <i data-lucide="line-chart"></i>
                 </div>
@@ -67,7 +81,8 @@
                 <i data-lucide="chevron-right" class="link-arrow"></i>
             </a>
 
-            <a href="https://wa.me/5544999506302?text=Olá,%20vim%20do%20link%20da%20bio!" class="link-card" target="_blank">
+            <a href="https://wa.me/5544999506302?text=Olá,%20vim%20do%20link%20da%20bio!" class="link-card"
+                target="_blank" rel="noopener noreferrer">
                 <div class="link-icon whatsapp">
                     <i class="fab fa-whatsapp"></i>
                 </div>
@@ -110,10 +125,12 @@
         <section class="social-section">
             <h2 class="section-title">Siga-nos nas redes</h2>
             <div class="social-links">
-                <a href="https://instagram.com/lukrato.oficial" class="social-btn instagram" target="_blank" rel="noopener noreferrer" title="Instagram">
+                <a href="https://instagram.com/lukrato.oficial" class="social-btn instagram" target="_blank"
+                    rel="noopener noreferrer" title="Instagram">
                     <i class="fab fa-instagram"></i>
                 </a>
-                <a href="https://tiktok.com/@lukrato.oficial" class="social-btn tiktok" target="_blank" rel="noopener noreferrer" title="TikTok">
+                <a href="https://tiktok.com/@lukrato.oficial" class="social-btn tiktok" target="_blank"
+                    rel="noopener noreferrer" title="TikTok">
                     <i class="fab fa-tiktok"></i>
                 </a>
             </div>

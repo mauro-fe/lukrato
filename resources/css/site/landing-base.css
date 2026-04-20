@@ -39,6 +39,16 @@ body {
     min-height: 44px;
     min-width: 44px;
   }
+
+  [data-hero-dot] {
+    min-height: 0 !important;
+    min-width: 0 !important;
+  }
+
+  [data-hero-nav] {
+    min-height: 38px;
+    min-width: 38px;
+  }
 }
 
 .lk-nav-open {

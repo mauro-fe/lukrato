@@ -1,0 +1,421 @@
+/* ============================================================================
+   DASHBOARD HIERARCHY PREVIEW — CONTENT
+   Preview visual reversivel. Remova o import em resources/css/admin/dashboard/index.css.
+   ============================================================================ */
+
+body[data-lk-menu="dashboard"] .dashboard-hero-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 188px;
+  padding: 1.35rem 1.5rem 1.4rem;
+  overflow: hidden;
+  text-align: left;
+  background: var(--theme-dashboard-hero-bg);
+  border-color: var(--theme-dashboard-hero-border);
+  box-shadow: var(--theme-dashboard-hero-shadow);
+}
+
+body[data-lk-menu="dashboard"] .dashboard-hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  width: 100%;
+  background: var(--theme-dashboard-hero-accent);
+  pointer-events: none;
+}
+
+body[data-lk-menu="dashboard"] .dashboard-hero-section::after {
+  content: "";
+  position: absolute;
+  inset: auto -12% -22% auto;
+  width: 220px;
+  height: 220px;
+  background: var(--theme-dashboard-hero-orb);
+  pointer-events: none;
+}
+
+body[data-lk-menu="dashboard"] .dash-hero__label,
+body[data-lk-menu="dashboard"] .dash-hero__balance,
+body[data-lk-menu="dashboard"] .dash-hero__variation,
+body[data-lk-menu="dashboard"] .dash-hero__sparkline,
+body[data-lk-menu="dashboard"] .dash-hero__context,
+body[data-lk-menu="dashboard"] .dash-hero__message {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-lk-menu="dashboard"] .dash-hero__label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.32rem 0.72rem;
+  margin-bottom: 0.55rem;
+  color: var(--theme-dashboard-hero-label-color);
+  background: var(--theme-dashboard-hero-label-bg);
+  border: 1px solid var(--theme-dashboard-hero-label-border);
+  border-radius: 999px;
+  letter-spacing: 0.11em;
+  font-weight: 700;
+}
+
+body[data-lk-menu="dashboard"] .dash-hero__balance {
+  max-width: none;
+  margin-bottom: 0.55rem;
+  font-size: clamp(2.2rem, 4vw, 3.1rem);
+  letter-spacing: -0.035em;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--theme-dashboard-hero-balance);
+}
+
+body[data-lk-menu="dashboard"] .dash-hero__variation {
+  padding: 0.55rem 0.8rem;
+  color: var(--theme-dashboard-hero-variation-color);
+  background: var(--theme-dashboard-hero-variation-bg);
+  border: 1px solid var(--theme-dashboard-hero-variation-border);
+  border-left: 3px solid var(--theme-dashboard-hero-variation-rail);
+  box-shadow: var(--theme-dashboard-hero-variation-shadow);
+}
+
+body[data-lk-menu="dashboard"] .dash-hero__sparkline {
+  width: min(100%, 240px);
+  margin: 0.85rem 0 0;
+  padding: 0.45rem 0.6rem 0.2rem;
+  border-radius: 12px;
+  background: var(--theme-dashboard-hero-spark-bg);
+  border: 1px solid var(--theme-dashboard-hero-spark-border);
+  box-shadow: var(--theme-dashboard-hero-spark-shadow);
+}
+
+body[data-lk-menu="dashboard"] .dash-hero__context,
+body[data-lk-menu="dashboard"] .dash-hero__message {
+  max-width: 58ch;
+  margin-top: 0.8rem;
+  color: var(--theme-dashboard-hero-message);
+  font-size: 0.89rem;
+}
+
+body[data-lk-menu="dashboard"] .dash-kpis {
+  grid-template-columns: minmax(0, 0.96fr) minmax(0, 0.96fr) minmax(0, 1.08fr);
+  align-items: stretch;
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi {
+  position: relative;
+  overflow: hidden;
+  padding: 0.9rem 1rem;
+  background: var(--theme-dashboard-kpi-bg);
+  border-color: var(--theme-dashboard-kpi-border);
+  box-shadow: var(--theme-dashboard-kpi-shadow);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  pointer-events: none;
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi::after {
+  display: none;
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi:hover {
+  border-color: var(--theme-dashboard-kpi-hover-border);
+  box-shadow: var(--theme-dashboard-kpi-shadow-hover);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--income::before {
+  background: var(--theme-dashboard-kpi-income-accent);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--expense::before {
+  background: var(--theme-dashboard-kpi-expense-accent);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--result {
+  padding: 1.05rem;
+  background: var(--theme-dashboard-kpi-result-bg);
+  border-color: var(--theme-dashboard-kpi-result-border);
+  box-shadow: var(--theme-dashboard-kpi-result-shadow);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--result::before {
+  height: 3px;
+  background: var(--theme-dashboard-kpi-result-accent);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--result:hover {
+  border-color: var(--theme-dashboard-kpi-result-hover-border);
+  box-shadow: var(--theme-dashboard-kpi-result-shadow-hover);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi__icon--income {
+  background: var(--theme-dashboard-kpi-income-icon-bg);
+  color: var(--theme-dashboard-kpi-income-icon-color);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi__icon--expense {
+  background: var(--theme-dashboard-kpi-expense-icon-bg);
+  color: var(--theme-dashboard-kpi-expense-icon-color);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi__icon--result {
+  width: 46px;
+  height: 46px;
+  background: var(--theme-dashboard-kpi-result-icon-bg);
+  color: var(--theme-dashboard-kpi-result-icon-color);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi__label {
+  color: var(--theme-dashboard-kpi-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--income .dash-kpi__label,
+body[data-lk-menu="dashboard"] .dash-kpi--expense .dash-kpi__label {
+  color: var(--theme-dashboard-kpi-muted-label);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi__value {
+  font-size: clamp(1.1rem, 1.75vw, 1.58rem);
+  color: var(--theme-dashboard-kpi-value);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--result .dash-kpi__label {
+  color: var(--theme-dashboard-kpi-result-label);
+}
+
+body[data-lk-menu="dashboard"] .dash-kpi--result .dash-kpi__value {
+  font-size: clamp(1.45rem, 2.1vw, 1.95rem);
+  font-weight: 800;
+  color: var(--theme-dashboard-kpi-result-value);
+}
+
+body[data-lk-menu="dashboard"] .health-score-widget,
+body[data-lk-menu="dashboard"] .ai-tip-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--theme-dashboard-widget-bg);
+  border: 1px solid var(--theme-dashboard-widget-border);
+  border-radius: 18px;
+  box-shadow: var(--theme-dashboard-widget-shadow);
+}
+
+body[data-lk-menu="dashboard"] .health-score-widget::before,
+body[data-lk-menu="dashboard"] .ai-tip-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  pointer-events: none;
+}
+
+body[data-lk-menu="dashboard"] .health-score-widget::before {
+  background: var(--theme-dashboard-widget-secondary-accent);
+}
+
+body[data-lk-menu="dashboard"] .ai-tip-card::before {
+  background: var(--theme-dashboard-widget-primary-accent);
+}
+
+body[data-lk-menu="dashboard"] .health-score-widget::after,
+body[data-lk-menu="dashboard"] .ai-tip-card::after,
+body[data-lk-menu="dashboard"] .dash-kpi::after {
+  display: none;
+}
+
+body[data-lk-menu="dashboard"] .hs-header,
+body[data-lk-menu="dashboard"] .hs-gauge-area,
+body[data-lk-menu="dashboard"] .hs-message,
+body[data-lk-menu="dashboard"] .hs-breakdown,
+body[data-lk-menu="dashboard"] .ai-tip-header,
+body[data-lk-menu="dashboard"] .ai-tip-list {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-lk-menu="dashboard"] .hs-title,
+body[data-lk-menu="dashboard"] .ai-tip-title {
+  font-weight: 700;
+  color: var(--theme-dashboard-widget-title);
+}
+
+body[data-lk-menu="dashboard"] .hs-badge,
+body[data-lk-menu="dashboard"] .ai-tip-badge {
+  background: var(--theme-dashboard-widget-badge-bg);
+  border: 1px solid var(--theme-dashboard-widget-badge-border);
+  color: var(--theme-dashboard-widget-badge-text);
+}
+
+body[data-lk-menu="dashboard"] .hs-header {
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--theme-dashboard-widget-header-border);
+}
+
+body[data-lk-menu="dashboard"] .hs-gauge-area {
+  min-height: 176px;
+  border-radius: 16px;
+  background: var(--theme-dashboard-gauge-bg);
+  border: 1px solid var(--theme-dashboard-gauge-border);
+  box-shadow: var(--theme-dashboard-gauge-shadow);
+}
+
+body[data-lk-menu="dashboard"] .hs-gauge-value {
+  fill: var(--theme-dashboard-gauge-value);
+}
+
+body[data-lk-menu="dashboard"] .hs-gauge-label {
+  fill: var(--theme-dashboard-gauge-label);
+}
+
+body[data-lk-menu="dashboard"] .hs-gauge-track {
+  stroke: var(--theme-dashboard-gauge-track);
+}
+
+body[data-lk-menu="dashboard"] .hs-message {
+  color: var(--theme-dashboard-widget-message);
+}
+
+body[data-lk-menu="dashboard"] .hs-breakdown {
+  background: var(--theme-dashboard-breakdown-bg);
+  border-color: var(--theme-dashboard-breakdown-border);
+  box-shadow: var(--theme-dashboard-breakdown-shadow);
+}
+
+body[data-lk-menu="dashboard"] .hs-metric {
+  background: var(--theme-dashboard-metric-bg);
+}
+
+body[data-lk-menu="dashboard"] .hs-metric + .hs-metric,
+body[data-lk-menu="dashboard"] .ai-tip-metric {
+  border-left-color: var(--theme-dashboard-metric-divider);
+}
+
+body[data-lk-menu="dashboard"] .hs-metric-label {
+  color: var(--theme-dashboard-metric-label);
+}
+
+body[data-lk-menu="dashboard"] .ai-tip-item,
+body[data-lk-menu="dashboard"] .hsi-card {
+  background: var(--theme-dashboard-list-item-bg);
+  border-color: var(--theme-dashboard-list-item-border);
+  border-radius: 12px;
+}
+
+body[data-lk-menu="dashboard"] .ai-tip-item:hover,
+body[data-lk-menu="dashboard"] .hsi-card:hover {
+  background: var(--theme-dashboard-list-item-hover-bg);
+  border-color: var(--theme-dashboard-list-item-hover-border);
+  box-shadow: var(--theme-dashboard-list-item-hover-shadow);
+}
+
+body[data-lk-menu="dashboard"] .ai-tip-item-arrow,
+body[data-lk-menu="dashboard"] .hsi-arrow {
+  color: var(--theme-dashboard-list-item-arrow);
+}
+
+body[data-lk-menu="dashboard"] .ai-tip-item:hover .ai-tip-item-arrow,
+body[data-lk-menu="dashboard"] .hsi-card:hover .hsi-arrow {
+  color: var(--theme-dashboard-list-item-arrow-hover);
+}
+
+body[data-lk-menu="dashboard"] .hsi-summary {
+  background: var(--theme-dashboard-summary-bg);
+  border: 1px solid var(--theme-dashboard-summary-border);
+  border-radius: 12px;
+  color: var(--theme-dashboard-summary-color);
+}
+
+@media (min-width: 1100px) {
+  body[data-lk-menu="dashboard"] .dashboard-hero-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 230px);
+    grid-template-areas:
+      "label spark"
+      "balance spark"
+      "variation spark"
+      "context spark";
+    column-gap: 1.4rem;
+    row-gap: 0.28rem;
+    align-items: center;
+    min-height: 176px;
+    padding: 1.15rem 1.35rem;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-hero__label {
+    grid-area: label;
+    margin-bottom: 0;
+    justify-self: start;
+    align-self: start;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-hero__balance {
+    grid-area: balance;
+    align-self: end;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-hero__variation {
+    grid-area: variation;
+    width: fit-content;
+    margin-top: 0.02rem;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-hero__sparkline {
+    grid-area: spark;
+    align-self: center;
+    justify-self: end;
+    width: 100%;
+    max-width: 210px;
+    min-height: 104px;
+    margin: 0;
+    padding: 0.62rem 0.75rem 0.32rem;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-hero__context,
+  body[data-lk-menu="dashboard"] .dash-hero__message {
+    grid-area: context;
+    margin-top: 0.18rem;
+    max-width: 48ch;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-duo-row {
+    grid-template-columns: minmax(0, 1.03fr) minmax(0, 0.97fr);
+  }
+}
+
+@media (max-width: 768px) {
+  body[data-lk-menu="dashboard"] .dashboard-hero-section {
+    min-height: auto;
+    padding: 1.15rem;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-hero__sparkline {
+    width: 100%;
+  }
+
+  body[data-lk-menu="dashboard"] .dash-kpi {
+    padding: 0.9rem;
+  }
+
+  body[data-lk-menu="dashboard"] .health-score-widget,
+  body[data-lk-menu="dashboard"] .ai-tip-card {
+    border-radius: 16px;
+  }
+}

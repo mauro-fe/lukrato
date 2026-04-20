@@ -284,7 +284,7 @@ $footerModules = is_array($footerModules ?? null)
                 <img src="<?= BASE_URL ?>assets/img/icone.png" alt="" class="lk-preboot-logo">
             </div>
             <p class="lk-preboot-title">Carregando...</p>
-            <p class="lk-preboot-subtitle">Preparando conteudo</p>
+            <p class="lk-preboot-subtitle">Preparando conteúdo</p>
         </div>
     </div>
     <script>
@@ -300,7 +300,7 @@ $footerModules = is_array($footerModules ?? null)
     <!-- ============================================================================
          SIDEBAR NAVIGATION
          ============================================================================ -->
-    <aside class="sidebar no-glass" id="sidebar-main">
+    <aside class="sidebar surface-card" id="sidebar-main">
         <!-- Logo -->
         <div class="sidebar-header">
             <a class="logo" href="<?= BASE_URL ?>dashboard" aria-label="Ir para o Dashboard">
@@ -378,7 +378,6 @@ $footerModules = is_array($footerModules ?? null)
                 <i data-lucide="log-out"></i>
                 <span class="nav-item-content">
                     <span class="nav-item-title">Sair</span>
-                    <small class="nav-item-subtitle">Encerrar sessão</small>
                 </span>
             </a>
             <?php if ($showUpgradeCTA): ?>

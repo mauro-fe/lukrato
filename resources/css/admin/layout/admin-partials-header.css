@@ -12,7 +12,7 @@ html {
 
 body {
   font-family: var(--font-primary);
-  background: var(--color-bg) !important;
+  background: var(--theme-shell-body-bg) !important;
   color: var(--color-text);
   line-height: 1.5;
   overflow-x: hidden;
@@ -49,7 +49,9 @@ body {
 
 .container-table {
   padding: 40px;
-  background: var(--glass-bg);
+  background: var(--theme-surface-card-bg);
+  border: 1px solid var(--theme-surface-card-border);
+  box-shadow: var(--theme-surface-card-shadow);
   border-radius: var(--radius-lg);
   margin-bottom: 40px;
 }
@@ -73,14 +75,24 @@ body {
   inset: 0 auto 0 0;
   width: var(--sidebar-width);
   height: 100vh;
-  border-right: 1px solid var(--glass-border);
+  background: var(--theme-shell-sidebar-bg);
+  border-right: 1px solid var(--theme-shell-sidebar-border);
+  box-shadow: var(--theme-shell-sidebar-shadow);
   display: flex;
   flex-direction: column;
   transition: width var(--sidebar-transition);
   overflow: hidden;
   z-index: 4;
   will-change: width;
-  background: var(--color-bg) ;
+}
+
+.sidebar::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: var(--theme-shell-sidebar-rail);
+  pointer-events: none;
 }
 
 /* 5.2 Sidebar Header + Logo */
@@ -90,7 +102,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid var(--glass-border);
+  background: var(--theme-shell-sidebar-header-bg);
+  border-bottom: 1px solid var(--theme-shell-sidebar-border);
   position: relative;
   overflow: hidden;
 }
@@ -121,7 +134,8 @@ body {
 }
 
 .sidebar-close-btn:hover {
-  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  background: var(--theme-control-bg-hover);
+  border-color: var(--theme-control-border-strong);
   transform: scale(1.1);
 }
 
@@ -191,7 +205,7 @@ body {
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: var(--glass-border);
+  background: var(--theme-control-border);
   border-radius: 3px;
 }
 
@@ -204,11 +218,11 @@ body {
   display: block;
   padding: var(--spacing-3) 24px var(--spacing-1);
   font-size: 0.65rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  opacity: 0.6;
+  letter-spacing: 0.12em;
+  color: var(--theme-shell-nav-label);
+  opacity: 0.72;
   white-space: nowrap;
   overflow: hidden;
   transition: opacity 0.2s ease;
@@ -223,7 +237,7 @@ body:not(.sidebar-collapsed) .sidebar-nav-label {
 
 /* 5.3.2 Sidebar Footer (bottom-pinned) */
 .sidebar-footer {
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--theme-shell-sidebar-border);
   padding: var(--spacing-3) 0;
   margin-top: auto;
   flex-shrink: 0;
@@ -238,7 +252,8 @@ body:not(.sidebar-collapsed) .sidebar-nav-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary), #ea580c);
+  background: var(--theme-topbar-avatar-bg);
+  border: 1px solid var(--theme-topbar-avatar-border);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -265,15 +280,19 @@ body:not(.sidebar-collapsed) .sidebar-nav-label {
   gap: 12px;
   padding: 10px 24px;
   margin: 2px 6px;
-  color: var(--color-text);
+  color: var(--theme-shell-nav-text);
   text-decoration: none;
   font-weight: 500;
   font-size: var(--font-size-sm);
   border-radius: var(--radius-md);
+  border: 1px solid transparent;
   position: relative;
   transition:
     background var(--transition-fast),
-    color var(--transition-fast);
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
   white-space: nowrap;
   min-height: 44px;
 }
@@ -284,8 +303,8 @@ body:not(.sidebar-collapsed) .sidebar-nav-label {
   min-width: 20px;
   width: 20px;
   text-align: center;
-  color: var(--color-text-muted) !important;
-  opacity: 0.7;
+  color: var(--theme-shell-nav-icon) !important;
+  opacity: 0.82;
   flex-shrink: 0;
   transition:
     opacity var(--transition-fast),
@@ -294,8 +313,8 @@ body:not(.sidebar-collapsed) .sidebar-nav-label {
 
 .sidebar .nav-item svg.lucide,
 .sidebar .nav-item svg[class*="lucide-"] {
-  color: var(--color-text-muted) !important;
-  opacity: 0.7;
+  color: var(--theme-shell-nav-icon) !important;
+  opacity: 0.82;
   width: 20px;
   height: 20px;
   flex-shrink: 0;
@@ -337,7 +356,7 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 .sidebar .nav-item .nav-item-title {
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--theme-shell-nav-text);
   line-height: 1.3;
   transition: color var(--transition-fast);
 }
@@ -346,7 +365,7 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 
 /* Hover state for subtitle */
 .sidebar .nav-item:hover .nav-item-title {
-  color: var(--color-primary);
+  color: var(--theme-shell-nav-hover-text);
 }
 
 
@@ -355,20 +374,22 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 .sidebar-nav .nav-item[aria-current="page"] .nav-item-title,
 .sidebar-footer .nav-item.active .nav-item-title,
 .sidebar-footer .nav-item[aria-current="page"] .nav-item-title {
-  color: var(--color-primary);
+  color: var(--theme-shell-nav-active-text);
 }
 
 
 /* 5.4 Nav Item States */
 .sidebar .nav-item:hover {
-  background: color-mix(in srgb, var(--color-text) 6%, transparent);
-  color: var(--color-primary);
+  background: var(--theme-shell-nav-hover-bg);
+  border-color: var(--theme-shell-nav-hover-border);
+  color: var(--theme-shell-nav-hover-text);
+  transform: translateX(2px);
 }
 
 .sidebar .nav-item:hover i,
 .sidebar .nav-item:hover svg.lucide,
 .sidebar .nav-item:hover svg[class*="lucide-"] {
-  color: var(--color-primary) !important;
+  color: var(--theme-shell-nav-hover-text) !important;
   opacity: 1;
 }
 
@@ -376,8 +397,10 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 .sidebar-nav .nav-item[aria-current="page"],
 .sidebar-footer .nav-item.active,
 .sidebar-footer .nav-item[aria-current="page"] {
-  color: var(--color-primary);
-  background: color-mix(in srgb, var(--laranja) 12%, transparent);
+  color: var(--theme-shell-nav-active-text);
+  background: var(--theme-shell-nav-active-bg);
+  border-color: var(--theme-shell-nav-active-border);
+  box-shadow: var(--theme-shell-nav-active-shadow);
   font-weight: 600;
 }
 
@@ -391,7 +414,7 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
   transform: translateY(-50%);
   width: 3px;
   height: 60%;
-  background: var(--color-primary);
+  background: var(--theme-shell-nav-active-rail);
   border-radius: 0 2px 2px 0;
 }
 
@@ -407,14 +430,14 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 .sidebar-footer .nav-item[aria-current="page"] i,
 .sidebar-footer .nav-item[aria-current="page"] svg.lucide,
 .sidebar-footer .nav-item[aria-current="page"] svg[class*="lucide-"] {
-  color: var(--color-primary) !important;
+  color: var(--theme-shell-nav-active-text) !important;
   opacity: 1;
 }
 
 :root[data-theme="light"] .sidebar .nav-item i,
 :root[data-theme="light"] .sidebar .nav-item svg.lucide,
 :root[data-theme="light"] .sidebar .nav-item svg[class*="lucide-"] {
-  color: var(--color-text-muted) !important;
+  color: var(--theme-shell-nav-icon) !important;
 }
 
 :root[data-theme="light"] .sidebar .nav-item.active i,
@@ -423,12 +446,12 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 :root[data-theme="light"] .sidebar .nav-item:hover i,
 :root[data-theme="light"] .sidebar .nav-item:hover svg.lucide,
 :root[data-theme="light"] .sidebar .nav-item:hover svg[class*="lucide-"] {
-  color: var(--color-primary) !important;
+  color: inherit !important;
 }
 
 .sidebar-nav .nav-item:focus-visible,
 .sidebar-footer .nav-item:focus-visible {
-  outline: 2px solid var(--laranja);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -502,7 +525,7 @@ body.sidebar-collapsed .sidebar-nav-group + .sidebar-nav-group::before {
   display: block;
   height: 1px;
   margin: var(--spacing-1) var(--spacing-3);
-  background: var(--glass-border);
+  background: var(--theme-shell-sidebar-border);
   opacity: 0.5;
 }
 

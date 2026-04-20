@@ -2,28 +2,21 @@
 @import "../core/fonts.css";
 @import "../core/variables.css";
 
-/* ============================================
-   Auth Shared Styles (forgot-password, reset-password)
-   Dark theme with animated background
-   ============================================ */
-
-/* Paleta e tokens */
 :root {
-    --orange: #e67e22;
-    --orange-strong: #f39c12;
-    --orange-light: #f8b575;
-    --bg-1: #0b141c;
-    --bg-2: #152636;
-    --card: #0f1b26;
-    --card-2: #111f2b;
-    --text: #e8edf3;
-    --muted: #a9b7c5;
-    --input: #1b2a37;
-    --border: #243647;
-    --shadow: rgba(0, 0, 0, 0.45);
-    --success: #79e6a0;
-    --error: #ffb4b4;
-    --radius: 18px;
+    --orange: var(--theme-auth-accent);
+    --orange-strong: var(--theme-auth-accent-strong);
+    --orange-light: var(--theme-auth-accent-soft);
+    --bg-1: var(--theme-auth-bg-1);
+    --bg-2: var(--theme-auth-bg-2);
+    --card: var(--theme-auth-card-1);
+    --card-2: var(--theme-auth-card-2);
+    --text: var(--theme-auth-text);
+    --muted: var(--theme-auth-muted);
+    --input: var(--theme-auth-input);
+    --border: var(--theme-auth-border);
+    --success: var(--theme-auth-success);
+    --error: var(--theme-auth-error);
+    --radius: 20px;
 }
 
 * {
@@ -36,18 +29,101 @@ html,
 body {
     height: 100%;
     font-family: var(--font-primary);
-    background: var(--bg-1);
     color: var(--text);
 }
 
-/* Animação de fundo */
 @keyframes gradientShift {
     0%,
     100% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
+    }
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.6;
+    }
+
+    90% {
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: translateY(-100px) scale(1);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-28px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes logoFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes titleShine {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.9;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 
@@ -56,22 +132,40 @@ main.lukrato-auth {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
-    background: radial-gradient(ellipse 1200px 800px at 20% 30%,
-            #1b3145 0%,
-            var(--bg-2) 40%,
-            var(--bg-1) 100%);
+    padding: 24px 16px;
+    background: var(--theme-auth-page-bg);
     background-size: 200% 200%;
-    animation: gradientShift 15s ease infinite;
+    animation: gradientShift 16s ease infinite;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Partículas decorativas */
+main.lukrato-auth::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            var(--theme-auth-grid-line) 1px,
+            transparent 2px,
+            transparent 80px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            var(--theme-auth-grid-line) 1px,
+            transparent 2px,
+            transparent 80px
+        );
+    pointer-events: none;
+    opacity: 0.5;
+}
+
 .particles {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     overflow: hidden;
     pointer-events: none;
     z-index: 0;
@@ -81,33 +175,17 @@ main.lukrato-auth {
     position: absolute;
     width: 4px;
     height: 4px;
-    background: var(--orange);
+    background: var(--theme-auth-particle);
     border-radius: 50%;
     opacity: 0;
     animation: float 8s ease-in-out infinite;
 }
 
-@keyframes float {
-    0%,
-    100% {
-        transform: translateY(100vh) scale(0);
-        opacity: 0;
-    }
-    10% {
-        opacity: 0.6;
-    }
-    90% {
-        opacity: 0.3;
-    }
-    100% {
-        transform: translateY(-100px) scale(1);
-    }
-}
-
 .login-wrapper {
-    display: flex;
-    gap: 60px;
-    max-width: 1200px;
+    display: grid;
+    grid-template-columns: minmax(280px, 0.88fr) minmax(380px, 1fr);
+    gap: clamp(32px, 4vw, 52px);
+    max-width: 1160px;
     width: 100%;
     align-items: center;
     position: relative;
@@ -115,227 +193,214 @@ main.lukrato-auth {
     animation: fadeInUp 0.8s ease;
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* LEFT SECTION */
 .login-left {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 420px;
     animation: slideInLeft 0.8s ease;
 }
 
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-40px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 .brand {
-    margin-bottom: 32px;
-}
-
-.imagem-logo {
-    display: inline-block;
+    margin-bottom: 24px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
     animation: logoFloat 3s ease-in-out infinite;
 }
 
-@keyframes logoFloat {
-    0%,
-    100% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
+.imagem-logo {
+    display: flex;
+    justify-content: center;
 }
 
 .imagem-logo img {
-    width: 250px;
+    width: min(280px, 70vw);
     max-width: 100%;
     height: auto;
-    filter: drop-shadow(0 4px 12px rgba(230, 126, 34, 0.3));
-    transition: filter 0.3s ease;
+    display: block;
+    filter: var(--theme-auth-logo-glow);
+    transition: transform 0.35s ease;
 }
 
 .imagem-logo img:hover {
-    filter: drop-shadow(0 6px 20px rgba(230, 126, 34, 0.5));
+    transform: translateY(-6px);
+}
+
+.welcome {
+    text-align: left;
 }
 
 .welcome h2 {
-    font-size: 42px;
-    line-height: 1.1;
-    margin: 0 0 16px;
-    background: linear-gradient(135deg, var(--text), var(--orange-light));
+    font-size: clamp(2.2rem, 4vw, 3rem);
+    line-height: 1.08;
+    margin: 0 0 12px;
+    background: var(--theme-auth-heading-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: titleShine 3s ease infinite;
 }
 
-@keyframes titleShine {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.9;
-    }
-}
-
 .welcome p {
     color: var(--muted);
     line-height: 1.65;
-    max-width: 50ch;
+    max-width: 40ch;
+    font-size: 16px;
 }
 
-/* RIGHT SECTION */
 .login-right {
-    flex: 1;
+    width: 100%;
+    max-width: 520px;
+    justify-self: end;
     animation: slideInRight 0.8s ease;
 }
 
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(40px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 .card {
-    background: linear-gradient(180deg, var(--card), var(--card-2));
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 40px;
-    box-shadow: 0 26px 60px var(--shadow), 0 0 0 1px rgba(230, 126, 34, 0.1);
     position: relative;
+    width: 100%;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: var(--radius);
+    border: 1px solid var(--theme-auth-card-border);
+    background: linear-gradient(135deg, var(--card) 0%, var(--card-2) 100%);
+    box-shadow: var(--theme-auth-card-shadow);
+    padding: 28px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .card::before {
-    content: '';
+    content: "";
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
+    inset: 0 0 auto;
     height: 4px;
-    background: linear-gradient(90deg, var(--orange), var(--orange-strong), var(--orange));
-    background-size: 200% 100%;
-    animation: borderFlow 3s linear infinite;
-    border-radius: var(--radius) var(--radius) 0 0;
-}
-
-@keyframes borderFlow {
-    0% {
-        background-position: 0% 0%;
-    }
-    100% {
-        background-position: 200% 0%;
-    }
+    background: var(--theme-auth-card-topline);
 }
 
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 32px 70px var(--shadow), 0 0 0 1px rgba(230, 126, 34, 0.2);
+    border-color: color-mix(in srgb, var(--theme-auth-accent) 60%, transparent);
+    box-shadow: var(--theme-auth-card-shadow-hover);
+}
+
+.card-panel-head {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    text-align: center;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+}
+
+.card-kicker {
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
 }
 
 .card-title {
+    margin: 0;
+    font-size: clamp(1.55rem, 2vw, 1.95rem);
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.1;
     text-align: center;
-    font-size: 32px;
-    margin: 0 0 12px;
-    position: relative;
-    display: inline-block;
-    width: 100%;
 }
 
-.card-title::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--orange), transparent);
-    border-radius: 3px;
+.card-subtitle {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.55;
 }
 
-/* FIELD ANIMATIONS */
+.card-status {
+    min-height: 24px;
+    margin-bottom: 16px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    text-align: center;
+}
+
+.card-status .msg {
+    margin: 0;
+}
+
 .field {
-    margin: 24px 0;
     position: relative;
+    margin-bottom: 12px;
 }
 
 .field input {
     width: 100%;
+    min-height: 54px;
+    padding: 15px 48px 15px 14px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
     background: var(--input);
     color: var(--text);
-    border: 2px solid transparent;
-    border-radius: 14px;
-    padding: 16px 50px 16px 16px;
-    font-size: 16px;
+    font-size: 15px;
     outline: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.25s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .field input::placeholder {
     color: var(--muted);
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .field input:focus::placeholder {
-    opacity: 0.5;
+    opacity: 0.45;
+    transform: translateX(3px);
 }
 
 .field input:focus {
     border-color: var(--orange);
-    background: #203040;
+    background: var(--theme-auth-input-strong);
     box-shadow:
-        0 0 0 4px rgba(230, 126, 34, 0.15),
-        inset 0 2px 4px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
+        0 0 0 4px var(--theme-auth-ring),
+        0 10px 20px rgba(0, 0, 0, 0.14);
+    transform: translateY(-1px);
 }
 
-/* Ícone animado no campo */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text);
+    caret-color: var(--text);
+    border-color: color-mix(in srgb, var(--theme-auth-accent) 24%, transparent);
+    box-shadow:
+        0 0 0 1000px var(--theme-auth-input-strong) inset,
+        0 0 0 1px color-mix(in srgb, var(--theme-auth-accent) 20%, transparent),
+        0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: background-color 9999s ease-out 0s;
+}
+
 .field-icon {
     position: absolute;
-    right: 18px;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--muted);
     width: 18px;
     height: 18px;
     pointer-events: none;
-    transition: all 0.3s ease;
+    transition: color 0.25s ease, transform 0.25s ease;
 }
 
-.field:has(input:focus) .field-icon {
+.field:focus-within .field-icon {
     color: var(--orange);
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%) scale(1.04);
 }
 
-/* Toggle password */
 .toggle-password {
     position: absolute;
-    right: 12px;
+    right: 14px;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
@@ -343,22 +408,21 @@ main.lukrato-auth {
     color: var(--muted);
     cursor: pointer;
     padding: 8px;
-    transition: all 0.3s ease;
-    border-radius: 6px;
+    transition: all 0.25s ease;
+    border-radius: 8px;
 }
 
 .toggle-password:hover {
     color: var(--orange);
-    background: rgba(230, 126, 34, 0.1);
-    transform: translateY(-50%) scale(1.1);
+    background: var(--theme-auth-tab-hover-bg);
+    transform: translateY(-50%) scale(1.05);
 }
 
-/* Password strength indicator */
 .password-strength {
     margin-top: 8px;
     height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    background: var(--theme-auth-password-track);
+    border-radius: 999px;
     overflow: hidden;
     display: none;
 }
@@ -371,65 +435,66 @@ main.lukrato-auth {
     height: 100%;
     width: 0%;
     transition: all 0.3s ease;
-    border-radius: 4px;
+    border-radius: 999px;
 }
 
 .password-strength-bar.weak {
     width: 33%;
-    background: #ff6b6b;
-    box-shadow: 0 0 10px #ff6b6b;
+    background: var(--theme-auth-password-s1);
+    box-shadow: 0 0 10px var(--theme-auth-password-s1);
 }
 
 .password-strength-bar.medium {
     width: 66%;
-    background: #f39c12;
-    box-shadow: 0 0 10px #f39c12;
+    background: var(--theme-auth-password-s2);
+    box-shadow: 0 0 10px var(--theme-auth-password-s2);
 }
 
 .password-strength-bar.strong {
     width: 100%;
-    background: #79e6a0;
-    box-shadow: 0 0 10px #79e6a0;
+    background: var(--theme-auth-password-s5);
+    box-shadow: 0 0 10px var(--theme-auth-password-s5);
 }
 
 .password-hint {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 8px;
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
 }
 
 .password-hint i {
-    font-size: 12px;
+    width: 14px;
+    height: 14px;
 }
 
-/* BUTTON */
 .btn-primary {
     width: 100%;
-    background: linear-gradient(135deg, var(--orange), var(--orange-strong));
-       color: var(--color-text);
-    border: none;
-    border-radius: 14px;
-    padding: 18px;
-    font-size: 18px;
-    font-weight: 800;
-    cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
+    border: none;
+    border-radius: 14px;
+    background: var(--theme-auth-button-bg);
+    color: var(--theme-auth-button-color);
+    box-shadow: var(--theme-auth-button-shadow);
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
 .btn-primary::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, var(--theme-auth-button-shine), transparent);
     transition: left 0.5s ease;
 }
 
@@ -439,88 +504,82 @@ main.lukrato-auth {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(230, 126, 34, 0.5);
+    background: var(--theme-auth-button-bg-hover);
+    box-shadow: var(--theme-auth-button-shadow-hover);
 }
 
 .btn-primary:active {
     transform: translateY(0);
 }
 
-.btn-primary.loading span {
-    opacity: 0;
+.btn-primary:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-primary.loading {
+    pointer-events: none;
+    color: transparent;
 }
 
 .btn-primary.loading::after {
-    content: '';
+    content: "";
     position: absolute;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(16, 20, 23, 0.3);
-    border-top-color: #101417;
+    width: 18px;
+    height: 18px;
+    top: 50%;
+    left: 50%;
+    margin-left: -9px;
+    margin-top: -9px;
+    border: 3px solid var(--theme-auth-button-spinner-track);
+    border-top-color: var(--theme-auth-button-spinner-head);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* EXTRA LINKS */
 .extra-link {
-    margin-top: 20px;
+    margin-top: 18px;
     text-align: center;
 }
 
 .extra-link a {
-    color: var(--orange-strong);
-    text-decoration: none;
-    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
+    gap: 7px;
+    color: var(--theme-auth-link);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease, gap 0.2s ease;
 }
 
 .extra-link a:hover {
-    color: var(--orange-light);
+    color: var(--theme-auth-link-hover);
     gap: 10px;
 }
 
 .extra-link small {
+    display: block;
+    margin-top: 10px;
     color: var(--muted);
     font-size: 13px;
-    line-height: 1.5;
-    display: block;
-    margin-top: 8px;
+    line-height: 1.55;
 }
 
 .extra-link strong {
-    color: var(--orange);
+    color: var(--theme-auth-link);
 }
 
-/* MESSAGES */
 .msg {
-    padding: 14px 18px;
+    padding: 14px 16px;
     border-radius: 12px;
-    margin: 16px 0;
     font-size: 14px;
-    animation: slideDown 0.4s ease;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    border: 1px solid;
+    animation: fadeInUp 0.22s ease;
 }
 
 .msg svg {
@@ -530,35 +589,48 @@ main.lukrato-auth {
 }
 
 .msg-error {
-    background: rgba(255, 180, 180, 0.1);
-    border: 1px solid rgba(255, 180, 180, 0.3);
+    background: var(--theme-auth-error-bg);
+    border-color: var(--theme-auth-error-border);
     color: var(--error);
 }
 
 .msg-success {
-    background: rgba(121, 230, 160, 0.1);
-    border: 1px solid rgba(121, 230, 160, 0.3);
+    background: var(--theme-auth-success-bg);
+    border-color: var(--theme-auth-success-border);
     color: var(--success);
 }
 
-/* RESPONSIVE */
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
     .login-wrapper {
-        flex-direction: column;
-        gap: 40px;
+        grid-template-columns: 1fr;
+        gap: 34px;
+    }
+
+    .login-left,
+    .login-right {
+        width: 100%;
+        max-width: 560px;
+        justify-self: center;
     }
 
     .login-left {
-        text-align: center;
         align-items: center;
     }
 
-    .welcome h2 {
-        font-size: 36px;
+    .brand {
+        justify-content: center;
     }
 
-    .card {
-        padding: 32px 28px;
+    .welcome {
+        text-align: center;
+    }
+
+    .login-right {
+        margin: 0 auto;
+    }
+
+    .imagem-logo img {
+        width: min(220px, 60vw);
     }
 }
 
@@ -576,14 +648,25 @@ main.lukrato-auth {
     }
 
     .card {
-        padding: 28px 24px;
+        padding: 24px 20px;
+        border-radius: 18px;
     }
 
     .card-title {
-        font-size: 26px;
+        font-size: 1.45rem;
     }
 
     .imagem-logo img {
         width: 180px;
+    }
+
+    .field input {
+        min-height: 50px;
+        padding: 13px 44px 13px 12px;
+    }
+
+    .btn-primary {
+        padding: 14px;
+        font-size: 15px;
     }
 }

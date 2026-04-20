@@ -11,8 +11,8 @@
     bottom: 24px !important;
     right: 24px !important;
     z-index: 9999 !important;
-    width: 64px;
-    height: 64px;
+    width: var(--theme-fab-size);
+    height: var(--theme-fab-size);
 }
 
 /* ===================================================================
@@ -20,23 +20,23 @@
    =================================================================== */
 .lk-support-button {
     position: relative !important;
-    width: 64px;
-    height: 64px;
-    background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
-    color: var(--color-text) !important;
+    width: var(--theme-fab-size);
+    height: var(--theme-fab-size);
+    background: var(--theme-fab-bg);
+    color: var(--theme-fab-color) !important;
     border-radius: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 26px;
-    box-shadow: none !important;
+    box-shadow: var(--theme-fab-shadow) !important;
     transition: all var(--transition-normal);
     cursor: pointer;
-    border: none;
+    border: 1px solid var(--theme-fab-border);
     text-decoration: none;
     overflow: visible !important;
     flex-shrink: 0;
-    animation: pulse-support 3s ease-in-out infinite;
+    animation: none;
 }
 
 .lk-support-button::before {
@@ -44,7 +44,7 @@
     position: absolute;
     inset: -4px;
     border-radius: 100%;
-    background: linear-gradient(135deg, var(--color-primary), #d35400);
+    background: var(--theme-button-primary-bg);
     opacity: 0;
     transition: opacity var(--transition-normal);
     z-index: -1;
@@ -52,13 +52,12 @@
 }
 
 .lk-support-button:hover::before {
-    opacity: 0.6;
-    animation: glow-pulse 2s ease-in-out infinite;
+    opacity: 0.35;
 }
 
 .lk-support-button:hover {
-    box-shadow: 0 5px 20px rgba(230, 126, 34, 0.45);
-    background: linear-gradient(135deg, #d35400 0%, var(--color-primary) 100%);
+    box-shadow: var(--theme-fab-shadow-hover);
+    background: var(--theme-fab-bg-hover);
 }
 
 .lk-support-button:active {
@@ -66,7 +65,7 @@
 }
 
 .lk-support-button i {
-    color: white !important;
+    color: var(--theme-fab-color) !important;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -144,41 +143,43 @@
     justify-content: center;
     flex-shrink: 0;
     transition: all var(--transition-fast);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--theme-control-shadow);
 }
 
 .lk-fab-item[data-action="support"] .lk-fab-icon {
-    background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
-    color: #fff;
+    background: var(--theme-fab-support-icon-bg);
+    border: 1px solid var(--theme-fab-support-icon-border);
+    color: var(--theme-fab-support-icon-color);
 }
 
 .lk-fab-item[data-action="ai"] .lk-fab-icon {
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    color: #fff;
+    background: var(--theme-control-bg);
+    border: 1px solid var(--theme-control-border);
+    color: var(--theme-control-text);
 }
 
 .lk-fab-icon i {
     width: 20px;
     height: 20px;
-    color: #fff !important;
+    color: currentColor !important;
 }
 
 .lk-fab-item:hover .lk-fab-icon {
     transform: scale(1.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--theme-fab-shadow-hover);
 }
 
 /* Label */
 .lk-fab-label {
-    background: var(--color-surface);
+    background: var(--theme-fab-label-bg);
     color: var(--color-text);
     padding: 0.5rem 0.85rem;
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
     font-weight: 600;
     white-space: nowrap;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--glass-border);
+    box-shadow: var(--theme-fab-label-shadow);
+    border: 1px solid var(--theme-fab-label-border);
     font-family: var(--font-primary);
     opacity: 0;
     transition: opacity 0.18s ease, transform 0.18s ease;
@@ -214,12 +215,12 @@
    SWEETALERT2 - MODAL DE SUPORTE
    =================================================================== */
 .swal2-popup.lk-support-modal {
-  color: var(--text-color);
-    background: var(--color-bg);
+    color: var(--color-text);
+        background: var(--theme-modal-bg);
     border-radius: var(--radius-xl);
     padding: 2rem;
     box-shadow: var(--shadow-xl);
-    border: 1px solid var(--glass-border);
+        border: 1px solid var(--theme-modal-border);
 }
 
 .swal2-popup.lk-support-modal .swal2-title {
@@ -238,9 +239,9 @@
 .lk-support-info {
     text-align: left;
     padding: 1rem;
-    background: var(--glass-bg);
+    background: var(--theme-control-bg);
     backdrop-filter: var(--glass-backdrop);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--theme-control-border);
     border-radius: var(--radius-md);
     margin-bottom: 1.25rem;
     animation: fadeInUp 0.4s ease-out 0.1s backwards;
@@ -278,8 +279,8 @@
 
 /* Textarea */
 .swal2-popup.lk-support-modal .swal2-textarea {
-    background: var(--color-bg);
-    border: 2px solid var(--glass-border);
+    background: var(--theme-input-bg);
+    border: 2px solid var(--theme-input-border);
     border-radius: var(--radius-md);
     color: var(--color-text);
     font-size: var(--font-size-base);
@@ -295,8 +296,8 @@
 
 .swal2-popup.lk-support-modal .swal2-textarea:focus {
     outline: none;
-    border-color: var(--color-primary) !important;
-    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
+    border-color: var(--theme-input-border-focus) !important;
+    box-shadow: 0 0 0 3px var(--ring);
     transform: scale(1.01);
 }
 
@@ -313,14 +314,14 @@
 }
 
 .swal2-popup.lk-support-modal .swal2-confirm {
-    background: linear-gradient(135deg, var(--color-primary) 0%, #d35400 100%);
-    color: #fff;
+    background: var(--theme-button-primary-bg);
+    color: var(--theme-button-primary-color);
     border: none;
     border-radius: var(--radius-md);
     padding: 0.75rem 2rem;
     font-size: var(--font-size-base);
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+    box-shadow: var(--theme-button-primary-shadow);
     transition: all var(--transition-fast);
     position: relative;
     overflow: hidden;
@@ -343,13 +344,13 @@
 
 .swal2-popup.lk-support-modal .swal2-confirm:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4);
+    box-shadow: var(--theme-button-primary-shadow-hover);
 }
 
 .swal2-popup.lk-support-modal .swal2-cancel {
-    background: var(--color-surface-muted);
+    background: var(--theme-control-bg);
     color: var(--color-text);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--theme-control-border);
     border-radius: var(--radius-md);
     padding: 0.75rem 2rem;
     font-size: var(--font-size-base);
@@ -358,7 +359,8 @@
 }
 
 .swal2-popup.lk-support-modal .swal2-cancel:hover {
-    background: var(--color-bg);
+    background: var(--theme-control-bg-hover);
+    border-color: var(--theme-control-border-strong);
     transform: translateY(-1px);
 }
 
@@ -410,10 +412,10 @@
 }
 
 .lk-contact-preference .lk-radio {
-    background: var(--glass-bg);
+    background: var(--theme-control-bg);
     backdrop-filter: var(--glass-backdrop);
     border-radius: var(--radius-md);
-    border: 2px solid var(--glass-border);
+    border: 2px solid var(--theme-control-border);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -427,9 +429,9 @@
 }
 
 .lk-contact-preference .lk-radio:hover {
-    border-color: var(--color-primary);
+    border-color: var(--theme-control-border-strong);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
+    box-shadow: var(--theme-control-shadow);
 }
 
 .lk-contact-preference .lk-radio input {
@@ -467,9 +469,9 @@
 }
 
 .lk-contact-preference .lk-radio:has(input:checked) {
-    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.05));
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+    background: var(--theme-surface-filter-active-bg);
+    border-color: var(--theme-surface-filter-active-border);
+    box-shadow: 0 0 0 3px var(--ring);
 }
 
 .fa-whatsapp {

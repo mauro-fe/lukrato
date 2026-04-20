@@ -1,0 +1,71 @@
+/* ===================================================================
+   DASHBOARD HIERARCHY PREVIEW — SHELL
+   Preview visual reversivel. Remova o import em resources/css/admin/base.css.
+   =================================================================== */
+
+body[data-lk-menu="dashboard"] {
+  background: var(--theme-shell-body-bg) !important;
+}
+
+body[data-lk-menu="dashboard"] .content-wrapper {
+  background: var(--theme-shell-content-bg);
+}
+
+body[data-lk-menu="dashboard"] .lk-header {
+  background: var(--theme-shell-header-bg);
+}
+
+body[data-lk-menu="dashboard"] .lk-main {
+  background: var(--theme-shell-main-bg);
+}
+
+body[data-lk-menu="dashboard"] #sidebarSuggestionBtn {
+  margin-top: 0.35rem;
+  background: var(--theme-shell-suggestion-bg);
+  border-color: var(--theme-shell-suggestion-border);
+  box-shadow: var(--theme-shell-suggestion-shadow);
+}
+
+body[data-lk-menu="dashboard"] #sidebarSuggestionBtn .nav-item-title {
+  color: var(--theme-shell-suggestion-title);
+  font-weight: 600;
+}
+
+body[data-lk-menu="dashboard"] #sidebarSuggestionBtn .nav-item-subtitle {
+  color: var(--theme-shell-suggestion-subtitle);
+}
+
+body[data-lk-menu="dashboard"] #sidebarSuggestionBtn i,
+body[data-lk-menu="dashboard"] #sidebarSuggestionBtn svg.lucide,
+body[data-lk-menu="dashboard"] #sidebarSuggestionBtn svg[class*="lucide-"] {
+  color: var(--theme-shell-suggestion-icon) !important;
+}
+
+body[data-lk-menu="dashboard"] #sidebarSuggestionBtn:hover {
+  transform: translateY(-1px);
+}
+
+body[data-lk-menu="dashboard"] .lk-fab-container {
+  right: 18px !important;
+  bottom: 18px !important;
+}
+
+body[data-lk-menu="dashboard"] .edge-menu-btn {
+  animation: none;
+  width: 42px;
+  height: 42px;
+  background: var(--theme-edge-button-bg);
+  border-color: var(--theme-edge-button-border);
+  color: var(--theme-edge-button-color);
+  box-shadow: var(--theme-edge-button-shadow);
+}
+
+body[data-lk-menu="dashboard"] .edge-menu-btn::before {
+  display: none;
+}
+
+body[data-lk-menu="dashboard"] .edge-menu-btn:hover {
+  background: var(--theme-edge-button-bg-hover);
+  box-shadow: var(--theme-edge-button-shadow);
+  transform: translateY(-2px) scale(1.02);
+}

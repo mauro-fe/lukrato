@@ -3,7 +3,7 @@ $favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
 $forgotPasswordPageUrl = rtrim(BASE_URL, '/') . '/recuperar-senha';
 ?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 
 <head>
     <link rel="icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
@@ -14,6 +14,18 @@ $forgotPasswordPageUrl = rtrim(BASE_URL, '/') . '/recuperar-senha';
 
     <!-- CSRF Meta Tags para renovação automática -->
     <?= csrf_meta('forgot_form') ?>
+
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('lukrato-theme');
+                var normalizedTheme = savedTheme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', normalizedTheme);
+            } catch (error) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 
     <title>Recuperar senha - Lukrato</title>
 
@@ -34,8 +46,7 @@ $forgotPasswordPageUrl = rtrim(BASE_URL, '/') . '/recuperar-senha';
             <section class="login-left">
                 <div class="brand">
                     <div class="imagem-logo">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial,sans-serif' font-size='36' font-weight='bold' fill='%23e67e22'%3ELukrato%3C/text%3E%3C/svg%3E"
-                            alt="Lukrato">
+                        <img src="<?= ASSETS_URL ?>img/logo-top.png" alt="Lukrato">
                     </div>
                 </div>
 
@@ -48,15 +59,19 @@ $forgotPasswordPageUrl = rtrim(BASE_URL, '/') . '/recuperar-senha';
             <!-- RIGHT: Form Card -->
             <section class="login-right">
                 <div class="card">
-                    <h3 class="card-title">Esqueceu sua senha?</h3>
+                    <div class="card-panel-head">
+                        <p class="card-kicker">Recuperação por e-mail</p>
+                        <h3 class="card-title">Receba um link seguro</h3>
+                        <p class="card-subtitle">Informe o e-mail cadastrado e enviaremos as instruções para redefinir sua senha.</p>
+                    </div>
 
-                    <div id="messageContainer"></div>
+                    <div id="messageContainer" class="card-status"></div>
 
                     <form action="<?= htmlspecialchars($forgotPasswordPageUrl, ENT_QUOTES, 'UTF-8') ?>" method="POST" novalidate id="recoverForm">
                         <?= csrf_input('forgot_form') ?>
                         <div class="field">
                             <input type="email" name="email" id="email" placeholder="Digite seu e-mail"
-                                autocomplete="email" required aria-label="E-mail">
+                                autocomplete="email" autocapitalize="off" spellcheck="false" required aria-label="E-mail">
                             <i data-lucide="mail" class="field-icon"></i>
                         </div>
 
