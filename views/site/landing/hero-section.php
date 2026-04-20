@@ -47,10 +47,12 @@ $heroHeadlinePhrasesJson = htmlspecialchars(
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                     Pare de perder dinheiro
                     <span class="mt-1 block bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                        <span data-hero-typewriter data-phrases="<?= $heroHeadlinePhrasesJson ?>" data-typewriter-force="true" aria-label="sem perceber"
+                        <span data-hero-typewriter data-phrases="<?= $heroHeadlinePhrasesJson ?>"
+                            data-typewriter-force="true" aria-label="sem perceber"
                             class="inline-flex min-h-[1.15em] min-w-[12.5ch] max-w-full items-center justify-center whitespace-nowrap text-center sm:min-w-[15ch] sm:justify-start sm:text-left">
                             <span data-hero-typewriter-text class="whitespace-nowrap">sem perceber</span>
-                            <span aria-hidden="true" class="ml-1 inline-block h-[0.9em] w-[2px] rounded-full bg-current/80 animate-pulse"></span>
+                            <span aria-hidden="true"
+                                class="ml-1 inline-block h-[0.9em] w-[2px] rounded-full bg-current/80 animate-pulse"></span>
                         </span>
                     </span>
                 </h1>
@@ -102,83 +104,91 @@ $heroHeadlinePhrasesJson = htmlspecialchars(
 
             <!-- Imagem / Mockup -->
             <?php if ($firstHeroSlide): ?>
-                <figure class="relative" data-aos="fade-up" data-aos-delay="150" data-hero-carousel data-autoplay-ms="4600"
-                    data-autoplay-force="true">
-                    <div class="relative rounded-[28px] border border-gray-100 bg-white/96 p-3 shadow-xl lg:p-4 dark:border-white/10 dark:bg-[#10263b]">
-                        <div class="mb-3 flex items-start justify-between gap-2 sm:mb-4 sm:gap-3">
-                            <div class="min-w-0 w-fit max-w-[68%] rounded-[18px] border border-orange-100 bg-orange-50 px-2.5 py-2 shadow-sm sm:max-w-[15rem] sm:rounded-2xl sm:px-4 sm:py-3 lg:max-w-[17rem] dark:border-white/10 dark:bg-white/5 dark:shadow-none">
-                                <p class="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary/80 sm:text-[10px] sm:tracking-[0.22em] dark:text-orange-200"
-                                    data-hero-current-eyebrow>
-                                    <?= htmlspecialchars($firstHeroSlide['eyebrow']) ?>
-                                </p>
-                                <p class="mt-0.5 text-xs font-semibold leading-tight text-gray-900 sm:mt-1 sm:text-base dark:text-white" data-hero-current-title>
-                                    <?= htmlspecialchars($firstHeroSlide['title']) ?>
-                                </p>
-                            </div>
-
-                            <button type="button" data-open="galleryModal" data-hero-open
-                                class="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-gray-200 bg-white px-2.5 py-2 text-[10px] font-semibold leading-none text-gray-700 shadow-sm transition-all duration-300 hover:border-primary/30 hover:text-primary sm:gap-2 sm:px-4 sm:text-sm dark:border-white/10 dark:bg-slate-950/72 dark:text-white dark:shadow-lg dark:hover:bg-slate-950/82"
-                                title="Abrir print atual em tela cheia" aria-label="Abrir print atual em tela cheia">
-                                <i data-lucide="expand" class="h-4 w-4" aria-hidden="true"></i>
-                                Tela cheia
-                            </button>
+            <figure class="relative" data-aos="fade-up" data-aos-delay="150" data-hero-carousel data-autoplay-ms="4600"
+                data-autoplay-force="true">
+                <div
+                    class="relative rounded-[28px] border border-gray-100 bg-white/96 p-3 shadow-xl lg:p-4 dark:border-white/10 dark:bg-[#10263b]">
+                    <div class="mb-3 flex items-start justify-between gap-2 sm:mb-4 sm:gap-3">
+                        <div
+                            class="inline-flex max-w-[11rem] flex-none flex-col self-start rounded-[18px] border border-orange-100 bg-orange-50 px-2.5 py-2 shadow-sm sm:max-w-[12.5rem] sm:rounded-2xl sm:px-4 sm:py-3 lg:max-w-[14rem] dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                            <p class="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary/80 sm:text-[10px] sm:tracking-[0.22em] dark:text-orange-200"
+                                data-hero-current-eyebrow>
+                                <?= htmlspecialchars($firstHeroSlide['eyebrow']) ?>
+                            </p>
+                            <p class="mt-0.5 text-xs font-semibold leading-tight text-gray-900 sm:mt-1 sm:text-base dark:text-white"
+                                data-hero-current-title>
+                                <?= htmlspecialchars($firstHeroSlide['title']) ?>
+                            </p>
                         </div>
 
-                        <div class="relative aspect-[16/10] overflow-hidden rounded-[24px] border border-gray-200/80 bg-slate-950 dark:border-white/10">
-                            <div class="flex h-full w-full will-change-transform" data-hero-track
-                                style="transform: translate3d(0, 0, 0); transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);">
-                                <?php foreach ($heroSlides as $index => $slide): ?>
-                                    <div class="min-w-full h-full" data-hero-slide data-title="<?= htmlspecialchars($slide['title']) ?>"
-                                        data-eyebrow="<?= htmlspecialchars($slide['eyebrow']) ?>"
-                                        aria-hidden="<?= $index === 0 ? 'false' : 'true' ?>">
-                                        <img src="<?= htmlspecialchars($slide['src']) ?>"
-                                            data-theme-image-light="<?= htmlspecialchars($slide['src']) ?>"
-                                            data-theme-image-dark="<?= htmlspecialchars($slide['darkSrc']) ?>"
-                                            alt="<?= htmlspecialchars($slide['title']) ?> do Lukrato"
-                                            class="block h-full w-full rounded-xl bg-white object-contain"
-                                            loading="<?= $index === 0 ? 'eager' : 'lazy' ?>"
-                                            <?= $index === 0 ? 'fetchpriority="high"' : '' ?> width="800" height="500" />
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
-                        <?php if ($heroSlidesCount > 1): ?>
-                            <div class="mt-3 flex items-center justify-end sm:mt-4">
-                                <div class="inline-flex max-w-full items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-2 text-gray-700 shadow-sm sm:gap-3 sm:px-3 dark:border-white/10 dark:bg-slate-950/72 dark:text-white dark:shadow-lg">
-                                    <button type="button" data-hero-prev data-hero-nav
-                                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-600 transition-all duration-300 hover:border-primary/30 hover:text-primary sm:h-9 sm:w-9 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:bg-white/10"
-                                        aria-label="Mostrar imagem anterior do hero">
-                                        <i data-lucide="chevron-left" class="h-4 w-4" aria-hidden="true"></i>
-                                    </button>
-
-                                    <div class="flex items-center gap-1.5 sm:gap-2" aria-label="Telas do sistema no hero">
-                                        <?php foreach ($heroSlides as $index => $slide): ?>
-                                            <?php $heroDotClasses = $index === 0
-                                                ? 'w-6 bg-primary sm:w-8'
-                                                : 'w-2 bg-gray-300 hover:bg-gray-400 sm:w-2.5 dark:bg-white/35 dark:hover:bg-white/55'; ?>
-                                            <button type="button" data-hero-dot data-index="<?= $index ?>"
-                                                class="min-h-0 min-w-0 h-2 rounded-full transition-all duration-300 sm:h-2.5 <?= $heroDotClasses ?>"
-                                                aria-label="Mostrar <?= htmlspecialchars($slide['title']) ?> no hero"
-                                                aria-pressed="<?= $index === 0 ? 'true' : 'false' ?>"></button>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    <span class="text-[11px] font-medium text-gray-500 sm:text-xs dark:text-white/70" data-hero-current-count>
-                                        1/<?= $heroSlidesCount ?>
-                                    </span>
-
-                                    <button type="button" data-hero-next data-hero-nav
-                                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-600 transition-all duration-300 hover:border-primary/30 hover:text-primary sm:h-9 sm:w-9 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:bg-white/10"
-                                        aria-label="Mostrar próxima imagem do hero">
-                                        <i data-lucide="chevron-right" class="h-4 w-4" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        <?php endif; ?>
+                        <button type="button" data-open="galleryModal" data-hero-open
+                            class="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-gray-200 bg-white px-2.5 py-2 text-[10px] font-semibold leading-none text-gray-700 shadow-sm transition-all duration-300 hover:border-primary/30 hover:text-primary sm:gap-2 sm:px-4 sm:text-sm dark:border-white/10 dark:bg-slate-950/72 dark:text-white dark:shadow-lg dark:hover:bg-slate-950/82"
+                            title="Abrir print atual em tela cheia" aria-label="Abrir print atual em tela cheia">
+                            <i data-lucide="expand" class="h-4 w-4" aria-hidden="true"></i>
+                            Tela cheia
+                        </button>
                     </div>
 
-                    <figcaption class="sr-only">Carrossel de telas do aplicativo Lukrato para controle financeiro pessoal.</figcaption>
-                </figure>
+                    <div
+                        class="relative aspect-[16/10] overflow-hidden rounded-[24px] border border-gray-200/80 bg-slate-950 dark:border-white/10">
+                        <div class="flex h-full w-full will-change-transform" data-hero-track
+                            style="transform: translate3d(0, 0, 0); transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);">
+                            <?php foreach ($heroSlides as $index => $slide): ?>
+                            <div class="min-w-full h-full" data-hero-slide
+                                data-title="<?= htmlspecialchars($slide['title']) ?>"
+                                data-eyebrow="<?= htmlspecialchars($slide['eyebrow']) ?>"
+                                aria-hidden="<?= $index === 0 ? 'false' : 'true' ?>">
+                                <img src="<?= htmlspecialchars($slide['src']) ?>"
+                                    data-theme-image-light="<?= htmlspecialchars($slide['src']) ?>"
+                                    data-theme-image-dark="<?= htmlspecialchars($slide['darkSrc']) ?>"
+                                    alt="<?= htmlspecialchars($slide['title']) ?> do Lukrato"
+                                    class="block h-full w-full rounded-xl bg-white object-contain"
+                                    loading="<?= $index === 0 ? 'eager' : 'lazy' ?>"
+                                    <?= $index === 0 ? 'fetchpriority="high"' : '' ?> width="800" height="500" />
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <?php if ($heroSlidesCount > 1): ?>
+                    <div class="mt-3 flex items-center justify-end sm:mt-4">
+                        <div
+                            class="inline-flex max-w-full items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-2 text-gray-700 shadow-sm sm:gap-3 sm:px-3 dark:border-white/10 dark:bg-slate-950/72 dark:text-white dark:shadow-lg">
+                            <button type="button" data-hero-prev data-hero-nav
+                                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-600 transition-all duration-300 hover:border-primary/30 hover:text-primary sm:h-9 sm:w-9 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:bg-white/10"
+                                aria-label="Mostrar imagem anterior do hero">
+                                <i data-lucide="chevron-left" class="h-4 w-4" aria-hidden="true"></i>
+                            </button>
+
+                            <div class="flex items-center gap-1.5 sm:gap-2" aria-label="Telas do sistema no hero">
+                                <?php foreach ($heroSlides as $index => $slide): ?>
+                                <?php $heroDotClasses = $index === 0
+                                                ? 'w-6 bg-primary sm:w-8'
+                                                : 'w-2 bg-gray-300 hover:bg-gray-400 sm:w-2.5 dark:bg-white/35 dark:hover:bg-white/55'; ?>
+                                <button type="button" data-hero-dot data-index="<?= $index ?>"
+                                    class="min-h-0 min-w-0 h-2 rounded-full transition-all duration-300 sm:h-2.5 <?= $heroDotClasses ?>"
+                                    aria-label="Mostrar <?= htmlspecialchars($slide['title']) ?> no hero"
+                                    aria-pressed="<?= $index === 0 ? 'true' : 'false' ?>"></button>
+                                <?php endforeach; ?>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-500 sm:text-xs dark:text-white/70"
+                                data-hero-current-count>
+                                1/<?= $heroSlidesCount ?>
+                            </span>
+
+                            <button type="button" data-hero-next data-hero-nav
+                                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-600 transition-all duration-300 hover:border-primary/30 hover:text-primary sm:h-9 sm:w-9 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:bg-white/10"
+                                aria-label="Mostrar próxima imagem do hero">
+                                <i data-lucide="chevron-right" class="h-4 w-4" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <figcaption class="sr-only">Carrossel de telas do aplicativo Lukrato para controle financeiro pessoal.
+                </figcaption>
+            </figure>
             <?php endif; ?>
         </div>
     </div>
