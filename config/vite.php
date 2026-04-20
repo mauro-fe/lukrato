@@ -170,6 +170,17 @@ function vite_find_built_asset_file(array $prefixes, string $extension): ?string
     return $firstMatch ? 'assets/' . basename($firstMatch) : null;
 }
 
+function vite_build_file_exists(string $relativeBuildPath): bool
+{
+    $normalizedPath = ltrim(str_replace('\\', '/', $relativeBuildPath), '/');
+
+    if ($normalizedPath === '' || str_contains($normalizedPath, '..')) {
+        return false;
+    }
+
+    return is_file(dirname(__DIR__) . '/public/build/' . $normalizedPath);
+}
+
 function vite_script_asset_candidates(string $entry): array
 {
     $normalizedEntry = ltrim(str_replace('\\', '/', $entry), '/');
@@ -221,8 +232,13 @@ function vite_asset(string $entry): string
     $manifest = vite_manifest();
     $manifestEntry = vite_find_manifest_entry($entry, $manifest);
 
-    if ($manifestEntry && !empty($manifestEntry['file'])) {
+    if ($manifestEntry && !empty($manifestEntry['file']) && vite_build_file_exists($manifestEntry['file'])) {
         return BASE_URL . 'build/' . $manifestEntry['file'];
+    }
+
+    $fallbackAsset = vite_find_built_asset_file(vite_script_asset_candidates($entry), 'js');
+    if ($fallbackAsset) {
+        return BASE_URL . 'build/' . $fallbackAsset;
     }
 
     $normalizedEntry = ltrim(str_replace('\\', '/', $entry), '/');
@@ -270,7 +286,7 @@ function vite_scripts(string $entry): string
     // Buscar entry no manifest
     $manifestEntry = vite_find_manifest_entry($entry, $manifest);
 
-    if ($manifestEntry) {
+    if ($manifestEntry && !empty($manifestEntry['file']) && vite_build_file_exists($manifestEntry['file'])) {
         // Coletar imports recursivos para incluir CSS compartilhado entre entries.
         $importKeys = [];
         $visitedImports = [];
@@ -316,6 +332,10 @@ function vite_scripts(string $entry): string
         }
 
         foreach ($cssFiles as $cssFile) {
+            if (!vite_build_file_exists($cssFile)) {
+                continue;
+            }
+
             $html .= sprintf(
                 '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
                 BASE_URL,
@@ -325,7 +345,7 @@ function vite_scripts(string $entry): string
 
         // Preload dos chunks importados (performance)
         foreach ($importKeys as $importKey) {
-            if (isset($manifest[$importKey]['file'])) {
+            if (isset($manifest[$importKey]['file']) && vite_build_file_exists($manifest[$importKey]['file'])) {
                 $html .= sprintf(
                     '<link rel="modulepreload" href="%sbuild/%s">' . "\n",
                     BASE_URL,
@@ -412,7 +432,7 @@ function vite_css(string $entry): string
     if ($manifestEntry) {
         // Um CSS entry gera um .css file direto
         $file = $manifestEntry['file'] ?? '';
-        if ($file) {
+        if ($file && vite_build_file_exists($file)) {
             return sprintf(
                 '<link rel="stylesheet" href="%sbuild/%s">' . "\n",
                 BASE_URL,
