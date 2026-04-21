@@ -20,8 +20,8 @@
     <div class="export-card-toolbar">
         <div class="export-toolbar-copy">
             <span class="export-toolbar-label">Exportação</span>
-            <p class="export-toolbar-text">Escolha o formato e exporte. Filtros avancados ficam recolhidos por
-                padrao.</p>
+            <p class="export-toolbar-text">Escolha o formato e exporte. Filtros avançados ficam recolhidos por
+                padrão.</p>
         </div>
         <div class="export-actions-group">
             <select id="exportFormat" class="modern-select" data-lk-custom-select="export"

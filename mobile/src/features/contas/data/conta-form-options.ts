@@ -1,9 +1,9 @@
 export type ContaTypeOption = {
   id:
-    | 'conta_corrente'
-    | 'conta_poupanca'
-    | 'carteira_digital'
-    | 'dinheiro';
+  | 'conta_corrente'
+  | 'conta_poupanca'
+  | 'carteira_digital'
+  | 'dinheiro';
   label: string;
   description: string;
   icon: string;
@@ -20,25 +20,25 @@ export const contaTypeOptions: ContaTypeOption[] = [
   {
     id: 'conta_corrente',
     label: 'Corrente',
-    description: 'Para receber, pagar e movimentar o dinheiro do mes.',
+    description: 'Para receber, pagar e movimentar o dinheiro do mês.',
     icon: 'wallet-outline',
   },
   {
     id: 'conta_poupanca',
-    label: 'Poupanca',
+    label: 'Poupança',
     description: 'Para separar reserva sem misturar com o caixa do dia a dia.',
     icon: 'shield-checkmark-outline',
   },
   {
     id: 'carteira_digital',
     label: 'Carteira',
-    description: 'Para apps, saldo digital e uso rapido.',
+    description: 'Para apps, saldo digital e uso rápido.',
     icon: 'phone-portrait-outline',
   },
   {
     id: 'dinheiro',
     label: 'Dinheiro',
-    description: 'Para dinheiro em maos, caixa ou pequenos valores fisicos.',
+    description: 'Para dinheiro em mãos, caixa ou pequenos valores físicos.',
     icon: 'cash-outline',
   },
 ];

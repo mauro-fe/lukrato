@@ -34,22 +34,22 @@ function getModeMeta(mode: LancamentoEntryMode) {
   if (mode === 'income') {
     return {
       title: 'Nova receita',
-      description: 'Primeiro o usuario diz que entrou dinheiro. So depois ele preenche os detalhes.',
+      description: 'Primeiro o usuário diz que entrou dinheiro. Só depois ele preenche os detalhes.',
       submitLabel: 'Salvar receita',
     };
   }
 
   if (mode === 'transfer') {
     return {
-      title: 'Nova transferencia',
+      title: 'Nova transferência',
       description: 'Movimentar entre contas precisa ser simples e sem risco de escolher a conta errada.',
-      submitLabel: 'Salvar transferencia',
+      submitLabel: 'Salvar transferência',
     };
   }
 
   return {
     title: 'Novo gasto',
-    description: 'Registrar um gasto deve ser rapido. O essencial vem primeiro, o resto fica opcional.',
+    description: 'Registrar um gasto deve ser rápido. O essencial vem primeiro, o resto fica opcional.',
     submitLabel: 'Salvar gasto',
   };
 }
@@ -123,7 +123,7 @@ export function NewLancamentoScreen() {
             </Pressable>
 
             <View style={styles.headerText}>
-              <Text style={styles.eyebrow}>Novo lancamento</Text>
+              <Text style={styles.eyebrow}>Novo lançamento</Text>
               <Text style={styles.title}>{modeMeta.title}</Text>
               <Text style={styles.description}>{modeMeta.description}</Text>
             </View>
@@ -199,11 +199,11 @@ export function NewLancamentoScreen() {
             <Text style={styles.cardTitle}>3. Os detalhes essenciais</Text>
             {mode !== 'transfer' ? (
               <>
-                <Text style={styles.fieldLabel}>Descricao</Text>
+                <Text style={styles.fieldLabel}>Descrição</Text>
                 <TextInput
                   value={description}
                   onChangeText={setDescription}
-                  placeholder={mode === 'income' ? 'Ex: Salario, freela, comissao' : 'Ex: Mercado, Uber, farmacia'}
+                  placeholder={mode === 'income' ? 'Ex: Salário, freela, comissão' : 'Ex: Mercado, Uber, farmácia'}
                   placeholderTextColor={tokens.colors.textMuted}
                   style={styles.fieldInput}
                 />
@@ -211,7 +211,7 @@ export function NewLancamentoScreen() {
               </>
             ) : (
               <>
-                <Text style={styles.fieldLabel}>Descricao opcional</Text>
+                <Text style={styles.fieldLabel}>Descrição opcional</Text>
                 <TextInput
                   value={description}
                   onChangeText={setDescription}
@@ -232,7 +232,7 @@ export function NewLancamentoScreen() {
             />
             {errors.date ? <Text style={styles.errorText}>{errors.date}</Text> : null}
 
-            <Text style={styles.fieldLabel}>Observacao opcional</Text>
+            <Text style={styles.fieldLabel}>Observação opcional</Text>
             <TextInput
               value={note}
               onChangeText={setNote}
@@ -315,16 +315,16 @@ export function NewLancamentoScreen() {
           ) : null}
 
           <AppCard>
-            <Text style={styles.cardTitle}>6. Ja foi pago ou recebido?</Text>
+            <Text style={styles.cardTitle}>6. Já foi pago ou recebido?</Text>
             <View style={styles.statusRow}>
               <StatusButton
-                label={mode === 'income' ? 'Ja entrou' : 'Ja foi pago'}
+                label={mode === 'income' ? 'Já entrou' : 'Já foi pago'}
                 helper="Atualiza seu saldo real"
                 selected={isPaid}
                 onPress={() => setIsPaid(true)}
               />
               <StatusButton
-                label="Ainda nao"
+                label="Ainda não"
                 helper="Fica como pendente"
                 selected={!isPaid}
                 onPress={() => setIsPaid(false)}

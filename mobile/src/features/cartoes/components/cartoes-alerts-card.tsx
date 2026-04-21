@@ -19,9 +19,9 @@ export function CartoesAlertsCard({ alerts }: CartoesAlertsCardProps) {
             <Ionicons name="checkmark-circle-outline" size={18} color={tokens.colors.success} />
           </View>
           <View style={styles.emptyCopy}>
-            <Text style={styles.title}>Nada urgente entre os cartoes</Text>
+            <Text style={styles.title}>Nada urgente entre os cartões</Text>
             <Text style={styles.description}>
-              Quando surgir limite apertado ou vencimento proximo, o alerta aparece aqui no topo.
+              Quando surgir limite apertado ou vencimento próximo, o alerta aparece aqui no topo.
             </Text>
           </View>
         </View>
@@ -31,9 +31,9 @@ export function CartoesAlertsCard({ alerts }: CartoesAlertsCardProps) {
 
   return (
     <AppCard style={styles.card}>
-      <Text style={styles.title}>O que merece atencao agora</Text>
+      <Text style={styles.title}>O que merece atenção agora</Text>
       <Text style={styles.description}>
-        O app junta vencimento e limite apertado no mesmo bloco para o usuario decidir rapido.
+        O app junta vencimento e limite apertado no mesmo bloco para o usuário decidir rápido.
       </Text>
 
       <View style={styles.list}>

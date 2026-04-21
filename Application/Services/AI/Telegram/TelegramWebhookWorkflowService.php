@@ -1068,7 +1068,7 @@ class TelegramWebhookWorkflowService
                         LogService::persist(
                             LogLevel::WARNING,
                             LogCategory::WEBHOOK,
-                            'Botoes rapidos do Telegram falharam; resposta enviada como texto',
+                            'Botões rápidos do Telegram falharam; resposta enviada como texto',
                             [
                                 'action' => 'telegram_quick_reply_fallback',
                                 'chat_id' => $chatId,

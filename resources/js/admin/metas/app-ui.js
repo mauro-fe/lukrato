@@ -176,8 +176,8 @@ export function createMetasUi({
             focus.innerHTML = `
                 <div class="met-focus-callout">
                     <div>
-                        <h2 class="met-focus-callout__title">Voce ainda nao tem uma meta ativa.</h2>
-                        <p class="met-focus-callout__text">Use um template para sair do zero mais rapido ou crie uma meta com valor e prazo.</p>
+                        <h2 class="met-focus-callout__title">Você ainda não tem uma meta ativa.</h2>
+                        <p class="met-focus-callout__text">Use um template para sair do zero mais rápido ou crie uma meta com valor e prazo.</p>
                     </div>
                     <div class="met-focus-callout__actions">
                         <button type="button" class="met-action-btn met-action-btn--primary" onclick="metasManager.openMetaModal()">
@@ -196,8 +196,8 @@ export function createMetasUi({
         }
 
         const monthlyHint = nextMeta.aporte_mensal_sugerido > 0
-            ? `${Utils.formatCurrency(nextMeta.aporte_mensal_sugerido)}/mes sugeridos`
-            : 'Sem prazo definido para calculo de aporte';
+            ? `${Utils.formatCurrency(nextMeta.aporte_mensal_sugerido)}/mês sugeridos`
+            : 'Sem prazo definido para cálculo de aporte';
         const deadlineHint = nextMeta.dias_restantes == null
             ? 'Sem prazo definido.'
             : (nextMeta.dias_restantes < 0
@@ -249,7 +249,7 @@ export function createMetasUi({
             insights.push({
                 tipo: 'info',
                 titulo: 'Ritmo mensal das metas',
-                mensagem: `Para cumprir os prazos atuais, reserve cerca de ${Utils.formatCurrency(monthlyRequired)} por mes.`,
+                mensagem: `Para cumprir os prazos atuais, reserve cerca de ${Utils.formatCurrency(monthlyRequired)} por mês.`,
                 icon: 'calendar-range',
             });
         }
@@ -258,9 +258,9 @@ export function createMetasUi({
             const overdue = overdueMetas[0];
             insights.push({
                 tipo: 'danger',
-                titulo: `${overdue.titulo} esta atrasada`,
+                titulo: `${overdue.titulo} está atrasada`,
                 mensagem: overdue.aporte_mensal_sugerido > 0
-                    ? `Para recuperar o prazo, tente reforcar em ${Utils.formatCurrency(overdue.aporte_mensal_sugerido)} por mes.`
+                    ? `Para recuperar o prazo, tente reforçar em ${Utils.formatCurrency(overdue.aporte_mensal_sugerido)} por mês.`
                     : `Faltam ${Utils.formatCurrency(overdue.valor_restante || 0)} para concluir esta meta.`,
                 icon: 'triangle-alert',
                 metaId: overdue.id,
@@ -270,7 +270,7 @@ export function createMetasUi({
         if (closestMeta) {
             insights.push({
                 tipo: 'success',
-                titulo: `${closestMeta.titulo} esta mais perto de sair do papel`,
+                titulo: `${closestMeta.titulo} está mais perto de sair do papel`,
                 mensagem: `Faltam ${Utils.formatCurrency(closestMeta.valor_restante || 0)} para concluir.`,
                 icon: 'target',
                 metaId: closestMeta.id,
@@ -280,7 +280,7 @@ export function createMetasUi({
         if (highestPriority) {
             insights.push({
                 tipo: 'warning',
-                titulo: 'Sua meta de alta prioridade pede atencao',
+                titulo: 'Sua meta de alta prioridade pede atenção',
                 mensagem: `${highestPriority.titulo} ainda esta em ${(highestPriority.progresso || 0).toFixed(1)}% de progresso.`,
                 icon: 'flag',
                 metaId: highestPriority.id,
@@ -290,8 +290,8 @@ export function createMetasUi({
         if (completedMetas.length > 0) {
             insights.push({
                 tipo: 'success',
-                titulo: `Voce ja concluiu ${completedMetas.length} meta${completedMetas.length > 1 ? 's' : ''}`,
-                mensagem: 'Vale usar esse embalo para abrir o proximo objetivo e manter a consistencia.',
+                titulo: `Você já concluiu ${completedMetas.length} meta${completedMetas.length > 1 ? 's' : ''}`,
+                mensagem: 'Vale usar esse embalo para abrir o próximo objetivo e manter a consistência.',
                 icon: 'party-popper',
             });
         }
@@ -496,21 +496,21 @@ export function createMetasUi({
         const dataPrazo = new Date(`${prazo}T00:00:00`);
 
         if (dataPrazo <= hoje) {
-            hint.textContent = 'Esse prazo ja passou. Ajuste para uma data futura.';
+            hint.textContent = 'Esse prazo já passou. Ajuste para uma data futura.';
             return;
         }
 
         const restante = valorAlvo - valorAtual;
         if (restante <= 0) {
-            hint.textContent = 'Valor ja atingido!';
+            hint.textContent = 'Valor já atingido!';
             return;
         }
 
         const diffDias = Math.ceil((dataPrazo - hoje) / (1000 * 60 * 60 * 24));
         const mesesRestantes = Math.max(1, Math.ceil(diffDias / 30.44));
         const aporteMensal = restante / mesesRestantes;
-        const plural = mesesRestantes === 1 ? 'mes' : 'meses';
-        hint.textContent = `Para atingir no prazo: ${Utils.formatCurrency(aporteMensal)} por mes (${mesesRestantes} ${plural})`;
+        const plural = mesesRestantes === 1 ? 'mês' : 'meses';
+        hint.textContent = `Para atingir no prazo: ${Utils.formatCurrency(aporteMensal)} por mês (${mesesRestantes} ${plural})`;
     }
 
     return {

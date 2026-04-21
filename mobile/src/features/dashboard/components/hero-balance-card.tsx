@@ -26,17 +26,17 @@ export function HeroBalanceCard({
       <View style={styles.header}>
         <View>
           <Text style={styles.label}>Saldo para movimentar agora</Text>
-          <Text style={styles.helper}>Resumo feito para você entender rapido</Text>
+          <Text style={styles.helper}>Resumo feito para você entender rápido</Text>
         </View>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>Mes atual</Text>
+          <Text style={styles.badgeText}>Mês atual</Text>
         </View>
       </View>
 
       {isLoading ? (
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="small" color={tokens.colors.primary} />
-          <Text style={styles.loadingText}>Montando sua visao do mes...</Text>
+          <Text style={styles.loadingText}>Montando sua visão do mês...</Text>
         </View>
       ) : (
         <>
@@ -47,7 +47,7 @@ export function HeroBalanceCard({
             <Metric label="Reservado" value={reserved} tone="secondary" />
           </View>
           <View style={styles.footer}>
-            <Text style={styles.footerLabel}>Resultado do mes</Text>
+            <Text style={styles.footerLabel}>Resultado do mês</Text>
             <Text style={[styles.footerValue, monthlyResult >= 0 ? styles.positive : styles.negative]}>
               {formatCurrency(monthlyResult)}
             </Text>

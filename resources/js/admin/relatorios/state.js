@@ -69,58 +69,58 @@ export const STORAGE_KEYS = {
 export const SECTION_META = {
     overview: {
         kicker: 'Painel consolidado',
-        title: 'Leia seu mes com contexto',
-        description: 'Veja seu pulso financeiro, identifique sinais importantes e acompanhe a evolucao do periodo em um resumo rapido.'
+        title: 'Leia seu mês com contexto',
+        description: 'Veja seu pulso financeiro, identifique sinais importantes e acompanhe a evolução do período em um resumo rápido.'
     },
     relatorios: {
-        kicker: 'Relatorio ativo',
-        title: 'Transforme lancamentos em decisao',
-        description: 'Explore seus numeros por categoria, conta, cartao e evolucao para descobrir onde agir.'
+        kicker: 'Relatório ativo',
+        title: 'Transforme lançamentos em decisão',
+        description: 'Explore seus números por categoria, conta, cartão e evolução para descobrir onde agir.'
     },
     insights: {
-        kicker: 'Leitura automatica',
+        kicker: 'Leitura automática',
         title: 'Insights que ajudam a agir',
-        description: 'Receba sinais claros sobre gastos, saldo, concentracoes e oportunidades sem precisar interpretar tudo manualmente.'
+        description: 'Receba sinais claros sobre gastos, saldo, concentrações e oportunidades sem precisar interpretar tudo manualmente.'
     },
     comparativos: {
-        kicker: 'Comparacao temporal',
+        kicker: 'Comparação temporal',
         title: 'Compare e ajuste sua rota',
-        description: 'Entenda o que melhorou, piorou ou estagnou em relacao ao mes e ao ano anteriores.'
+        description: 'Entenda o que melhorou, piorou ou estagnou em relação ao mês e ao ano anteriores.'
     }
 };
 
 export const VIEW_META = {
     [CONFIG.VIEWS.CATEGORY]: {
-        title: 'Categorias do periodo',
-        description: 'Encontre rapidamente onde seu dinheiro esta concentrado por categoria.'
+        title: 'Categorias do período',
+        description: 'Encontre rapidamente onde seu dinheiro está concentrado por categoria.'
     },
     [CONFIG.VIEWS.BALANCE]: {
-        title: 'Saldo diario',
-        description: 'Acompanhe como seu caixa evolui ao longo do periodo.'
+        title: 'Saldo diário',
+        description: 'Acompanhe como seu caixa evolui ao longo do período.'
     },
     [CONFIG.VIEWS.COMPARISON]: {
         title: 'Receitas x despesas',
-        description: 'Compare entradas e saidas para entender pressao ou folga no caixa.'
+        description: 'Compare entradas e saídas para entender pressão ou folga no caixa.'
     },
     [CONFIG.VIEWS.ACCOUNTS]: {
         title: 'Desempenho por conta',
-        description: 'Descubra quais contas concentram mais entradas e saidas.'
+        description: 'Descubra quais contas concentram mais entradas e saídas.'
     },
     [CONFIG.VIEWS.CARDS]: {
-        title: 'Saude dos cartoes',
-        description: 'Monitore faturas, uso de limite e sinais de atencao nos cartoes.'
+        title: 'Saúde dos cartões',
+        description: 'Monitore faturas, uso de limite e sinais de atenção nos cartões.'
     },
     [CONFIG.VIEWS.EVOLUTION]: {
-        title: 'Evolucao em 12 meses',
-        description: 'Observe tendencia, sazonalidade e ritmo financeiro ao longo do ultimo ano.'
+        title: 'Evolução em 12 meses',
+        description: 'Observe tendência, sazonalidade e ritmo financeiro ao longo do último ano.'
     },
     [CONFIG.VIEWS.ANNUAL_SUMMARY]: {
         title: 'Resumo anual',
-        description: 'Compare mes a mes como receitas, despesas e saldo se comportaram no ano.'
+        description: 'Compare mês a mês como receitas, despesas e saldo se comportaram no ano.'
     },
     [CONFIG.VIEWS.ANNUAL_CATEGORY]: {
         title: 'Categorias do ano',
-        description: 'Veja quais categorias dominaram seu ano e onde houve maior concentracao.'
+        description: 'Veja quais categorias dominaram seu ano e onde houve maior concentração.'
     }
 };
 

@@ -292,25 +292,25 @@ function buildSnapshot(
       ? {
         title: 'Revise primeiro a conta que saiu do trilho',
         description:
-          'Quando alguma conta fica negativa, ela sobe para o topo porque e a informacao que mais ajuda o usuario a agir rapido.',
+          'Quando alguma conta fica negativa, ela sobe para o topo porque é a informação que mais ajuda o usuário a agir rápido.',
         amount: focusAccount.balance,
-        supportText: `${focusAccount.name} esta pedindo ajuste antes de novas saidas.`,
+        supportText: `${focusAccount.name} está pedindo ajuste antes de novas saídas.`,
         tone: 'negative' as const,
       }
       : {
-        title: 'Sua conta principal esta facil de encontrar',
+        title: 'Sua conta principal está fácil de encontrar',
         description:
-          'O app destaca a conta mais forte do dia a dia para o usuario bater o olho e entender onde o dinheiro esta entrando.',
+          'O app destaca a conta mais forte do dia a dia para o usuário bater o olho e entender onde o dinheiro está entrando.',
         amount: focusAccount.balance,
-        supportText: `${focusAccount.name} lidera o saldo disponivel neste momento.`,
+        supportText: `${focusAccount.name} lidera o saldo disponível neste momento.`,
         tone: 'positive' as const,
       };
 
   return {
     monthLabel: getMonthLabel(monthKey),
-    helperTitle: 'Onde o dinheiro esta guardado fica claro logo de cara',
+    helperTitle: 'Onde o dinheiro está guardado fica claro logo de cara',
     helperDescription:
-      'Primeiro aparecem as contas usadas no dia a dia. Reservas ficam separadas para nao confundir o saldo disponivel com o patrimonio.',
+      'Primeiro aparecem as contas usadas no dia a dia. Reservas ficam separadas para não confundir o saldo disponível com o patrimônio.',
     totalBalance: sumValues(activeAccounts, 'balance'),
     everydayBalance: sumValues(everydayAccounts, 'balance'),
     reserveBalance: sumValues(reserveAccounts, 'balance'),
@@ -323,21 +323,21 @@ function buildSnapshot(
         id: '1',
         title: 'Veja a conta usada no dia a dia',
         description:
-          'Ela precisa aparecer primeiro porque e onde entram e saem os valores mais frequentes.',
+          'Ela precisa aparecer primeiro porque é onde entram e saem os valores mais frequentes.',
         done: everydayAccounts.length > 0,
       },
       {
         id: '2',
-        title: 'Revise saldo negativo antes de lancar mais saidas',
+        title: 'Revise saldo negativo antes de lançar mais saídas',
         description:
-          'Quando alguma conta fica no vermelho, ela sobe na prioridade para o usuario nao se perder.',
+          'Quando alguma conta fica no vermelho, ela sobe na prioridade para o usuário não se perder.',
         done: negativeAccounts.length === 0,
       },
       {
         id: '3',
-        title: 'Mantenha reserva separada do giro do mes',
+        title: 'Mantenha reserva separada do giro do mês',
         description:
-          'Poupanca e outras reservas ficam em outro bloco para o dinheiro disponivel nao parecer maior do que realmente esta.',
+          'Poupança e outras reservas ficam em outro bloco para o dinheiro disponível não parecer maior do que realmente está.',
         done: reserveAccounts.length > 0,
       },
     ],
@@ -346,21 +346,21 @@ function buildSnapshot(
       {
         id: 'everyday',
         title: 'Dia a dia',
-        description: 'Contas usadas para receber, pagar e movimentar o dinheiro do mes.',
+        description: 'Contas usadas para receber, pagar e movimentar o dinheiro do mês.',
         totalBalance: sumValues(everydayAccounts, 'balance'),
         emptyTitle: 'Nenhuma conta para o dia a dia ainda',
         emptyDescription:
-          'Quando a primeira conta entrar, ela aparece aqui com saldo, entradas e saidas do periodo.',
+          'Quando a primeira conta entrar, ela aparece aqui com saldo, entradas e saídas do período.',
         accounts: decorateAccounts(everydayAccounts, primaryAccountId),
       },
       {
         id: 'reserve',
         title: 'Reserva e objetivos',
-        description: 'Contas separadas para guardar dinheiro e acompanhar patrimonio com calma.',
+        description: 'Contas separadas para guardar dinheiro e acompanhar patrimônio com calma.',
         totalBalance: sumValues(reserveAccounts, 'balance'),
-        emptyTitle: 'Ainda nao existe reserva separada',
+        emptyTitle: 'Ainda não existe reserva separada',
         emptyDescription:
-          'Quando o usuario criar uma reserva, ela aparece aqui sem misturar com o caixa do mes.',
+          'Quando o usuário criar uma reserva, ela aparece aqui sem misturar com o caixa do mês.',
         accounts: decorateAccounts(reserveAccounts, primaryAccountId),
       },
     ],
@@ -374,21 +374,21 @@ function getErrorMessage(error: unknown) {
 
   if (error instanceof HttpClientError) {
     if (error.status === 401) {
-      return 'Sua sessao nao foi aceita pelo backend. Entre novamente para carregar as contas.';
+      return 'Sua sessão não foi aceita pelo backend. Entre novamente para carregar as contas.';
     }
 
     if (error.status === 403) {
-      return 'O backend bloqueou a operacao de contas. Revise a permissao ou os limites da sua conta.';
+      return 'O backend bloqueou a operação de contas. Revise a permissão ou os limites da sua conta.';
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'A URL da API nao foi configurada para este aparelho.';
+      return 'A URL da API não foi configurada para este aparelho.';
     }
 
     return error.message;
   }
 
-  return 'Nao foi possivel carregar as contas agora.';
+  return 'ão foi possível carregar as contas agora.';
 }
 
 function mapRemoteInstitution(option: RemoteInstitutionOption): ContaInstitutionOption {
@@ -477,7 +477,7 @@ class ContasRepository {
         throw error;
       }
 
-      throw new HttpClientError('Nao foi possivel salvar a conta agora.');
+      throw new HttpClientError('Não foi possível salvar a conta agora.');
     }
   }
 }

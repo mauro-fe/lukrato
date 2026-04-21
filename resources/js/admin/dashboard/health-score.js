@@ -186,8 +186,8 @@ class HealthScoreWidget {
     if (!indicator) return;
 
     let status = 'critical';
-    let label = 'CRITICA';
-    let message = 'Ajustes rapidos podem evitar aperto financeiro.';
+    let label = 'CRÍTICA';
+    let message = 'Ajustes rápidos podem evitar aperto financeiro.';
 
     if (score >= 70) {
       status = 'excellent';
@@ -195,11 +195,11 @@ class HealthScoreWidget {
       message = 'Você está no controle. Continue assim!';
     } else if (score >= 50) {
       status = 'good';
-      label = 'ESTAVEL';
+      label = 'ESTÁVEL';
       message = 'Controle bom, mas há espaço para melhorar.';
     } else if (score >= 30) {
       status = 'warning';
-      label = 'ATENCAO';
+      label = 'ATENÇÃO';
       message = 'Alguns sinais pedem cuidado neste mês.';
     }
 
@@ -233,7 +233,7 @@ class HealthScoreWidget {
     }
 
     if (messageEl) {
-      messageEl.textContent = 'Nao foi possivel carregar.';
+      messageEl.textContent = 'Não foi possível carregar.';
     }
   }
 }

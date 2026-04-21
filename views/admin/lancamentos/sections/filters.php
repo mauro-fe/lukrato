@@ -7,7 +7,7 @@
             </div>
             <div class="lk-filters-text">
                 <h3 class="lk-filters-title">Filtrar transações</h3>
-                <span class="lk-filters-subtitle">Busca unificada, chips compactos e periodo rapido.</span>
+                <span class="lk-filters-subtitle">Busca unificada, chips compactos e período rápido.</span>
             </div>
         </div>
         <button type="button" class="lk-filters-toggle" id="btnToggleLanFilters" aria-label="Expandir filtros">
@@ -19,7 +19,7 @@
         <div class="lk-filter-search">
             <i data-lucide="search" class="lk-filter-search-icon"></i>
             <input type="text" id="filtroTexto" class="lk-filter-search-input"
-                placeholder="Buscar descricao, categoria ou conta..." aria-label="Buscar lancamentos">
+                placeholder="Buscar descrição, categoria ou conta..." aria-label="Buscar lançamentos">
         </div>
 
         <div class="lk-filters-grid">
