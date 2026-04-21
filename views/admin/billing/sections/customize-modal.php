@@ -19,7 +19,7 @@
         <div class="bill-customize-body">
             <p class="bill-customize-desc">Escolha os blocos que deseja manter visiveis nesta tela.</p>
 
-            <div class="bill-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="bill-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="bill-customize-preset" id="btnPresetEssencialBilling" type="button">Modo
                     essencial</button>
                 <button class="bill-customize-preset" id="btnPresetCompletoBilling" type="button">Modo completo</button>

@@ -86,44 +86,216 @@ export const FaturasApp = {
 
         const viewButtons = viewToggle.querySelectorAll('.view-btn');
         const savedView = localStorage.getItem('faturas_view_mode') || 'grid';
-
-        if (savedView === 'list') {
-            container.classList.add('list-view');
-        }
-
-        this.updateViewToggleState(viewButtons, savedView);
-
         const listHeader = document.getElementById('faturasListHeader');
-        if (savedView === 'list' && listHeader) {
-            listHeader.classList.add('visible');
-        }
+
+        const syncViewMode = (view) => {
+            const isListView = view === 'list';
+
+            container.classList.toggle('list-view', isListView);
+            container.dataset.viewMode = view;
+            viewToggle.dataset.currentView = view;
+
+            if (listHeader) {
+                listHeader.classList.toggle('visible', isListView);
+            }
+
+            localStorage.setItem('faturas_view_mode', view);
+            this.updateViewToggleState(viewButtons, view);
+        };
+
+        syncViewMode(savedView);
 
         viewButtons.forEach((btn) => {
             btn.addEventListener('click', () => {
-                const view = btn.dataset.view;
-
-                if (view === 'list') {
-                    container.classList.add('list-view');
-                    if (listHeader) listHeader.classList.add('visible');
-                } else {
-                    container.classList.remove('list-view');
-                    if (listHeader) listHeader.classList.remove('visible');
-                }
-
-                localStorage.setItem('faturas_view_mode', view);
-                this.updateViewToggleState(viewButtons, view);
+                syncViewMode(btn.dataset.view);
             });
         });
     },
 
     updateViewToggleState(buttons, activeView) {
         buttons.forEach((btn) => {
-            if (btn.dataset.view === activeView) {
+            const isActive = btn.dataset.view === activeView;
+
+            if (isActive) {
                 btn.classList.add('active');
             } else {
                 btn.classList.remove('active');
             }
+
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
+    },
+
+    getMesLabel(value) {
+        const meses = ['', 'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        return meses[Number(value)] || String(value || '');
+    },
+
+    getStatusLabel(value) {
+        const statusLabels = {
+            pendente: 'Pendente',
+            parcial: 'Parcial',
+            paga: 'Paga',
+            cancelado: 'Cancelado'
+        };
+
+        return statusLabels[value] || value || '';
+    },
+
+    getParcelamentoReferenceMeta(parcelamento) {
+        let month = Number.parseInt(String(parcelamento?.mes_referencia ?? ''), 10);
+        let year = Number.parseInt(String(parcelamento?.ano_referencia ?? ''), 10);
+
+        if ((!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 1900) && parcelamento?.descricao) {
+            const match = String(parcelamento.descricao).match(/(\d{1,2})\/(\d{4})/);
+
+            if (match) {
+                month = Number.parseInt(match[1], 10);
+                year = Number.parseInt(match[2], 10);
+            }
+        }
+
+        if ((!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 1900) && parcelamento?.data_vencimento) {
+            const dueDate = new Date(`${parcelamento.data_vencimento}T00:00:00`);
+
+            if (!Number.isNaN(dueDate.getTime())) {
+                month = dueDate.getMonth() + 1;
+                year = dueDate.getFullYear();
+            }
+        }
+
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        const isCurrentMonth = Number.isInteger(month) && Number.isInteger(year)
+            && month === currentMonth && year === currentYear;
+
+        return {
+            month,
+            year,
+            isCurrentMonth,
+        };
+    },
+
+    getCurrentFocusSummary(parcelamentos = STATE.parcelamentos) {
+        const currentMonthInvoice = parcelamentos.find((parcelamento) => this.getParcelamentoReferenceMeta(parcelamento).isCurrentMonth);
+
+        if (!currentMonthInvoice) {
+            return '';
+        }
+
+        const now = new Date();
+        return `${this.getMesLabel(now.getMonth() + 1)} em destaque`;
+    },
+
+    buildFilterBadges() {
+        const badges = [];
+
+        if (STATE.filtros.status) {
+            badges.push({
+                key: 'status',
+                label: this.getStatusLabel(STATE.filtros.status)
+            });
+        }
+
+        if (STATE.filtros.cartao_id) {
+            const cartao = STATE.cartoes.find((item) => item.id == STATE.filtros.cartao_id);
+            const nomeCartao = cartao ? (cartao.nome_cartao || cartao.nome) : 'Cartao';
+            badges.push({
+                key: 'cartao_id',
+                label: nomeCartao
+            });
+        }
+
+        if (STATE.filtros.ano) {
+            badges.push({
+                key: 'ano',
+                label: String(STATE.filtros.ano)
+            });
+        }
+
+        if (STATE.filtros.mes) {
+            badges.push({
+                key: 'mes',
+                label: this.getMesLabel(STATE.filtros.mes)
+            });
+        }
+
+        return badges;
+    },
+
+    formatResultsCount(count) {
+        if (count === 0) {
+            return 'Nenhuma fatura encontrada';
+        }
+
+        return count === 1 ? '1 fatura visivel' : `${count} faturas visiveis`;
+    },
+
+    buildContextSummary(parcelamentos = STATE.parcelamentos) {
+        const context = [];
+        const currentYear = new Date().getFullYear();
+
+        if (STATE.filtros.status) {
+            context.push(this.getStatusLabel(STATE.filtros.status));
+        }
+
+        if (STATE.filtros.cartao_id) {
+            const cartao = STATE.cartoes.find((item) => item.id == STATE.filtros.cartao_id);
+            const nomeCartao = cartao ? (cartao.nome_cartao || cartao.nome) : 'Cartao';
+            context.push(nomeCartao);
+        }
+
+        if (STATE.filtros.mes && STATE.filtros.ano) {
+            context.push(`${this.getMesLabel(STATE.filtros.mes)} de ${STATE.filtros.ano}`);
+        } else if (STATE.filtros.ano) {
+            context.push(`Ano ${STATE.filtros.ano}`);
+        }
+
+        if (context.length === 0) {
+            return this.getCurrentFocusSummary(parcelamentos) || 'Visao completa';
+        }
+
+        if (
+            context.length === 1
+            && context[0] === `Ano ${currentYear}`
+            && !STATE.filtros.status
+            && !STATE.filtros.cartao_id
+            && !STATE.filtros.mes
+        ) {
+            const currentFocusSummary = this.getCurrentFocusSummary(parcelamentos);
+
+            return currentFocusSummary ? `${currentFocusSummary} · ${context[0]}` : context[0];
+        }
+
+        return context.join(' · ');
+    },
+
+    updatePageSummaries(count = STATE.parcelamentos.length, isLoading = false) {
+        const activeFilters = this.buildFilterBadges().length;
+        const filterWord = activeFilters === 1 ? 'filtro ativo' : 'filtros ativos';
+
+        if (DOM.filtersSummary) {
+            if (isLoading) {
+                DOM.filtersSummary.textContent = activeFilters > 0
+                    ? `Aplicando ${activeFilters} ${filterWord}...`
+                    : 'Carregando resumo da busca...';
+            } else if (activeFilters > 0) {
+                DOM.filtersSummary.textContent = `${activeFilters} ${filterWord} · ${count === 1 ? '1 fatura no recorte' : `${count} faturas no recorte`}`;
+            } else {
+                DOM.filtersSummary.textContent = count === 1 ? '1 fatura disponivel' : `${count} faturas disponiveis`;
+            }
+        }
+
+        if (DOM.resultsSummary) {
+            DOM.resultsSummary.textContent = isLoading ? 'Carregando faturas...' : this.formatResultsCount(count);
+        }
+
+        if (DOM.contextSummary) {
+            DOM.contextSummary.textContent = this.buildContextSummary(STATE.parcelamentos);
+        }
     },
 
     aplicarFiltrosURL() {
@@ -256,6 +428,7 @@ export const FaturasApp = {
     },
 
     async carregarParcelamentos() {
+        this.updatePageSummaries(STATE.parcelamentos.length, true);
         Modules.UI.showLoading();
 
         try {
@@ -278,9 +451,11 @@ export const FaturasApp = {
             }
 
             Modules.UI.renderParcelamentos(parcelamentos);
+            this.updatePageSummaries(parcelamentos.length);
         } catch (error) {
             console.error('Erro ao carregar parcelamentos:', error);
             Modules.UI.showEmpty();
+            this.updatePageSummaries(0);
             Swal.fire({
                 icon: 'error',
                 title: 'Erro ao carregar',
@@ -403,45 +578,7 @@ export const FaturasApp = {
     atualizarBadgesFiltros() {
         if (!DOM.activeFilters) return;
 
-        const badges = [];
-        const meses = ['', 'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
-            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-        if (STATE.filtros.status) {
-            const statusLabels = {
-                pendente: 'Pendente',
-                parcial: 'Parcial',
-                paga: 'Paga',
-                cancelado: 'Cancelado'
-            };
-            badges.push({
-                key: 'status',
-                label: statusLabels[STATE.filtros.status] || STATE.filtros.status
-            });
-        }
-
-        if (STATE.filtros.cartao_id) {
-            const cartao = STATE.cartoes.find((item) => item.id == STATE.filtros.cartao_id);
-            const nomeCartao = cartao ? (cartao.nome_cartao || cartao.nome) : 'Cartao';
-            badges.push({
-                key: 'cartao_id',
-                label: nomeCartao
-            });
-        }
-
-        if (STATE.filtros.ano) {
-            badges.push({
-                key: 'ano',
-                label: String(STATE.filtros.ano)
-            });
-        }
-
-        if (STATE.filtros.mes) {
-            badges.push({
-                key: 'mes',
-                label: meses[STATE.filtros.mes]
-            });
-        }
+        const badges = this.buildFilterBadges();
 
         if (badges.length > 0) {
             DOM.activeFilters.style.display = 'flex';

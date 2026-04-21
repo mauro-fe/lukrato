@@ -15,6 +15,8 @@
 }
 
 .fat-list-heading {
+  display: grid;
+  gap: var(--spacing-2);
   flex: 1;
   min-width: 0;
 }
@@ -37,10 +39,40 @@
 }
 
 .fat-section__desc {
-  margin: var(--spacing-1) 0 0;
+  margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   line-height: 1.5;
+}
+
+.fat-list-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.fat-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fat-summary-pill.accent {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.fat-summary-pill.subtle {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-muted);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .fat-list-controls {
@@ -48,5 +80,43 @@
   align-items: center;
   gap: var(--spacing-3);
   flex-shrink: 0;
+}
+
+.fat-list-controls__label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.fat-list-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fat-list-footer-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fat-list-footer-eyebrow {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.fat-list-footer-text {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
 }
 

@@ -19,7 +19,7 @@
             <div class="profile-customize-body">
                 <p class="profile-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-                <div class="profile-customize-presets" role="group" aria-label="Preset de visualizacao">
+                <div class="profile-customize-presets" role="group" aria-label="Preset de visualização">
                     <button class="profile-customize-preset" id="btnPresetEssencialPerfil" type="button">Modo
                         essencial</button>
                     <button class="profile-customize-preset" id="btnPresetCompletoPerfil" type="button">Modo

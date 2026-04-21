@@ -6,7 +6,7 @@
 
 .faturas-list-header.visible {
   display: grid !important;
-  grid-template-columns: 72px minmax(220px, 1.1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) 150px 140px !important;
+  grid-template-columns: 72px minmax(220px, 1.1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) minmax(220px, 0.9fr) !important;
   align-items: center !important;
   gap: 1rem !important;
   padding: 0.9rem 1.25rem !important;

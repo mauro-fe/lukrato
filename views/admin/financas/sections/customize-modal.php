@@ -19,7 +19,7 @@
         <div class="fin-customize-body">
             <p class="fin-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-            <div class="fin-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="fin-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="fin-customize-preset" id="btnPresetEssencialFinancas" type="button">Modo
                     essencial</button>
                 <button class="fin-customize-preset" id="btnPresetCompletoFinancas" type="button">Modo completo</button>

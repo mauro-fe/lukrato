@@ -20,6 +20,13 @@
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
+.fat-list-footer .fat-customize-open {
+  flex-shrink: 0;
+  min-height: 42px;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .fat-customize-open i,
 .fat-customize-open svg {
   width: 16px;

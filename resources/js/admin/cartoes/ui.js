@@ -338,14 +338,14 @@ export const CartoesUI = {
         }
 
         if (hasActiveFilters()) {
-            title.textContent = 'Nenhum cartao encontrado';
-            description.textContent = 'Revise a busca ou limpe os filtros para voltar a ver os cartoes ativos.';
+            title.textContent = 'Nenhum cartão encontrado';
+            description.textContent = 'Revise a busca ou limpe os filtros para voltar a ver os cartões ativos.';
             clearButton.style.display = '';
             return;
         }
 
-        title.textContent = 'Nenhum cartao cadastrado';
-        description.textContent = 'Adicione seu primeiro cartao para acompanhar limite, vencimentos e faturas em tempo real.';
+        title.textContent = 'Nenhum cartão cadastrado';
+        description.textContent = 'Adicione seu primeiro cartão para acompanhar limite, vencimentos e faturas em tempo real.';
         clearButton.style.display = 'none';
     },
 
@@ -363,18 +363,18 @@ export const CartoesUI = {
         const brandIcon = Utils.getBrandIcon(cartao.bandeira);
         const accentColor = getCardAccent(cartao);
         const usageTone = getUsageToneMeta(percentualUso);
-        const contaNome = safeText(cartao.conta?.nome, 'Conta nao vinculada');
-        const instituicaoNome = safeText(cartao.conta?.instituicao_financeira?.nome, 'Sem instituicao');
-        const cardName = safeText(cartao.nome_cartao || cartao.nome, 'Cartao');
-        const brandName = safeText(Utils.formatBandeira(cartao.bandeira), 'Cartao');
-        const statusLabel = cartao.temFaturaPendente ? 'Fatura pendente' : 'Sem pendencias';
+        const contaNome = safeText(cartao.conta?.nome, 'Conta não vinculada');
+        const instituicaoNome = safeText(cartao.conta?.instituicao_financeira?.nome, 'Sem instituição');
+        const cardName = safeText(cartao.nome_cartao || cartao.nome, 'Cartão');
+        const brandName = safeText(Utils.formatBandeira(cartao.bandeira), 'Cartão');
+        const statusLabel = cartao.temFaturaPendente ? 'Fatura pendente' : 'Sem pendências';
         const closingLabel = cartao.dia_fechamento ? `Dia ${cartao.dia_fechamento}` : 'A definir';
         const dueLabel = cartao.dia_vencimento ? `Dia ${cartao.dia_vencimento}` : 'A definir';
         const availableLabel = percentualDisponivel > 0
             ? `${formatPercent(percentualDisponivel, 0)} do limite ainda livre`
             : 'Limite comprometido';
         const demoChip = isDemoCard(cartao)
-            ? `<span class="card-meta-chip card-meta-chip--status is-ok" ${buildTooltipAttrs('Cartao de exemplo', 'Esse cartao existe so para demonstrar como o painel funciona.')}>
+            ? `<span class="card-meta-chip card-meta-chip--status is-ok" ${buildTooltipAttrs('Cartão de exemplo', 'Esse cartão existe só para demonstrar como o painel funciona.')}>
                     <i data-lucide="flask-conical"></i>
                     Exemplo
                </span>`
@@ -415,8 +415,8 @@ export const CartoesUI = {
                             ${brandName}
                         </span>
                         <span class="card-meta-chip card-meta-chip--status ${cartao.temFaturaPendente ? 'is-pending' : 'is-ok'}" ${buildTooltipAttrs(statusLabel, cartao.temFaturaPendente
-            ? 'Ha uma fatura aberta para este cartao que merece acompanhamento ou pagamento.'
-            : 'Sem pendencias abertas para o ciclo atual deste cartao.')}>
+            ? 'Há uma fatura aberta para este cartão que merece acompanhamento ou pagamento.'
+            : 'Sem pendências abertas para o ciclo atual deste cartão.')}>
                             <i data-lucide="${cartao.temFaturaPendente ? 'circle-alert' : 'badge-check'}"></i>
                             ${statusLabel}
                         </span>
@@ -437,7 +437,7 @@ export const CartoesUI = {
 
                 <div class="card-actions">
                     ${isDemoCard(cartao) ? `
-                    <span class="card-meta-chip card-meta-chip--brand" ${buildTooltipAttrs('Somente visualizacao', 'Esse cartao de exemplo nao abre menu nem fatura.')}>
+                    <span class="card-meta-chip card-meta-chip--brand" ${buildTooltipAttrs('Somente visualização', 'Esse cartão de exemplo nao abre menu nem fatura.')}>
                         <i data-lucide="eye"></i>
                         Visual
                     </span>` : `<button
@@ -481,7 +481,7 @@ export const CartoesUI = {
                         <span class="limit-fill ${usageTone.className}" style="width: ${progressWidth}%"></span>
                     </div>
                     <div class="card-progress-foot">
-                        <span>Ja utilizado ${Utils.formatMoney(limiteUtilizado)}</span>
+                        <span>Já utilizado ${Utils.formatMoney(limiteUtilizado)}</span>
                         <span>${availableLabel}</span>
                     </div>
                 </div>
@@ -534,13 +534,13 @@ export const CartoesUI = {
             : null;
 
         const message = hasActiveFilters()
-            ? `Mostrando ${visiveis} de ${total} cartoes com os filtros atuais.`
+            ? `Mostrando ${visiveis} de ${total} cartões com os filtros atuais.`
             : total
-                ? 'Painel consolidado com limite, faturas e cartoes que pedem atencao.'
-                : 'Cadastre seu primeiro cartao para acompanhar limite e vencimentos aqui.';
+                ? 'Painel consolidado com limite, faturas e cartões que pedem atenção.'
+                : 'Cadastre seu primeiro cartão para acompanhar limite e vencimentos aqui.';
 
         const pills = [
-            `<span class="cartoes-summary-pill neutral">${visiveis} visiveis</span>`,
+            `<span class="cartoes-summary-pill neutral">${visiveis} visíveis</span>`,
         ];
 
         if (STATE.currentFilter !== 'all') {
@@ -557,7 +557,7 @@ export const CartoesUI = {
         }
 
         if (updatedAt) {
-            pills.push(`<span class="cartoes-summary-pill subtle">Atualizado as ${safeText(updatedAt)}</span>`);
+            pills.push(`<span class="cartoes-summary-pill subtle">Atualizado às ${safeText(updatedAt)}</span>`);
         }
 
         summary.innerHTML = `
@@ -602,8 +602,8 @@ export const CartoesUI = {
         submitButton.disabled = loading;
         submitButton.setAttribute('aria-busy', loading ? 'true' : 'false');
         submitLabel.textContent = loading
-            ? (isEdit ? 'Salvando alteracoes...' : 'Salvando cartao...')
-            : (isEdit ? 'Salvar alteracoes' : 'Salvar cartao');
+            ? (isEdit ? 'Salvando alterações...' : 'Salvando cartão...')
+            : (isEdit ? 'Salvar alterações' : 'Salvar cartão');
 
         const iconContainer = submitButton.querySelector('[data-lucide], svg');
         if (iconContainer?.getAttribute) {
@@ -648,7 +648,7 @@ export const CartoesUI = {
         const isEdit = mode === 'edit' && !!cartaoData;
 
         if (isEdit && cartaoData) {
-            titulo.textContent = 'Editar cartao de credito';
+            titulo.textContent = 'Editar cartão de crédito';
             subtitle.textContent = 'Revise os dados e ajuste limite, vencimento ou conta vinculada.';
             document.getElementById('cartaoId').value = cartaoData.id;
             document.getElementById('nomeCartao').value = cartaoData.nome_cartao || '';
@@ -666,10 +666,10 @@ export const CartoesUI = {
                 modalHeader.style.background = getCardColor(cartaoData);
             }
         } else {
-            titulo.textContent = 'Novo cartao de credito';
+            titulo.textContent = 'Novo cartão de crédito';
             subtitle.textContent = contasDisponiveis
-                ? 'Cadastre o cartao e vincule a conta usada para pagar a fatura.'
-                : 'Antes de cadastrar um cartao, você precisa ter ao menos uma conta.';
+                ? 'Cadastre o cartão e vincule a conta usada para pagar a fatura.'
+                : 'Antes de cadastrar um cartão, você precisa ter ao menos uma conta.';
 
             if (modalHeader) {
                 modalHeader.style.background = '';

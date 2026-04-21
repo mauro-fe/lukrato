@@ -12,7 +12,7 @@
         <div class="cont-customize-body">
             <p class="cont-customize-desc">Comece no modo essencial e habilite blocos extras quando quiser.</p>
 
-            <div class="cont-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="cont-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="btn btn-ghost" id="btnPresetEssencialContas" type="button">Modo essencial</button>
                 <button class="btn btn-ghost" id="btnPresetCompletoContas" type="button">Modo completo</button>
             </div>

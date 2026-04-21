@@ -19,6 +19,15 @@ const formatPercent = (value, digits = 0) => `${(Number(value) || 0).toLocaleStr
 })}%`;
 const buildTooltipAttrs = (title, text) => `data-lk-tooltip-title="${safeText(title)}" data-lk-tooltip="${safeText(text)}"`;
 const COLOR_TOKEN_REGEX = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))/;
+const STATUS_SORT_RANK = {
+    vencida: 0,
+    proxima: 1,
+    parcial: 2,
+    pendente: 3,
+    paga: 4,
+    cancelado: 5,
+    indefinido: 6,
+};
 export const CardListMethods = {
     renderParcelamentos(parcelamentos) {
         if (!Array.isArray(parcelamentos) || parcelamentos.length === 0) {
@@ -29,8 +38,10 @@ export const CardListMethods = {
         DOM.emptyStateEl.style.display = 'none';
         DOM.containerEl.style.display = 'grid';
 
+        const sortedParcelamentos = this.sortParcelamentosByRelevance(parcelamentos);
+
         const fragment = document.createDocumentFragment();
-        parcelamentos.forEach((parc) => {
+        sortedParcelamentos.forEach((parc) => {
             const card = this.createParcelamentoCard(parc);
             fragment.appendChild(card);
         });
@@ -45,13 +56,27 @@ export const CardListMethods = {
         const itensPendentes = parc.parcelas_pendentes || 0;
         const itensPagos = parc.parcelas_pagas || 0;
         const totalItens = itensPagos + itensPendentes;
+        const referenceMeta = this.getReferenceMeta(parc);
         const dueMeta = this.getDueMeta(parc);
         const statusMeta = this.getStatusMeta(parc.status, progresso, dueMeta);
+        const isHistoricalPaid = referenceMeta.isPastReference && statusMeta.badgeClass === 'badge-paga';
 
         const div = document.createElement('div');
         div.className = `parcelamento-card surface-card surface-card--interactive surface-card--clip status-${parc.status}`;
         div.dataset.id = parc.id;
         div.style.setProperty('--fatura-accent', this.getAccentColorSolid(parc.cartao));
+
+        if (referenceMeta.isCurrentMonth) {
+            div.classList.add('is-current-focus');
+        }
+
+        if (referenceMeta.isPastReference) {
+            div.classList.add('is-reference-past');
+        }
+
+        if (isHistoricalPaid) {
+            div.classList.add('is-historical-paid');
+        }
 
         const statusBadge = this.getStatusBadge(parc.status, progresso, dueMeta);
         const mes = parc.mes_referencia || '';
@@ -66,10 +91,158 @@ export const CardListMethods = {
             itensPagos,
             totalItens,
             progresso,
+            referenceMeta,
             dueMeta,
             statusMeta,
         });
         return div;
+    },
+
+    getReferenceMeta(parc) {
+        let month = Number.parseInt(String(parc?.mes_referencia ?? ''), 10);
+        let year = Number.parseInt(String(parc?.ano_referencia ?? ''), 10);
+
+        if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 1900) {
+            const descricao = String(parc?.descricao ?? '');
+            const match = descricao.match(/(\d{1,2})\/(\d{4})/);
+
+            if (match) {
+                month = Number.parseInt(match[1], 10);
+                year = Number.parseInt(match[2], 10);
+            }
+        }
+
+        if ((!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 1900) && parc?.data_vencimento) {
+            const dueDate = new Date(`${parc.data_vencimento}T00:00:00`);
+
+            if (!Number.isNaN(dueDate.getTime())) {
+                month = dueDate.getMonth() + 1;
+                year = dueDate.getFullYear();
+            }
+        }
+
+        const hasReference = Number.isInteger(month) && month >= 1 && month <= 12 && Number.isInteger(year) && year >= 1900;
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        const monthOffset = hasReference ? ((year - currentYear) * 12) + (month - currentMonth) : Number.MAX_SAFE_INTEGER;
+
+        return {
+            month,
+            year,
+            hasReference,
+            monthOffset,
+            isCurrentMonth: hasReference && monthOffset === 0,
+            isFutureReference: hasReference && monthOffset > 0,
+            isPastReference: hasReference && monthOffset < 0,
+        };
+    },
+
+    getStatusSortRank(parc, dueMeta) {
+        if (parc.status === 'cancelado') {
+            return STATUS_SORT_RANK.cancelado;
+        }
+
+        if (dueMeta?.isVencida) {
+            return STATUS_SORT_RANK.vencida;
+        }
+
+        if (dueMeta?.isProxima) {
+            return STATUS_SORT_RANK.proxima;
+        }
+
+        if ((Number(parc.progresso) || 0) >= 100 || parc.status === 'paga' || parc.status === 'concluido') {
+            return STATUS_SORT_RANK.paga;
+        }
+
+        if ((Number(parc.progresso) || 0) > 0 || parc.status === 'parcial') {
+            return STATUS_SORT_RANK.parcial;
+        }
+
+        if (parc.status === 'pendente') {
+            return STATUS_SORT_RANK.pendente;
+        }
+
+        return STATUS_SORT_RANK.indefinido;
+    },
+
+    getRelevanceBucket(referenceMeta) {
+        if (referenceMeta.isCurrentMonth) {
+            return 0;
+        }
+
+        if (referenceMeta.isFutureReference) {
+            return 1;
+        }
+
+        if (referenceMeta.isPastReference) {
+            return 2;
+        }
+
+        return 3;
+    },
+
+    compareDueDates(leftDueDate, rightDueDate) {
+        if (!leftDueDate && !rightDueDate) {
+            return 0;
+        }
+
+        if (!leftDueDate) {
+            return 1;
+        }
+
+        if (!rightDueDate) {
+            return -1;
+        }
+
+        return leftDueDate.localeCompare(rightDueDate);
+    },
+
+    sortParcelamentosByRelevance(parcelamentos) {
+        return [...parcelamentos].sort((left, right) => {
+            const leftReference = this.getReferenceMeta(left);
+            const rightReference = this.getReferenceMeta(right);
+            const leftBucket = this.getRelevanceBucket(leftReference);
+            const rightBucket = this.getRelevanceBucket(rightReference);
+
+            if (leftBucket !== rightBucket) {
+                return leftBucket - rightBucket;
+            }
+
+            if (leftReference.monthOffset !== rightReference.monthOffset) {
+                if (leftBucket === 2) {
+                    return rightReference.monthOffset - leftReference.monthOffset;
+                }
+
+                return leftReference.monthOffset - rightReference.monthOffset;
+            }
+
+            const leftDueMeta = this.getDueMeta(left);
+            const rightDueMeta = this.getDueMeta(right);
+            const leftStatusRank = this.getStatusSortRank(left, leftDueMeta);
+            const rightStatusRank = this.getStatusSortRank(right, rightDueMeta);
+
+            if (leftStatusRank !== rightStatusRank) {
+                return leftStatusRank - rightStatusRank;
+            }
+
+            const dueCompare = this.compareDueDates(left.data_vencimento, right.data_vencimento);
+
+            if (dueCompare !== 0) {
+                return dueCompare;
+            }
+
+            const valueCompare = (Number(right.valor_total) || 0) - (Number(left.valor_total) || 0);
+
+            if (valueCompare !== 0) {
+                return valueCompare;
+            }
+
+            const leftName = String(left.cartao?.nome || left.cartao?.nome_cartao || left.cartao?.bandeira || '');
+            const rightName = String(right.cartao?.nome || right.cartao?.nome_cartao || right.cartao?.bandeira || '');
+
+            return leftName.localeCompare(rightName, 'pt-BR');
+        });
     },
 
     attachCardEventListeners() {
@@ -242,7 +415,7 @@ export const CardListMethods = {
     getResumoPrincipal(parc, dueMeta, statusMeta, itensPendentes, itensPagos, totalItens) {
         const temEstornos = parc.total_estornos && parc.total_estornos > 0;
         const pagamentoLabel = totalItens > 0
-            ? `${itensPagos} de ${totalItens} itens pagos`
+            ? `${itensPagos}/${totalItens} itens pagos`
             : 'Sem itens consolidados';
         const dueTag = dueMeta.hasDate && dueMeta.helper !== 'Dentro do prazo'
             ? `<span class="fatura-card-due-tag ${dueMeta.detailClass}">${safeText(dueMeta.helper)}</span>`
@@ -250,15 +423,15 @@ export const CardListMethods = {
 
         return `
             <div class="fatura-card-main">
-                <span class="resumo-label">Valor total da fatura</span>
+                <span class="resumo-label">Valor total</span>
                 <strong class="resumo-valor">${Utils.formatMoney(parc.valor_total)}</strong>
                 <div class="fatura-card-due-line ${dueMeta.detailClass}">
-                    <span class="fatura-card-due-copy">Vencimento ${safeText(dueMeta.label)}</span>
+                    <span class="fatura-card-due-copy">Vence ${safeText(dueMeta.label)}</span>
                     ${dueTag}
                 </div>
                 ${temEstornos ? `
                     <p class="fatura-card-note">
-                        Inclui ${Utils.formatMoney(parc.total_estornos)} em estornos no fechamento.
+                        Inclui ${Utils.formatMoney(parc.total_estornos)} em estornos.
                     </p>
                 ` : ''}
             </div>
@@ -310,7 +483,7 @@ export const CardListMethods = {
         return `
             <div class="parc-progress-section ${statusMeta.progressClass}">
                 <div class="parc-progress-header">
-                    <span class="parc-progress-text">Pagamento ${formatPercent(progressoNormalizado)}</span>
+                    <span class="parc-progress-text">Pago ${formatPercent(progressoNormalizado)}</span>
                     <span class="parc-progress-percent">${safeText(statusMeta.shortLabel)}</span>
                 </div>
                 <div class="parc-progress-bar">
@@ -336,7 +509,7 @@ export const CardListMethods = {
         `;
     },
 
-    createCardHTML({ parc, statusBadge, mes, ano, itensPendentes, itensPagos, totalItens, progresso, dueMeta, statusMeta }) {
+    createCardHTML({ parc, statusBadge, mes, ano, itensPendentes, itensPagos, totalItens, progresso, referenceMeta, dueMeta, statusMeta }) {
         const resumoPrincipal = this.getResumoPrincipal(parc, dueMeta, statusMeta, itensPendentes, itensPagos, totalItens);
         const progressoSection = this.getProgressoSection(totalItens, itensPendentes, itensPagos, progresso, statusMeta);
         const cartaoId = Number.parseInt(String(parc.cartao?.id ?? parc.cartao_id ?? 0), 10) || 0;
@@ -350,7 +523,16 @@ export const CardListMethods = {
         const accentColor = this.getAccentColorSolid(parc.cartao);
         const bandeira = parc.cartao?.bandeira?.toLowerCase() || 'outros';
         const bandeiraIcon = this.getBandeiraIcon(bandeira);
-        const periodoLabel = mes && ano ? `${mes}/${ano}` : 'Fatura atual';
+        const periodoLabel = referenceMeta.hasReference
+            ? `${String(referenceMeta.month).padStart(2, '0')}/${referenceMeta.year}`
+            : (mes && ano ? `${mes}/${ano}` : 'Fatura atual');
+        const periodText = referenceMeta.isCurrentMonth ? `Mes atual · ${periodoLabel}` : periodoLabel;
+        const periodClassName = referenceMeta.isCurrentMonth ? 'fatura-card-period is-current' : 'fatura-card-period';
+        const listKicker = referenceMeta.isCurrentMonth
+            ? '<span class="fatura-list-kicker fatura-list-kicker--current">Fatura do mes</span>'
+            : (referenceMeta.isPastReference && statusMeta.badgeClass === 'badge-paga'
+                ? '<span class="fatura-list-kicker fatura-list-kicker--history">Historico pago</span>'
+                : '');
         const listSubline = [safeText(instituicaoNome), cartaoNumero ? safeText(cartaoNumero) : '']
             .filter(Boolean)
             .join(' - ');
@@ -371,9 +553,9 @@ export const CardListMethods = {
                             <span class="fatura-card-subtitle">${safeText(instituicaoNome)}</span>
                         </div>
                         <div class="fatura-card-meta">
-                            <span class="fatura-card-period" ${buildTooltipAttrs('Periodo da fatura', 'Competencia consolidada desta fatura para acompanhar fechamento e vencimento.')}>
+                            <span class="${periodClassName}" ${buildTooltipAttrs('Periodo da fatura', 'Competencia consolidada desta fatura para acompanhar fechamento e vencimento.')}>
                                 <i data-lucide="calendar-days"></i>
-                                <span>${safeText(periodoLabel)}</span>
+                                <span>${safeText(periodText)}</span>
                             </span>
                             ${statusBadge}
                         </div>
@@ -381,6 +563,7 @@ export const CardListMethods = {
                 </div>
 
                 <div class="fatura-list-info">
+                    ${listKicker}
                     <span class="list-cartao-nome">${safeText(cartaoNome)}</span>
                     <span class="list-periodo">${safeText(periodoLabel)}</span>
                     <span class="list-cartao-numero">${listSubline}</span>
@@ -397,14 +580,14 @@ export const CardListMethods = {
                         title="Importar esta fatura/cartão"
                     >
                         <i data-lucide="upload"></i>
-                        <span>Importar fatura</span>
+                        <span>Importar</span>
                     </a>
                     <a
                         class="parc-btn parc-btn-view"
                         href="${safeText(detailUrl)}"
                         data-no-transition="true">
                         <i data-lucide="eye"></i>
-                        <span>Ver detalhes</span>
+                        <span>Detalhes</span>
                     </a>
                 </div>
             </div>

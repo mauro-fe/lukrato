@@ -19,7 +19,7 @@
         <div class="imp-customize-body">
             <p class="imp-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-            <div class="imp-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="imp-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="imp-customize-preset" id="btnPresetEssencialImportacoes" type="button">Modo
                     essencial</button>
                 <button class="imp-customize-preset" id="btnPresetCompletoImportacoes" type="button">Modo

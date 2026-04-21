@@ -19,7 +19,7 @@
         <div class="cat-customize-body">
             <p class="cat-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-            <div class="cat-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="cat-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="cat-customize-preset" id="btnPresetEssencialCategorias" type="button">Modo
                     essencial</button>
                 <button class="cat-customize-preset" id="btnPresetCompletoCategorias" type="button">Modo

@@ -1,10 +1,3 @@
-<div class="fat-customize-trigger">
-    <button class="fat-customize-open surface-card" id="btnCustomizeFaturas" type="button">
-        <i data-lucide="sliders-horizontal"></i>
-        <span>Personalizar tela</span>
-    </button>
-</div>
-
 <div class="fat-customize-overlay" id="faturasCustomizeModalOverlay" style="display:none;">
     <div class="fat-customize-modal surface-card" role="dialog" aria-modal="true"
         aria-labelledby="faturasCustomizeModalTitle">
@@ -19,7 +12,7 @@
         <div class="fat-customize-body">
             <p class="fat-customize-desc">Comece no modo essencial e habilite blocos quando quiser.</p>
 
-            <div class="fat-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="fat-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="fat-customize-preset" id="btnPresetEssencialFaturas" type="button">Modo
                     essencial</button>
                 <button class="fat-customize-preset" id="btnPresetCompletoFaturas" type="button">Modo completo</button>
@@ -28,7 +21,7 @@
             <div class="fat-customize-group">
                 <p class="fat-customize-group-title">Blocos da tela</p>
                 <label class="fat-customize-toggle">
-                    <span>Hero de contexto</span>
+                    <span>Suas faturas</span>
                     <input type="checkbox" id="toggleFaturasHero" checked>
                 </label>
                 <label class="fat-customize-toggle">
@@ -36,7 +29,7 @@
                     <input type="checkbox" id="toggleFaturasFiltros" checked>
                 </label>
                 <label class="fat-customize-toggle">
-                    <span>Toggle de visualizacao</span>
+                    <span>Toggle de visualização</span>
                     <input type="checkbox" id="toggleFaturasViewToggle" checked>
                 </label>
             </div>

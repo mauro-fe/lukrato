@@ -19,7 +19,7 @@
             <div class="rel-customize-body">
                 <p class="rel-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-                <div class="rel-customize-presets" role="group" aria-label="Preset de visualizacao">
+                <div class="rel-customize-presets" role="group" aria-label="Preset de visualização">
                     <button class="rel-customize-preset" id="btnPresetEssencialRelatorios" type="button">Modo
                         essencial</button>
                     <button class="rel-customize-preset" id="btnPresetCompletoRelatorios" type="button">Modo

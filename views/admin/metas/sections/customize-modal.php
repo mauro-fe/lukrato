@@ -19,7 +19,7 @@
         <div class="met-customize-body">
             <p class="met-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-            <div class="met-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="met-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="met-customize-preset" id="btnPresetEssencialMetas" type="button">Modo essencial</button>
                 <button class="met-customize-preset" id="btnPresetCompletoMetas" type="button">Modo completo</button>
             </div>

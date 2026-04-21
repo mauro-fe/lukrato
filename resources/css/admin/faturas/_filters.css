@@ -21,6 +21,11 @@
   gap: var(--spacing-3);
 }
 
+.filters-text {
+  display: grid;
+  gap: 2px;
+}
+
 .filters-icon {
   width: 42px;
   height: 42px;
@@ -50,8 +55,8 @@
 .filters-subtitle {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  margin-top: 2px;
   display: block;
+  line-height: 1.4;
 }
 
 .filters-toggle {
@@ -89,7 +94,9 @@
 }
 
 .filters-body {
-  padding: var(--spacing-5);
+  display: grid;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
 }
 
 .filters-grid {
@@ -177,9 +184,8 @@
 .filters-actions {
   display: flex;
   gap: var(--spacing-3);
-  margin-top: var(--spacing-5);
-  padding-top: var(--spacing-5);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: 0;
+  padding-top: 0;
   justify-content: flex-end;
 }
 

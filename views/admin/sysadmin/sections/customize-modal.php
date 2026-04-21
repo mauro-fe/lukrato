@@ -11,7 +11,7 @@
         <div class="sys-customize-body">
             <p class="sys-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-            <div class="sys-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="sys-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="sys-customize-preset" id="btnPresetEssencialSysadmin" type="button">Modo
                     essencial</button>
                 <button class="sys-customize-preset" id="btnPresetCompletoSysadmin" type="button">Modo

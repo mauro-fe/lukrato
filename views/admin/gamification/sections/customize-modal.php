@@ -11,7 +11,7 @@
         <div class="gam-customize-body">
             <p class="gam-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-            <div class="gam-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="gam-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="gam-customize-preset" id="btnPresetEssencialGamification" type="button">Modo
                     essencial</button>
                 <button class="gam-customize-preset" id="btnPresetCompletoGamification" type="button">Modo

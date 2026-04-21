@@ -22,7 +22,7 @@ $months = (int) ($selectedPlanData['months'] ?? 1);
         <div class="billing-checkout__headline">
             <span class="billing-checkout__eyebrow">Pagamento seguro</span>
             <h1>Finalize sua assinatura <?= htmlspecialchars($planName, ENT_QUOTES, 'UTF-8') ?></h1>
-            <p>Confira o periodo escolhido e complete os dados de pagamento.</p>
+            <p>Confira o período escolhido e complete os dados de pagamento.</p>
         </div>
     </header>
 
@@ -32,7 +32,7 @@ $months = (int) ($selectedPlanData['months'] ?? 1);
             <strong><?= htmlspecialchars(strtoupper($planCode), ENT_QUOTES, 'UTF-8') ?></strong>
         </div>
         <div class="billing-checkout__summary-item">
-            <span>Periodo</span>
+            <span>Período</span>
             <strong><?= htmlspecialchars($cycleLabel, ENT_QUOTES, 'UTF-8') ?></strong>
         </div>
         <div class="billing-checkout__summary-item">
@@ -41,7 +41,8 @@ $months = (int) ($selectedPlanData['months'] ?? 1);
         </div>
         <div class="billing-checkout__summary-item billing-checkout__summary-item--total">
             <span>Total<?= $months > 1 ? ' com desconto' : '' ?></span>
-            <strong>R$ <?= number_format($total, 2, ',', '.') ?>/<?= htmlspecialchars($period, ENT_QUOTES, 'UTF-8') ?></strong>
+            <strong>R$
+                <?= number_format($total, 2, ',', '.') ?>/<?= htmlspecialchars($period, ENT_QUOTES, 'UTF-8') ?></strong>
         </div>
         <?php if ($discount > 0): ?>
             <div class="billing-checkout__summary-badge">

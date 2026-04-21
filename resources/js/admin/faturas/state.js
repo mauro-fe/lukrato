@@ -87,6 +87,9 @@ export function initDOM() {
     DOM.filtersBody = document.getElementById('filtersBody');
     DOM.toggleFilters = document.getElementById('toggleFilters');
     DOM.activeFilters = document.getElementById('activeFilters');
+    DOM.filtersSummary = document.getElementById('faturasFiltersSummary');
+    DOM.resultsSummary = document.getElementById('faturasResultsSummary');
+    DOM.contextSummary = document.getElementById('faturasContextSummary');
 
     // Modais auxiliares
     DOM.modalPagarFatura = preparePageModal('modalPagarFatura');

@@ -354,7 +354,7 @@
     ]
   },
   "admin/cartoes/index.js": {
-    "file": "assets/cartoes-B2e6OwOt.js",
+    "file": "assets/cartoes-Bs7scW1B.js",
     "name": "cartoes",
     "src": "admin/cartoes/index.js",
     "isEntry": true,
@@ -451,7 +451,7 @@
     ]
   },
   "admin/faturas/index.js": {
-    "file": "assets/faturas-dmovdMUt.js",
+    "file": "assets/faturas-H__K8Bp_.js",
     "name": "faturas",
     "src": "admin/faturas/index.js",
     "isEntry": true,
@@ -463,7 +463,7 @@
       "_ui-preferences-zHfZ8gw7.js"
     ],
     "css": [
-      "assets/faturas-Df7nutiW.css"
+      "assets/faturas-J0-pVYDn.css"
     ]
   },
   "admin/financas/index.js": {

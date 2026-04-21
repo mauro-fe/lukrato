@@ -9,7 +9,7 @@
             </div>
             <div class="filters-text">
                 <h3>Filtros</h3>
-                <span class="filters-subtitle">Refine sua busca</span>
+                <span class="filters-subtitle" id="faturasFiltersSummary">Resumo da busca</span>
             </div>
         </div>
         <button type="button" class="filters-toggle" id="toggleFilters" aria-label="Expandir filtros">

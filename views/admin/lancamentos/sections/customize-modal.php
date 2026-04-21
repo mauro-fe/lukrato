@@ -17,7 +17,7 @@
         <div class="lan-customize-body">
             <p class="lan-customize-desc">Comece no modo essencial e ative blocos quando fizer sentido.</p>
 
-            <div class="lan-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="lan-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="modern-btn" id="btnPresetEssencialLancamentos" type="button">Modo essencial</button>
                 <button class="modern-btn" id="btnPresetCompletoLancamentos" type="button">Modo completo</button>
             </div>

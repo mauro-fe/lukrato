@@ -18,7 +18,7 @@
         <div class="cart-customize-body">
             <p class="cart-customize-desc">Comece no modo essencial e ative os blocos quando fizer sentido.</p>
 
-            <div class="cart-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="cart-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="btn btn-ghost" id="btnPresetEssencialCartoes" type="button">Modo essencial</button>
                 <button class="btn btn-ghost" id="btnPresetCompletoCartoes" type="button">Modo completo</button>
             </div>

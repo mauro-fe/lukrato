@@ -19,7 +19,7 @@
         <div class="orc-customize-body">
             <p class="orc-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
 
-            <div class="orc-customize-presets" role="group" aria-label="Preset de visualizacao">
+            <div class="orc-customize-presets" role="group" aria-label="Preset de visualização">
                 <button class="orc-customize-preset" id="btnPresetEssencialOrcamento" type="button">Modo
                     essencial</button>
                 <button class="orc-customize-preset" id="btnPresetCompletoOrcamento" type="button">Modo
