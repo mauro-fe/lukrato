@@ -39,6 +39,31 @@ class ApplyOrcamentoSugestoesUseCaseTest extends TestCase
         $this->assertSame($expected, $result->data);
     }
 
+    public function testExecuteAcceptsOrcamentosPayloadAlias(): void
+    {
+        $expected = [['id' => 11]];
+
+        $service = Mockery::mock(OrcamentoService::class);
+        $service->shouldReceive('aplicarSugestoes')
+            ->once()
+            ->with(10, 4, 2026, [
+                ['categoria_id' => 2, 'valor_limite' => 450],
+            ])
+            ->andReturn($expected);
+
+        $useCase = new ApplyOrcamentoSugestoesUseCase($service);
+        $result = $useCase->execute(10, [
+            'mes' => 4,
+            'ano' => 2026,
+            'orcamentos' => [
+                ['categoria_id' => 2, 'valor_limite' => 450],
+            ],
+        ]);
+
+        $this->assertFalse($result->isError());
+        $this->assertSame($expected, $result->data);
+    }
+
     public function testExecuteUsesDefaultsWhenMonthYearAndSuggestionsAreMissing(): void
     {
         $expected = [];

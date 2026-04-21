@@ -2,7 +2,60 @@
    RESPONSIVE
    ============================================================================ */
 
+@media (max-width: 1180px) {
+  .met-workspace-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .met-workspace-side {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .met-insights-section {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .met-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .met-page-header,
+  .met-listing-shell__head,
+  .met-insights-section__head,
+  .met-insights-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .met-page-header__meta {
+    justify-content: flex-start;
+  }
+
+  .met-insights-footer .met-customize-trigger {
+    justify-content: stretch;
+  }
+
+  .met-insights-footer .met-customize-open {
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
+  .met-overview-shell,
+  .met-listing-shell,
+  .met-insights-section,
+  .met-focus-panel {
+    padding: 14px;
+  }
+
   .met-summary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -12,16 +65,21 @@
     align-items: stretch;
   }
 
-  .met-focus-panel {
+  .met-actions-bar__hint {
+    max-width: none;
+  }
+
+  .met-focus-panel__stats,
+  .met-workspace-side {
     grid-template-columns: 1fr;
   }
 
   .met-focus-callout {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 12px;
   }
 
   .met-focus-callout__actions {
+    grid-template-columns: 1fr;
     min-width: 0;
   }
 
@@ -30,21 +88,29 @@
   }
 
   .met-actions-bar__left {
-    justify-content: center;
+    justify-content: stretch;
   }
 
   .met-action-btn {
     justify-content: center;
   }
 
+  .met-actions-bar__left .met-action-btn {
+    width: 100%;
+  }
+
   .met-grid {
     grid-template-columns: 1fr;
   }
 
-  .met-page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-3);
+  .met-card__footer {
+    grid-template-columns: 1fr;
+  }
+
+  .met-card__remaining-value {
+    justify-self: start;
+    text-align: left;
+    white-space: normal;
   }
 
   .met-customize-trigger {

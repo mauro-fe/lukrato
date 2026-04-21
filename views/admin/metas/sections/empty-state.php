@@ -14,7 +14,7 @@
     <p class="met-empty-state__text">Crie sua primeira meta financeira e acompanhe seu progresso.<br>
         Seja economizar para uma viagem, quitar uma divida ou construir sua reserva de emergencia.</p>
     <div class="met-empty-state__actions">
-        <button class="met-action-btn met-action-btn--success" id="btnNovaMetaEmpty">
+        <button class="met-action-btn met-action-btn--primary" id="btnNovaMetaEmpty">
             <i data-lucide="plus"></i>
             <span>Criar Primeira Meta</span>
         </button>

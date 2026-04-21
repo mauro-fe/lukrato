@@ -1169,7 +1169,7 @@ function renderFeedbackTable(data) {
         acao: 'Micro Feedback',
         assistente_ia: 'Assistente IA',
         nps: 'NPS',
-        sugestao: 'Sugestao',
+        sugestao: 'Sugestão',
     };
 
     const rows = items.map(f => {

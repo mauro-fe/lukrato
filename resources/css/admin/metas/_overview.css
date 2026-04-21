@@ -1,0 +1,229 @@
+/**
+ * ============================================================================
+ * METAS — Overview
+ * ============================================================================
+ */
+
+/* ============================================================================
+   PAGE LAYOUT
+   ============================================================================ */
+
+.met-page {
+  padding: clamp(var(--spacing-3), 1vw + var(--spacing-2), var(--spacing-4));
+  display: grid;
+  gap: var(--spacing-5);
+  animation: metFadeIn 0.5s ease-out;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@keyframes metFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   OVERVIEW SHELL
+   ============================================================================ */
+
+.met-overview-shell {
+  display: grid;
+  gap: var(--spacing-4);
+  padding: clamp(1rem, 1.1vw + 0.78rem, 1.45rem);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 11%, transparent), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 62%),
+    color-mix(in srgb, var(--color-bg) 95%, transparent);
+}
+
+.met-overview-shell__top {
+  display: grid;
+  gap: 14px;
+}
+
+/* ============================================================================
+   PAGE HEADER
+   ============================================================================ */
+
+.met-page-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--spacing-4);
+}
+
+.met-page-header__text {
+  display: grid;
+  gap: 8px;
+}
+
+.met-page-header__eyebrow {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.met-page-header__title {
+  font-size: clamp(1.45rem, 1.2rem + 0.9vw, 2.05rem);
+  font-weight: 820;
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+.met-page-header__desc {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.55;
+  max-width: 64ch;
+}
+
+.met-page-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.met-page-header__chip {
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================================
+   SUMMARY CARDS GRID
+   ============================================================================ */
+
+.met-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-3);
+  transition: opacity 0.25s ease;
+}
+
+.met-summary-card {
+  backdrop-filter: var(--glass-backdrop);
+  padding: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.met-summary-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.met-summary-card__icon--purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+.met-summary-card__icon--blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.met-summary-card__icon--indigo { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+.met-summary-card__icon--green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+
+.met-summary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.met-summary-card__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.met-summary-card__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.met-summary-card__status {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.met-status--good { color: #10b981; }
+.met-status--warn { color: #f59e0b; }
+.met-status--bad { color: #ef4444; }
+
+/* ============================================================================
+   PROGRESS RING (Summary)
+   ============================================================================ */
+
+.met-summary-card--progress { position: relative; }
+
+.met-progress-ring {
+  width: 54px;
+  height: 54px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.met-progress-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.met-ring-bg {
+  fill: none;
+  stroke: var(--glass-border);
+  stroke-width: 3;
+}
+
+.met-ring-fill {
+  fill: none;
+  stroke: #8b5cf6;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s ease;
+}
+
+.met-ring-fill--good { stroke: #10b981; }
+.met-ring-fill--warn { stroke: #f59e0b; }
+.met-ring-fill--bad { stroke: #ef4444; }
+
+.met-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-text);
+}

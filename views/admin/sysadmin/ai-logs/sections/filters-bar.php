@@ -15,16 +15,16 @@
         <select id="filterType">
             <option value="">Todos os tipos</option>
             <option value="chat">Chat</option>
-            <option value="suggest_category">Sugestao de categoria</option>
-            <option value="analyze_spending">Analise de gastos</option>
-            <option value="categorize">Categorizacao</option>
-            <option value="analyze">Analise (novo fluxo)</option>
-            <option value="quick_query">Consulta rapida</option>
-            <option value="extract_transaction">Extracao de transacao</option>
-            <option value="create_entity">Criacao de entidade</option>
-            <option value="confirm_action">Confirmacao</option>
-            <option value="image_analysis">Analise de imagem</option>
-            <option value="audio_transcription">Transcricao</option>
+            <option value="suggest_category">Sugestão de categoria</option>
+            <option value="analyze_spending">Análise de gastos</option>
+            <option value="categorize">Categorização</option>
+            <option value="analyze">Análise (novo fluxo)</option>
+            <option value="quick_query">Consulta rápida</option>
+            <option value="extract_transaction">Extração de transação</option>
+            <option value="create_entity">Criação de entidade</option>
+            <option value="confirm_action">Confirmação</option>
+            <option value="image_analysis">Análise de imagem</option>
+            <option value="audio_transcription">Transcrição</option>
             <option value="pay_fatura">Pagamento de fatura</option>
         </select>
         <select id="filterChannel">
@@ -42,7 +42,8 @@
         </select>
         <input type="date" id="filterDateFrom" title="Data inicial">
         <input type="date" id="filterDateTo" title="Data final">
-        <input type="text" id="filterSearch" placeholder="Buscar no prompt, resposta ou erro..." style="min-width:180px;">
+        <input type="text" id="filterSearch" placeholder="Buscar no prompt, resposta ou erro..."
+            style="min-width:180px;">
         <div class="filters-actions">
             <button class="btn-filter" id="btnFilter">
                 <i data-lucide="search" style="width:14px;height:14px;vertical-align:middle;margin-right:.2rem;"></i>

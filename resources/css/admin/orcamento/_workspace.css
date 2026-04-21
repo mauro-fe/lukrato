@@ -1,0 +1,114 @@
+/* ============================================================================
+   WORKSPACE SHELL
+   ============================================================================ */
+
+.orc-workspace-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.9fr);
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.orc-workspace-main,
+.orc-workspace-side {
+  display: grid;
+  gap: var(--spacing-4);
+  align-content: start;
+}
+
+.orc-workspace-main {
+  min-width: 0;
+}
+
+.orc-workspace-side {
+  gap: var(--spacing-3);
+  min-width: 0;
+  align-self: start;
+  position: sticky;
+  top: calc(var(--header-height) + var(--spacing-3));
+  max-height: calc(100vh - var(--header-height) - var(--spacing-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  padding-right: 4px;
+}
+
+.orc-workspace-side > .surface-card {
+  border-color: color-mix(in srgb, var(--glass-border) 76%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 74%),
+    color-mix(in srgb, var(--color-bg) 96%, transparent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.orc-workspace-side > .surface-card.surface-card--interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+}
+
+.orc-listing-shell {
+  padding: clamp(1rem, 1.1vw + 0.78rem, 1.4rem);
+  display: grid;
+  gap: var(--spacing-4);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 66%),
+    color-mix(in srgb, var(--color-bg) 95%, transparent);
+}
+
+.orc-listing-shell__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-3);
+  align-items: start;
+}
+
+.orc-section-eyebrow {
+  margin: 0 0 6px;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 780;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.orc-section-title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.05rem, 0.98rem + 0.38vw, 1.26rem);
+  font-weight: 790;
+  letter-spacing: -0.015em;
+  line-height: 1.24;
+}
+
+.orc-section-copy {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+.orc-listing-shell__meta {
+  min-width: 140px;
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+}
+
+.orc-listing-shell__meta-label {
+  font-size: 0.64rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.orc-listing-shell__meta-value {
+  color: var(--color-text);
+  font-size: 1.22rem;
+  font-weight: 800;
+}

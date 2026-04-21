@@ -61,7 +61,7 @@
                 <div class="feedback-tipo-icon"><i data-lucide="lightbulb"></i></div>
                 <div class="feedback-tipo-content">
                     <span class="feedback-tipo-value" id="statFbSugestao">0</span>
-                    <span class="feedback-tipo-label">Sugestoes</span>
+                    <span class="feedback-tipo-label">Sugestões</span>
                     <span class="feedback-tipo-avg" id="statFbSugestaoAvg">--</span>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                     <option value="acao">Micro Feedback</option>
                     <option value="assistente_ia">Assistente IA</option>
                     <option value="nps">NPS</option>
-                    <option value="sugestao">Sugestao</option>
+                    <option value="sugestao">Sugestão</option>
                 </select>
                 <select name="per_page" class="filter-select" id="feedbackPerPage">
                     <option value="15">15 por pagina</option>

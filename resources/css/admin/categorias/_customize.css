@@ -1,10 +1,5 @@
 /* Categorias customize (first-run essential / complete presets) */
 
-.cat-customize-trigger {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .cat-customize-open {
   display: inline-flex;
   align-items: center;
@@ -13,13 +8,14 @@
   min-height: 40px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: transparent;
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
   color: var(--color-text-muted);
   padding: 0 var(--spacing-4);
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .cat-customize-open i,
@@ -30,8 +26,8 @@
 
 .cat-customize-open:hover {
   color: var(--color-text);
-  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
-  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 34%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .cat-customize-overlay {
@@ -188,10 +184,6 @@
 }
 
 @media (max-width: 768px) {
-  .cat-customize-trigger {
-    justify-content: stretch;
-  }
-
   .cat-customize-open {
     width: 100%;
   }

@@ -1,10 +1,3 @@
-<div class="met-customize-trigger">
-    <button class="met-customize-open surface-card" id="btnCustomizeMetas" type="button">
-        <i data-lucide="sliders-horizontal"></i>
-        <span>Personalizar tela</span>
-    </button>
-</div>
-
 <div class="met-customize-overlay" id="metasCustomizeModalOverlay" style="display:none;">
     <div class="met-customize-modal surface-card" role="dialog" aria-modal="true"
         aria-labelledby="metasCustomizeModalTitle">

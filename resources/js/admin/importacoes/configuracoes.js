@@ -1,4 +1,5 @@
 import '../../../css/admin/importacoes/configuracoes.css';
+import '../../../css/admin/importacoes/configuracoes.mobile.css';
 import {
     bootImportacoesPage,
     normalizeSourceType,
@@ -16,10 +17,12 @@ if (context) {
     const accountSelect = context.root.querySelector('[data-imp-account-select]');
     const accountForm = context.root.querySelector('[data-imp-config-form]');
     const selectedAccountLabel = context.root.querySelector('[data-imp-config-selected-account]');
+    const accountNameLabels = Array.from(context.root.querySelectorAll('[data-imp-account-name-label]'));
     const saveForm = context.root.querySelector('[data-imp-config-save-form]');
     const saveFeedback = context.root.querySelector('[data-imp-config-save-feedback]');
     const contaIdInput = context.root.querySelector('[data-imp-conta-id-input]');
     const sourceTypeInput = context.root.querySelector('[data-imp-source-type]');
+    const labelInput = context.root.querySelector('[data-imp-label]');
     const agenciaInput = context.root.querySelector('[data-imp-agencia]');
     const numeroContaInput = context.root.querySelector('[data-imp-numero-conta]');
 
@@ -47,10 +50,15 @@ if (context) {
     const summaryContaId = context.root.querySelector('[data-imp-summary-conta-id]');
     const summarySourceType = context.root.querySelector('[data-imp-summary-source-type]');
     const summaryCsvMappingMode = context.root.querySelector('[data-imp-summary-csv-mapping-mode]');
+    const summaryCsvHasHeader = context.root.querySelector('[data-imp-summary-csv-has-header]');
     const summaryAgencia = context.root.querySelector('[data-imp-summary-agencia]');
     const summaryNumeroConta = context.root.querySelector('[data-imp-summary-numero-conta]');
     const summaryCsvDelimiter = context.root.querySelector('[data-imp-summary-csv-delimiter]');
     const summaryCsvStartRow = context.root.querySelector('[data-imp-summary-csv-start-row]');
+    const summaryCsvDateFormat = context.root.querySelector('[data-imp-summary-csv-date-format]');
+    const summaryCsvDecimal = context.root.querySelector('[data-imp-summary-csv-decimal]');
+    const sourceTypeLabels = Array.from(context.root.querySelectorAll('[data-imp-source-type-label]'));
+    const mappingModeLabels = Array.from(context.root.querySelectorAll('[data-imp-csv-mapping-mode-label]'));
     const importacoesLinks = Array.from(context.root.querySelectorAll('[data-imp-config-importacoes-link]'));
     const csvTemplateAutoLink = context.root.querySelector('[data-imp-csv-template-auto]');
     const csvTemplateManualLink = context.root.querySelector('[data-imp-csv-template-manual]');
@@ -86,6 +94,28 @@ if (context) {
         return '';
     };
 
+    const setTextContent = (targets, value) => {
+        const elements = Array.isArray(targets) ? targets : [targets];
+        elements.forEach((element) => {
+            if (element) {
+                element.textContent = String(value || '');
+            }
+        });
+    };
+
+    const currentAccountName = () => {
+        const label = accountSelect?.selectedOptions?.[0]?.textContent;
+        return String(label || '').trim() || 'Não definida';
+    };
+
+    const formatSourceTypeLabel = (value) => normalizeSourceType(value || 'ofx', 'ofx').toUpperCase();
+
+    const formatMappingModeLabel = (value) => String(value || '').trim().toLowerCase() === 'manual'
+        ? 'Manual'
+        : 'Automático';
+
+    const formatHeaderLabel = (checked) => checked ? 'Com cabeçalho' : 'Sem cabeçalho';
+
     const currentMappingMode = () => {
         const checked = csvMappingModeInputs.find((input) => input.checked);
         return checked && checked.value === 'manual' ? 'manual' : 'auto';
@@ -101,16 +131,27 @@ if (context) {
     };
 
     const syncSummary = () => {
+        setTextContent(accountNameLabels, currentAccountName());
+
         if (summaryContaId && contaIdInput) {
             summaryContaId.textContent = String(contaIdInput.value || '0');
         }
 
+        setTextContent(sourceTypeLabels, formatSourceTypeLabel(sourceTypeInput?.value || 'ofx'));
+
         if (summarySourceType && sourceTypeInput) {
-            summarySourceType.textContent = String(sourceTypeInput.value || 'ofx').toLowerCase();
+            summarySourceType.textContent = formatSourceTypeLabel(sourceTypeInput.value || 'ofx');
         }
 
+        const mappingModeLabel = formatMappingModeLabel(currentMappingMode());
+        setTextContent(mappingModeLabels, mappingModeLabel);
+
         if (summaryCsvMappingMode) {
-            summaryCsvMappingMode.textContent = currentMappingMode();
+            summaryCsvMappingMode.textContent = mappingModeLabel;
+        }
+
+        if (summaryCsvHasHeader && csvHasHeaderInput) {
+            summaryCsvHasHeader.textContent = formatHeaderLabel(csvHasHeaderInput.checked);
         }
 
         if (summaryAgencia && agenciaInput) {
@@ -128,6 +169,14 @@ if (context) {
 
         if (summaryCsvStartRow && csvStartRowInput) {
             summaryCsvStartRow.textContent = String(parsePositiveInt(csvStartRowInput.value, 1));
+        }
+
+        if (summaryCsvDateFormat && csvDateFormatInput) {
+            summaryCsvDateFormat.textContent = csvDateFormatInput.value.trim() || 'd/m/Y';
+        }
+
+        if (summaryCsvDecimal && csvDecimalSeparatorInput) {
+            summaryCsvDecimal.textContent = csvDecimalSeparatorInput.value.trim() || ',';
         }
     };
 
@@ -184,21 +233,22 @@ if (context) {
         const selectedAccountId = Number.parseInt(String(payload?.selectedAccountId || '0'), 10);
 
         replaceAccountOptions(accounts, selectedAccountId);
-        updateImportacoesLinks(selectedAccountId);
+        const resolvedSelectedAccountId = Number(accountSelect?.value || selectedAccountId || 0) || null;
+        updateImportacoesLinks(resolvedSelectedAccountId);
 
         context.setState({
-            selectedAccountId: Number.isFinite(selectedAccountId) && selectedAccountId > 0 ? selectedAccountId : null,
+            selectedAccountId: resolvedSelectedAccountId,
             previewStatus: accounts.length > 0 ? 'preview_ready' : 'idle',
         });
 
         if (selectedAccountLabel) {
-            selectedAccountLabel.textContent = Number.isFinite(selectedAccountId) && selectedAccountId > 0
-                ? String(selectedAccountId)
+            selectedAccountLabel.textContent = Number.isFinite(Number(resolvedSelectedAccountId)) && Number(resolvedSelectedAccountId) > 0
+                ? String(resolvedSelectedAccountId)
                 : 'Não definida';
         }
 
         updateTemplateLinks();
-        assignPayloadToForm(payload?.profileConfig || {}, selectedAccountId);
+        assignPayloadToForm(payload?.profileConfig || {}, resolvedSelectedAccountId);
         syncSummary();
     };
 
@@ -274,6 +324,10 @@ if (context) {
             sourceTypeInput.value = normalizeSourceType(profile.source_type || sourceTypeInput.value || 'ofx');
         }
 
+        if (labelInput) {
+            labelInput.value = String(profile.label || 'Perfil base');
+        }
+
         if (agenciaInput) {
             agenciaInput.value = String(profile.agencia || '');
         }
@@ -304,6 +358,8 @@ if (context) {
             if (selectedAccountLabel) {
                 selectedAccountLabel.textContent = accountSelect.value || 'Não definida';
             }
+
+            syncSummary();
 
             void hydratePageInit(nextAccountId);
         });

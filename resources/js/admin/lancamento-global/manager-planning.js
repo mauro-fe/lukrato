@@ -91,22 +91,22 @@ export function attachLancamentoGlobalPlanningMethods(ManagerClass, dependencies
                     : `O saldo desta conta atualiza automaticamente ${resumoMetas}.`;
             } else if (delta === 0) {
                 if (isCartaoCredito) {
-                    message = `Como o pagamento esta no cartao de credito, o saldo da conta nao muda agora. ${metas.length === 1 ? `A meta segue sincronizada com ${formatMoney(saldoAtual)}.` : `As metas ${resumoMetas} continuam sincronizadas com o saldo atual.`}`;
+                    message = `Como o pagamento está no cartão de crédito, o saldo da conta não muda agora. ${metas.length === 1 ? `A meta segue sincronizada com ${formatMoney(saldoAtual)}.` : `As metas ${resumoMetas} continuam sincronizadas com o saldo atual.`}`;
                 } else if (isPendente) {
-                    message = `Enquanto este lancamento estiver pendente, o saldo da conta nao muda. ${metas.length === 1 ? `A meta continua em ${formatMoney(saldoAtual)}.` : `As metas ${resumoMetas} so mudam quando a movimentacao for confirmada.`}`;
+                    message = `Enquanto este lançamento estiver pendente, o saldo da conta não muda. ${metas.length === 1 ? `A meta continua em ${formatMoney(saldoAtual)}.` : `As metas ${resumoMetas} só mudam quando a movimentação for confirmada.`}`;
                 } else {
                     message = metas.length === 1
-                        ? `Essa movimentacao nao altera o saldo da conta agora. A meta segue acompanhando ${formatMoney(saldoAtual)}.`
-                        : `Essa movimentacao nao altera o saldo da conta agora. ${resumoMetas} continuam sincronizadas com o valor atual.`;
+                        ? `Essa movimentação não altera o saldo da conta agora. A meta segue acompanhando ${formatMoney(saldoAtual)}.`
+                        : `Essa movimentação não altera o saldo da conta agora. ${resumoMetas} continuam sincronizadas com o valor atual.`;
                 }
             } else {
                 tone = saldoProjetado < 0 ? 'danger' : (delta < 0 ? 'warning' : 'success');
-                message = `Saldo estimado apos salvar: ${formatMoney(saldoProjetado)}.`;
+                message = `Saldo estimado após salvar: ${formatMoney(saldoProjetado)}.`;
 
                 if (metas.length === 1 && progressoProjetado !== null) {
                     message += ` ${principal.titulo} ficaria em ${progressoProjetado.toFixed(1)}% do alvo de ${formatMoney(principal.valor_alvo)}.`;
                 } else {
-                    message += ` ${resumoMetas} vao refletir esse novo saldo automaticamente.`;
+                    message += ` ${resumoMetas} vão refletir esse novo saldo automaticamente.`;
                 }
             }
 
@@ -175,17 +175,17 @@ export function attachLancamentoGlobalPlanningMethods(ManagerClass, dependencies
             const categoriaNome = String(orcamento.categoria_nome || orcamento.categoria?.nome || 'categoria').trim();
 
             let tone = 'info';
-            let title = `${categoriaNome} tem orcamento ativo`;
-            let message = `Limite efetivo de ${formatMoney(limiteEfetivo)}. Depois deste lancamento, restam ${formatMoney(restante)} no periodo (${percentual.toFixed(1)}% usado).`;
+            let title = `${categoriaNome} tem orçamento ativo`;
+            let message = `Limite efetivo de ${formatMoney(limiteEfetivo)}. Depois deste lançamento, restam ${formatMoney(restante)} no período (${percentual.toFixed(1)}% usado).`;
 
             if (excesso > 0) {
                 tone = 'danger';
-                title = `${categoriaNome} estoura o orcamento`;
+                title = `${categoriaNome} estoura o orçamento`;
                 message = `Limite efetivo de ${formatMoney(limiteEfetivo)}. O gasto projetado vai para ${formatMoney(gastoProjetado)} e passa ${formatMoney(excesso)} do limite.`;
             } else if (percentual >= 80) {
                 tone = 'warning';
                 title = `${categoriaNome} entra em alerta`;
-                message = `Limite efetivo de ${formatMoney(limiteEfetivo)}. Depois deste lancamento, sobram ${formatMoney(restante)} no periodo (${percentual.toFixed(1)}% usado).`;
+                message = `Limite efetivo de ${formatMoney(limiteEfetivo)}. Depois deste lançamento, sobram ${formatMoney(restante)} no período (${percentual.toFixed(1)}% usado).`;
             }
 
             if (rollover > 0) {
@@ -196,7 +196,7 @@ export function attachLancamentoGlobalPlanningMethods(ManagerClass, dependencies
                 this.buildPlanningAlertCard({
                     tone,
                     icon: excesso > 0 ? 'triangle-alert' : 'wallet',
-                    eyebrow: 'Orcamento do periodo',
+                    eyebrow: 'Orçamento do período',
                     title,
                     message
                 })
@@ -221,14 +221,14 @@ export function attachLancamentoGlobalPlanningMethods(ManagerClass, dependencies
             if (avisoExistente) avisoExistente.remove();
 
             if (this.contas.length === 0) {
-                select.innerHTML = '<option value="">Nenhuma conta disponivel</option>';
+                select.innerHTML = '<option value="">Nenhuma conta disponível</option>';
                 select.disabled = true;
                 const aviso = document.createElement('div');
                 aviso.className = 'no-accounts-warning';
                 aviso.innerHTML = `
                     <div class="alert alert-info d-flex align-items-center gap-2 mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem; border-radius: 8px;">
                         <i data-lucide="info"></i>
-                        <span>Voce nao possui contas cadastradas.</span>
+                        <span>Você não possui contas cadastradas.</span>
                         <a href="${getBaseUrl()}contas" class="btn btn-sm btn-primary ms-auto" style="font-size: 0.75rem;">
                             <i data-lucide="plus" style="width:14px;height:14px;"></i>Criar Conta
                         </a>

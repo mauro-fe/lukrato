@@ -93,7 +93,7 @@ $planTier     = $planTier     ?? 'free';
             </div>
 
             <textarea id="supportPanelMessage" class="lk-chat-textarea"
-                placeholder="Descreva sua duvida, problema ou sugestao..." rows="4"></textarea>
+                placeholder="Descreva sua dúvida, problema ou sugestão..." rows="4"></textarea>
 
             <button class="lk-chat-send-support" id="btnSendSupport">
                 <i data-lucide="send" style="width:14px;height:14px;"></i>

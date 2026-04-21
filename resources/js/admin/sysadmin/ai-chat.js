@@ -106,7 +106,7 @@ import {
                 return;
             }
 
-            appendMessage('ai', data?.message || 'O assistente nao retornou uma resposta.');
+            appendMessage('ai', data?.message || 'O assistente não retornou uma resposta.');
         } catch (error) {
             typingEl.remove();
 
@@ -115,7 +115,7 @@ import {
                 'ai',
                 timeout
                     ? 'A resposta demorou demais. O modelo local pode estar sobrecarregado; tente novamente.'
-                    : getErrorMessage(error, 'Nao foi possivel conectar ao assistente de IA.')
+                    : getErrorMessage(error, 'Não foi possível conectar ao assistente de IA.')
             );
             setStatus(false, 'Offline');
         } finally {
@@ -225,12 +225,12 @@ import {
 
             const typeLabels = {
                 chat: 'Chat',
-                suggest_category: 'Sugestao',
-                analyze_spending: 'Analise',
-                categorize: 'Categorizacao',
-                analyze: 'Analise (novo)',
-                quick_query: 'Consulta Rapida',
-                extract_transaction: 'Extracao',
+                suggest_category: 'Sugestão',
+                analyze_spending: 'Análise',
+                categorize: 'Categorização',
+                analyze: 'Análise (novo)',
+                quick_query: 'Consulta ápida',
+                extract_transaction: 'Extração',
             };
 
             let html = '';

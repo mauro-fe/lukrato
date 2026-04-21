@@ -1,4 +1,5 @@
 import '../../../css/admin/importacoes/historico.css';
+import '../../../css/admin/importacoes/historico.mobile.css';
 import { bootImportacoesPage } from './app.js';
 import {
     deleteImportacaoHistorico,
@@ -12,11 +13,6 @@ const STATUS_LABELS = {
     processed_duplicates_only: 'Somente duplicados',
     processed_with_errors: 'Processado com erros',
     failed: 'Falhou',
-};
-
-const TARGET_LABELS = {
-    conta: 'Conta',
-    cartao: 'Cartão',
 };
 
 const context = bootImportacoesPage('historico');
@@ -35,6 +31,12 @@ if (context) {
     const emptyState = context.root.querySelector('[data-imp-history-empty]');
     const rowsBody = context.root.querySelector('[data-imp-history-rows]');
     const filterControls = [filterTarget, filterAccount, filterSource, filterStatus].filter(Boolean);
+    const filterTargetLabels = Array.from(context.root.querySelectorAll('[data-imp-history-filter-target-label]'));
+    const filterAccountLabels = Array.from(context.root.querySelectorAll('[data-imp-history-filter-account-label]'));
+    const filterSourceLabels = Array.from(context.root.querySelectorAll('[data-imp-history-filter-source-label]'));
+    const filterStatusLabels = Array.from(context.root.querySelectorAll('[data-imp-history-filter-status-label]'));
+    const currentScopeLabels = Array.from(context.root.querySelectorAll('[data-imp-history-current-scope]'));
+    const currentScopeCopyLabels = Array.from(context.root.querySelectorAll('[data-imp-history-current-scope-copy]'));
     let pageInitRequestToken = 0;
 
     context.setState({
@@ -75,6 +77,94 @@ if (context) {
                 control.disabled = disabled;
             }
         });
+    }
+
+    function setTextContent(targets, value) {
+        const elements = Array.isArray(targets) ? targets : [targets];
+        elements.forEach((element) => {
+            if (element) {
+                element.textContent = String(value || '');
+            }
+        });
+    }
+
+    function formatTargetLabel(value) {
+        const normalizedValue = String(value || '').trim().toLowerCase();
+
+        if (normalizedValue === 'conta') {
+            return 'Conta';
+        }
+
+        if (normalizedValue === 'cartao') {
+            return 'Cartão/fatura';
+        }
+
+        return 'Todos os alvos';
+    }
+
+    function formatSourceLabel(value) {
+        const normalizedValue = String(value || '').trim().toLowerCase();
+
+        if (normalizedValue === 'ofx') {
+            return 'OFX';
+        }
+
+        if (normalizedValue === 'csv') {
+            return 'CSV';
+        }
+
+        return 'OFX e CSV';
+    }
+
+    function formatStatusLabel(value) {
+        const normalizedValue = String(value || '').trim().toLowerCase();
+        return normalizedValue !== ''
+            ? (STATUS_LABELS[normalizedValue] || normalizedValue)
+            : 'Todos os status';
+    }
+
+    function currentAccountLabel() {
+        const accountId = Number.parseInt(String(filterAccount?.value || '0'), 10);
+        if (!Number.isFinite(accountId) || accountId <= 0) {
+            return 'Todas as contas';
+        }
+
+        const label = filterAccount?.selectedOptions?.[0]?.textContent;
+        return String(label || '').trim() || 'Conta sem nome';
+    }
+
+    function syncFilterSummary() {
+        const targetLabel = formatTargetLabel(filterTarget?.value || '');
+        const accountLabel = currentAccountLabel();
+        const sourceLabel = formatSourceLabel(filterSource?.value || '');
+        const statusLabel = formatStatusLabel(filterStatus?.value || '');
+
+        setTextContent(filterTargetLabels, targetLabel);
+        setTextContent(filterAccountLabels, accountLabel);
+        setTextContent(filterSourceLabels, sourceLabel);
+        setTextContent(filterStatusLabels, statusLabel);
+
+        const activeParts = [];
+        if ((Number.parseInt(String(filterAccount?.value || '0'), 10) || 0) > 0) {
+            activeParts.push(accountLabel);
+        }
+        if (String(filterTarget?.value || '').trim() !== '') {
+            activeParts.push(targetLabel);
+        }
+        if (String(filterSource?.value || '').trim() !== '') {
+            activeParts.push(sourceLabel);
+        }
+        if (String(filterStatus?.value || '').trim() !== '') {
+            activeParts.push(statusLabel);
+        }
+
+        setTextContent(currentScopeLabels, activeParts.length > 0 ? activeParts.join(' · ') : 'Todos os lotes confirmados');
+        setTextContent(
+            currentScopeCopyLabels,
+            activeParts.length > 0
+                ? 'O histórico abaixo já está recortado pelos filtros escolhidos.'
+                : 'Veja a base confirmada completa antes de refinar por conta, formato ou status.',
+        );
     }
 
     function replaceAccountOptions(accounts = [], selectedAccountId = 0) {
@@ -140,6 +230,7 @@ if (context) {
 
         replaceAccountOptions(payload.accounts || [], Number(payload.selectedAccountId || 0));
         replaceStatusOptions(payload.statusOptions || [], payload.selectedStatus || '');
+        syncFilterSummary();
     }
 
     function refreshHistoryViewState() {
@@ -176,6 +267,26 @@ if (context) {
         return accountName || '-';
     }
 
+    function resolveStatusHint(status, canDelete) {
+        if (!canDelete || status === 'processing') {
+            return 'Aguarde o processamento terminar para excluir.';
+        }
+
+        if (status === 'failed') {
+            return 'Lote com falha. Revise e limpe antes de reimportar.';
+        }
+
+        if (status.includes('error')) {
+            return 'Lote concluído com erros. Valide antes de reprocessar.';
+        }
+
+        if (status.includes('duplicate')) {
+            return 'Confira duplicados antes de decidir por nova importação.';
+        }
+
+        return 'Pronto para consulta ou limpeza segura.';
+    }
+
     function createHistoryRowMarkup(item) {
         const batchId = Number.parseInt(String(item?.batch_id || '0'), 10) || 0;
         const totalRows = Number.parseInt(String(item?.total_rows || '0'), 10) || 0;
@@ -190,28 +301,59 @@ if (context) {
         const sourceType = String(item?.source_type || '').trim().toUpperCase();
         const createdAt = String(item?.created_at || '').trim();
         const contextLabel = buildContextLabel(item);
+        const targetLabel = target === 'cartao' ? 'Cartão/fatura' : 'Conta';
         const actionHint = canDelete
             ? 'Remove o lote e os registros ainda intactos.'
             : 'Aguarde o processamento terminar para excluir.';
+        const statusHint = resolveStatusHint(status, canDelete);
 
         return `<tr data-imp-history-row data-batch-id="${batchId}" data-total-rows="${totalRows}" data-imported-rows="${importedRows}" data-duplicate-rows="${duplicateRows}" data-error-rows="${errorRows}">
-            <td class="imp-history-table__batch">#${escapeHtml(batchId > 0 ? batchId : '-')}</td>
-            <td>${escapeHtml(TARGET_LABELS[target] || 'Conta')}</td>
-            <td>${escapeHtml(contextLabel)}</td>
-            <td class="imp-history-table__file">
-                <div class="imp-history-table__file-name">${escapeHtml(filename)}</div>
-                <p class="imp-history-table__summary" data-imp-history-retention-summary ${partialDeleteSummary === '' ? 'hidden' : ''}>${escapeHtml(partialDeleteSummary)}</p>
+            <td class="imp-history-table__batch" data-label="Lote">
+                <div class="imp-history-batch">
+                    <strong class="imp-history-batch__id">#${escapeHtml(batchId > 0 ? batchId : '-')}</strong>
+                    <span class="imp-history-batch__date">${escapeHtml(createdAt)}</span>
+                </div>
             </td>
-            <td class="imp-history-table__source">${escapeHtml(sourceType)}</td>
-            <td data-imp-history-col="total_rows">${totalRows}</td>
-            <td data-imp-history-col="imported_rows">${importedRows}</td>
-            <td data-imp-history-col="duplicate_rows">${duplicateRows}</td>
-            <td data-imp-history-col="error_rows">${errorRows}</td>
-            <td>
-                <span class="imp-status-badge" data-status="${escapeHtml(status)}" data-imp-history-status-badge>${escapeHtml(STATUS_LABELS[status] || status)}</span>
+            <td class="imp-history-table__context" data-label="Contexto">
+                <div class="imp-history-context">
+                    <span class="imp-history-context__target">${escapeHtml(targetLabel)}</span>
+                    <strong class="imp-history-context__name">${escapeHtml(contextLabel)}</strong>
+                </div>
             </td>
-            <td class="imp-history-table__date">${escapeHtml(createdAt)}</td>
-            <td class="imp-history-table__actions">
+            <td class="imp-history-table__file" data-label="Arquivo">
+                <div class="imp-history-file">
+                    <div class="imp-history-file__name">${escapeHtml(filename)}</div>
+                    <p class="imp-history-file__meta">${escapeHtml(`${sourceType} · ${targetLabel}`)}</p>
+                    <p class="imp-history-table__summary" data-imp-history-retention-summary ${partialDeleteSummary === '' ? 'hidden' : ''}>${escapeHtml(partialDeleteSummary)}</p>
+                </div>
+            </td>
+            <td class="imp-history-table__outcome" data-label="Resultado">
+                <dl class="imp-history-outcome">
+                    <div>
+                        <dt>Linhas</dt>
+                        <dd data-imp-history-col="total_rows">${totalRows}</dd>
+                    </div>
+                    <div>
+                        <dt>Importadas</dt>
+                        <dd data-imp-history-col="imported_rows">${importedRows}</dd>
+                    </div>
+                    <div>
+                        <dt>Duplicadas</dt>
+                        <dd data-imp-history-col="duplicate_rows">${duplicateRows}</dd>
+                    </div>
+                    <div>
+                        <dt>Erros</dt>
+                        <dd data-imp-history-col="error_rows">${errorRows}</dd>
+                    </div>
+                </dl>
+            </td>
+            <td class="imp-history-table__status-cell" data-label="Status">
+                <div class="imp-history-status">
+                    <span class="imp-status-badge" data-status="${escapeHtml(status)}" data-imp-history-status-badge>${escapeHtml(STATUS_LABELS[status] || status)}</span>
+                    <p class="imp-history-status__hint" data-imp-history-status-hint>${escapeHtml(statusHint)}</p>
+                </div>
+            </td>
+            <td class="imp-history-table__actions" data-label="Ações">
                 <button type="button" class="btn btn-ghost imp-history-table__delete" data-imp-history-delete ${canDelete ? '' : 'disabled'}>Excluir importação</button>
                 <p class="imp-history-table__action-hint" data-imp-history-action-hint>${escapeHtml(actionHint)}</p>
             </td>
@@ -388,6 +530,13 @@ function patchRow(row, batch) {
     if (statusBadge) {
         statusBadge.dataset.status = status;
         statusBadge.textContent = STATUS_LABELS[status] || status;
+    }
+
+    const statusHint = row.querySelector('[data-imp-history-status-hint]');
+    if (statusHint) {
+        statusHint.textContent = canDelete
+            ? 'Lote parcialmente preservado. Revise o resultado antes de tentar excluir novamente.'
+            : 'Aguarde o processamento terminar para excluir.';
     }
 
     const summaryEl = row.querySelector('[data-imp-history-retention-summary]');

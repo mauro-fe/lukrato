@@ -1,5 +1,10 @@
 @import '../financas/_shared-modals.css';
 @import './_customize.css';
-@import './_base.css';
+@import './_overview.css';
+@import './_focus.css';
+@import './_controls.css';
+@import './_workspace.css';
+@import './_grid.css';
+@import './_support.css';
 @import './_responsive.css';
 

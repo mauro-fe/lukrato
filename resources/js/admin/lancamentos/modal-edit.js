@@ -302,23 +302,23 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
                 const linkedValue = ModalManager.getEditMetaValue(valorAtual);
                 const operation = ModalManager.resolveMetaOperationForEdit(tipo, true);
                 const opLabel = operation === 'realizacao'
-                    ? 'realizacao da meta'
+                    ? 'realização da meta'
                     : (operation === 'resgate' ? 'uso da meta' : 'aporte');
                 const status = String(selectedMeta?.status || '').toLowerCase();
                 const tone = operation === 'realizacao' ? 'success' : 'info';
                 const title = operation === 'realizacao'
-                    ? `Realizacao de ${selectedTitle}`
+                    ? `Realização de ${selectedTitle}`
                     : (operation === 'resgate' ? `Uso de ${selectedTitle}` : `Aporte em ${selectedTitle}`);
-                let message = `Ao salvar, este lancamento registra ${Utils.fmtMoney(linkedValue)} como ${opLabel}.`;
+                let message = `Ao salvar, este lançamento registra ${Utils.fmtMoney(linkedValue)} como ${opLabel}.`;
                 if (operation === 'resgate' || operation === 'realizacao') {
-                    message += ' Somente a parte fora da meta entra como gasto do mes.';
+                    message += ' Somente a parte fora da meta entra como gasto do mês.';
                 }
                 if (operation === 'realizacao' && status === 'concluida') {
-                    message += ' A meta concluida sera marcada como realizada.';
+                    message += ' A meta concluída será marcada como realizada.';
                 }
 
                 if (originalMetaId && originalMetaId !== selectedMetaId) {
-                    message += ` O vinculo anterior com ${ModalManager.resolveMetaTitle(originalMetaId, originalMetaTitle)} sera removido.`;
+                    message += ` O vínculo anterior com ${ModalManager.resolveMetaTitle(originalMetaId, originalMetaTitle)} será removido.`;
                 }
 
                 return ModalManager.buildPlanningAlertCard({
@@ -336,13 +336,13 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
 
             const resolvedOriginalTitle = ModalManager.resolveMetaTitle(originalMetaId, originalMetaTitle);
             const originalLinkedValue = Math.abs(Number(snapshot?.meta_valor ?? snapshot?.valor ?? 0));
-            const message = `Ao salvar, este lancamento deixa de registrar ${Utils.fmtMoney(originalLinkedValue)} em ${resolvedOriginalTitle}.`;
+            const message = `Ao salvar, este lançamento deixa de registrar ${Utils.fmtMoney(originalLinkedValue)} em ${resolvedOriginalTitle}.`;
 
             return ModalManager.buildPlanningAlertCard({
                 tone: 'warning',
                 icon: 'target',
                 eyebrow: 'Meta removida',
-                title: `Sem vinculo com ${resolvedOriginalTitle}`,
+                title: `Sem vínculo com ${resolvedOriginalTitle}`,
                 message
             });
         },
@@ -381,17 +381,17 @@ export function attachLancamentosModalEdit(ModalManager, dependencies) {
             const categoriaNome = String(orcamento.categoria_nome || orcamento.categoria?.nome || 'categoria').trim();
 
             let tone = 'info';
-            let title = `${categoriaNome} tem orcamento ativo`;
-            let message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. Com este ajuste, restam ${Utils.fmtMoney(restante)} no periodo (${percentual.toFixed(1)}% usado).`;
+            let title = `${categoriaNome} tem orçamento ativo`;
+            let message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. Com este ajuste, restam ${Utils.fmtMoney(restante)} no período (${percentual.toFixed(1)}% usado).`;
 
             if (excesso > 0) {
                 tone = 'danger';
-                title = `${categoriaNome} estoura o orcamento`;
+                title = `${categoriaNome} estoura o orçamento`;
                 message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. O gasto projetado vai para ${Utils.fmtMoney(gastoProjetado)} e passa ${Utils.fmtMoney(excesso)} do limite.`;
             } else if (percentual >= 80) {
                 tone = 'warning';
                 title = `${categoriaNome} entra em alerta`;
-                message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. Depois deste ajuste, sobram ${Utils.fmtMoney(restante)} no periodo (${percentual.toFixed(1)}% usado).`;
+                message = `Limite efetivo de ${Utils.fmtMoney(limiteEfetivo)}. Depois deste ajuste, sobram ${Utils.fmtMoney(restante)} no período (${percentual.toFixed(1)}% usado).`;
             }
 
             if (rollover > 0) {

@@ -1,0 +1,269 @@
+/**
+ * ============================================================================
+ * ORÇAMENTO — Overview
+ * ============================================================================
+ */
+
+/* ============================================================================
+   PAGE LAYOUT
+   ============================================================================ */
+
+.orc-page {
+  padding: clamp(var(--spacing-3), 1vw + var(--spacing-2), var(--spacing-4));
+  display: grid;
+  gap: var(--spacing-5);
+  animation: orcFadeIn 0.5s ease-out;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@keyframes orcFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   OVERVIEW SHELL
+   ============================================================================ */
+
+.orc-overview-shell {
+  display: grid;
+  gap: var(--spacing-4);
+  padding: clamp(1rem, 1.1vw + 0.78rem, 1.45rem);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 11%, transparent), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 62%),
+    color-mix(in srgb, var(--color-bg) 95%, transparent);
+}
+
+.orc-overview-shell__top {
+  display: grid;
+  gap: 14px;
+}
+
+/* ============================================================================
+   PAGE HEADER
+   ============================================================================ */
+
+.orc-page-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--spacing-4);
+}
+
+.orc-page-header__text {
+  display: grid;
+  gap: 8px;
+}
+
+.orc-page-header__eyebrow {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.orc-page-header__title {
+  font-size: clamp(1.45rem, 1.2rem + 0.9vw, 2.05rem);
+  font-weight: 820;
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+.orc-page-header__desc {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.55;
+  max-width: 64ch;
+}
+
+.orc-page-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.orc-page-header__chip {
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================================
+   SUMMARY CARDS GRID
+   ============================================================================ */
+
+.orc-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.45fr) repeat(3, minmax(160px, 1fr));
+  gap: var(--spacing-3);
+  transition: opacity 0.25s ease;
+}
+
+.orc-summary-card {
+  backdrop-filter: var(--glass-backdrop);
+  padding: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-height: 112px;
+}
+
+.orc-summary-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.orc-summary-card__icon--blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.orc-summary-card__icon--orange { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.orc-summary-card__icon--green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+
+.orc-summary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.orc-summary-card__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.orc-summary-card__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orc-summary-card__status {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.orc-summary-card__status.orc-status--good { color: #10b981; }
+.orc-summary-card__status.orc-status--warn { color: #f59e0b; }
+.orc-summary-card__status.orc-status--bad { color: #ef4444; }
+
+/* ============================================================================
+   SAÚDE FINANCEIRA RING
+   ============================================================================ */
+
+.orc-summary-card--saude { position: relative; }
+
+.orc-summary-card--saude {
+  align-items: stretch;
+}
+
+.orc-saude-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.orc-saude-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+}
+
+.orc-saude-cta__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.orc-saude-cta__icon i {
+  font-size: 20px;
+  color: var(--color-primary);
+  animation: orcSaudePulse 2s ease-in-out infinite;
+}
+
+@keyframes orcSaudePulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.orc-saude-cta__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.orc-saude-cta__msg {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  max-width: 200px;
+}
+
+.orc-saude-ring {
+  width: 54px;
+  height: 54px;
+  position: relative;
+}
+
+.orc-saude-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.orc-ring-bg {
+  fill: none;
+  stroke: var(--glass-border);
+  stroke-width: 3;
+}
+
+.orc-ring-fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s ease, stroke 0.3s ease;
+}
+
+.orc-ring-fill.orc-score--good { stroke: #10b981; }
+.orc-ring-fill.orc-score--warn { stroke: #f59e0b; }
+.orc-ring-fill.orc-score--bad { stroke: #ef4444; }

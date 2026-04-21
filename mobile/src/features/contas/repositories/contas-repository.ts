@@ -141,18 +141,18 @@ function mapRemoteConta(account: RemoteConta): ContaRecord {
 
 function buildContaNote(account: ContaRecord) {
   if (account.balance < 0) {
-    return 'Saldo negativo. Vale revisar as saidas desta conta antes de continuar usando ela no dia a dia.';
+    return 'Saldo negativo. Vale revisar as saídas desta conta antes de continuar usando ela no dia a dia.';
   }
 
   if (RESERVE_TYPES.has(account.accountType)) {
-    return 'Separada do giro do mes para o patrimonio nao se misturar com o dinheiro disponivel.';
+    return 'Separada do giro do mês para o patrimônio não se misturar com o dinheiro disponível.';
   }
 
   if (account.outflow > account.inflow && account.outflow > 0) {
-    return 'Saiu mais do que entrou neste mes. O card deixa isso visivel sem precisar abrir outra tela.';
+    return 'Saiu mais do que entrou neste mês. O card deixa isso visível sem precisar abrir outra tela.';
   }
 
-  return 'Boa para entradas, pagamentos e transferencias frequentes.';
+  return 'Boa para entradas, pagamentos e transferências frequentes.';
 }
 
 function decorateAccounts(accounts: ContaRecord[], primaryAccountId: string | null) {
@@ -182,7 +182,7 @@ function buildQuickActions() {
     {
       id: 'expense' as const,
       label: 'Registrar gasto',
-      description: 'Lance uma saida sem procurar menu escondido.',
+      description: 'Lance uma saída sem procurar menu escondido.',
       icon: 'remove-circle-outline',
     },
     {
@@ -197,9 +197,9 @@ function buildQuickActions() {
 function buildEmptySnapshot(monthKey: string, archivedCount = 0): ContasSnapshot {
   return {
     monthLabel: getMonthLabel(monthKey),
-    helperTitle: 'Seu dinheiro vai ficar organizado por lugar, nao por tentativa e erro',
+    helperTitle: 'Seu dinheiro vai ficar organizado por lugar, não por tentativa e erro',
     helperDescription:
-      'Quando a primeira conta entrar, o usuario enxerga logo o que pode usar agora e o que fica separado como reserva.',
+      'Quando a primeira conta entrar, o usuário enxerga logo o que pode usar agora e o que fica separado como reserva.',
     totalBalance: 0,
     everydayBalance: 0,
     reserveBalance: 0,
@@ -219,17 +219,17 @@ function buildEmptySnapshot(monthKey: string, archivedCount = 0): ContasSnapshot
       {
         id: '1',
         title: 'Cadastre a primeira conta',
-        description: 'Ela vira o ponto de partida para saldo, transferencias e organizacao financeira.',
+        description: 'Ela vira o ponto de partida para saldo, transferencias e organização financeira.',
       },
       {
         id: '2',
         title: 'Registre a primeira entrada',
-        description: 'Assim o usuario ja entende onde o dinheiro entrou e quanto esta disponivel.',
+        description: 'Assim o usuario ja entende onde o dinheiro entrou e quanto esta disponível.',
       },
       {
         id: '3',
         title: 'Separe reserva quando fizer sentido',
-        description: 'Quando vier poupanca ou outra reserva, ela vai para outro bloco.',
+        description: 'Quando vier poupança ou outra reserva, ela vai para outro bloco.',
       },
     ],
     quickActions: buildQuickActions(),
@@ -237,21 +237,21 @@ function buildEmptySnapshot(monthKey: string, archivedCount = 0): ContasSnapshot
       {
         id: 'everyday',
         title: 'Dia a dia',
-        description: 'Contas usadas para pagar, receber e movimentar o mes.',
+        description: 'Contas usadas para pagar, receber e movimentar o mês.',
         totalBalance: 0,
         emptyTitle: 'Nenhuma conta para o dia a dia ainda',
         emptyDescription:
-          'Quando a primeira conta entrar, ela aparece aqui com saldo, entradas e saidas do periodo.',
+          'Quando a primeira conta entrar, ela aparece aqui com saldo, entradas e saídas do período.',
         accounts: [],
       },
       {
         id: 'reserve',
         title: 'Reserva e objetivos',
-        description: 'Poupanca e outras reservas ficam separadas do dinheiro que gira no mes.',
+        description: 'Poupança e outras reservas ficam separadas do dinheiro que gira no mês.',
         totalBalance: 0,
-        emptyTitle: 'Ainda nao existe reserva separada',
+        emptyTitle: 'Ainda não existe reserva separada',
         emptyDescription:
-          'Quando o usuario criar uma reserva, ela aparece aqui sem misturar com o caixa do mes.',
+          'Quando o usuário criar uma reserva, ela aparece aqui sem misturar com o caixa do mês.',
         accounts: [],
       },
     ],

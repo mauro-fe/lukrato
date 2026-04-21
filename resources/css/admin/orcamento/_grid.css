@@ -1,0 +1,304 @@
+/* ============================================================================
+   ORÇAMENTOS GRID
+   ============================================================================ */
+
+.orc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: var(--spacing-3);
+}
+
+.orc-card {
+  backdrop-filter: var(--glass-backdrop);
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 14px 15px;
+  position: relative;
+  overflow: hidden;
+  min-height: 250px;
+}
+
+.orc-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  transition: background 0.3s ease;
+}
+
+.orc-card.ok::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.orc-card.warn::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.orc-card.over::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.orc-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.orc-card__category {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.orc-card__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.orc-card__name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.28;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.orc-card__actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+}
+
+.orc-card:hover .orc-card__actions { opacity: 1; }
+
+.orc-card__action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  transition: all 0.2s ease;
+}
+
+.orc-card__action-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.orc-card__action-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.orc-card__progress {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.orc-card__progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  overflow: hidden;
+}
+
+.orc-card__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.orc-card__progress-fill.ok { background: linear-gradient(90deg, #10b981, #34d399); }
+.orc-card__progress-fill.warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.orc-card__progress-fill.over { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.orc-card__progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+}
+
+.orc-card__spent {
+  font-size: .96rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.orc-card__limit {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.orc-card__limit-hint {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  max-width: 100%;
+  padding: 0 .55rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orc-card__daily {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label value"
+    "hint hint";
+  gap: 4px 10px;
+  margin-top: .55rem;
+  padding: .68rem .75rem;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+}
+
+.orc-card__daily-label {
+  grid-area: label;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  line-height: 1.15;
+}
+
+.orc-card__daily-label i {
+  width: 14px;
+  height: 14px;
+}
+
+.orc-card__daily-value {
+  grid-area: value;
+  justify-self: end;
+  align-self: start;
+  font-size: .9rem;
+  font-weight: 800;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.orc-card__daily-hint {
+  grid-area: hint;
+  font-size: .71rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.orc-card__daily--danger .orc-card__daily-label {
+  font-size: .6rem;
+  letter-spacing: .045em;
+}
+
+.orc-card__daily--danger .orc-card__daily-value {
+  font-size: .84rem;
+}
+
+.orc-card__daily--success {
+  border-color: color-mix(in srgb, var(--color-success) 22%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-bg));
+}
+
+.orc-card__daily--success .orc-card__daily-label {
+  color: var(--color-success);
+}
+
+.orc-card__daily--warning {
+  border-color: color-mix(in srgb, var(--color-warning) 24%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-warning) 9%, var(--color-bg));
+}
+
+.orc-card__daily--warning .orc-card__daily-label {
+  color: #f59e0b;
+}
+
+.orc-card__daily--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 26%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-danger) 9%, var(--color-bg));
+}
+
+.orc-card__daily--danger .orc-card__daily-label {
+  color: #ef4444;
+}
+
+.orc-card__daily--info,
+.orc-card__daily--neutral {
+  border-color: color-mix(in srgb, var(--color-primary) 24%, var(--glass-border));
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
+}
+
+.orc-card__daily--info .orc-card__daily-label,
+.orc-card__daily--neutral .orc-card__daily-label {
+  color: var(--color-primary);
+}
+
+/* Footer */
+.orc-card__footer {
+  display: flex;
+  align-items: center;
+  gap: .45rem .55rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.orc-card__pct {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.orc-card__pct.ok { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.orc-card__pct.warn { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.orc-card__pct.over { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+.orc-card__remaining {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.orc-card__remaining--negative {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.orc-card__badge {
+  font-size: 0.64rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  font-weight: 600;
+  margin-left: auto;
+}

@@ -151,7 +151,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                 Importar arquivo com preview real antes da confirmação
             </h1>
             <p class="imp-page-hero__lead">
-                Escolha o contexto, envie OFX ou CSV e confirme só depois de revisar exatamente o que vai entrar.
+                Fluxo direto: escolha o contexto, envie OFX ou CSV e confirme só depois da revisão.
             </p>
             <div class="imp-hero-stepper" aria-label="Etapas do fluxo">
                 <article class="imp-hero-step" data-imp-flow-step="setup" data-state="active">
@@ -221,8 +221,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                         <p class="imp-card-eyebrow">Preparar importação</p>
                         <h2 class="imp-card-title">Escolha o contexto e monte o preview</h2>
                         <p class="imp-card-text">
-                            O fluxo principal foi concentrado em três movimentos: definir contexto, enviar o arquivo e
-                            confirmar só depois da revisão final.
+                            Defina o contexto e o formato para liberar o preview sem retrabalho.
                         </p>
                     </div>
                     <span class="imp-status-badge" data-status="idle">Etapa 1 de 3</span>
@@ -586,9 +585,9 @@ $guidePathTitle = $initialSourceType === 'csv'
                     <span class="imp-preview-empty__icon" aria-hidden="true">
                         <i data-lucide="scan-search"></i>
                     </span>
-                    <strong class="imp-preview-empty__title" data-imp-preview-empty-title>O preview aparece aqui depois do preparo</strong>
+                    <strong class="imp-preview-empty__title" data-imp-preview-empty-title>Envie um arquivo para abrir a revisão</strong>
                     <p class="imp-preview-empty__copy" data-imp-preview-empty-copy>
-                        Resumo do arquivo, validações, linhas normalizadas e categorização opcional serão exibidos aqui.
+                        Escolha o contexto e envie OFX ou CSV para montar o preview.
                     </p>
                 </div>
 
@@ -686,7 +685,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                 <header class="imp-card-head imp-card-head--split">
                     <div>
                         <p class="imp-card-eyebrow">Painel de apoio</p>
-                        <h3 class="imp-card-title">Plano e perfil do fluxo</h3>
+                        <h3 class="imp-card-title">Plano e perfil ativo</h3>
                     </div>
                     <span class="imp-status-badge" data-status="preview_ready">Apoio</span>
                 </header>
@@ -700,7 +699,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                     </div>
                     <div data-imp-plan-summary>
                         <?php if ($currentPlan !== 'free') : ?>
-                            <p class="imp-card-text">Plano pago ativo: importações OFX/CSV liberadas sem limite prático.</p>
+                            <p class="imp-card-text">Plano pago ativo. OFX e CSV liberados sem limite prático.</p>
                         <?php else : ?>
                             <dl class="imp-definition-list">
                                 <?php foreach ($importLimitLabelMap as $bucketKey => $bucketLabel) : ?>
@@ -757,11 +756,11 @@ $guidePathTitle = $initialSourceType === 'csv'
                 </div>
             </article>
 
-            <article class="imp-side-card imp-surface surface-card surface-card--interactive">
+            <article class="imp-side-card imp-side-card--history imp-surface surface-card surface-card--interactive">
                 <header class="imp-card-head imp-card-head--split">
                     <div>
                         <p class="imp-card-eyebrow">Últimos lotes</p>
-                        <h3 class="imp-card-title">Histórico recente</h3>
+                        <h3 class="imp-card-title">Histórico</h3>
                     </div>
                     <span class="imp-status-badge" data-status="processed" data-imp-history-badge><?= $heroProcessedCount ?> processados</span>
                 </header>
@@ -786,7 +785,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                         </ul>
                     <?php else : ?>
                         <p class="imp-card-text">
-                            Nenhum lote confirmado ainda. O histórico é atualizado assim que uma importação é confirmada.
+                            Sem lotes confirmados ainda. O primeiro aparece aqui.
                         </p>
                     <?php endif; ?>
                 </div>

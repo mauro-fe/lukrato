@@ -219,7 +219,7 @@ class PlanningAlertsStore {
             })
             .catch((error) => {
                 logClientWarning(
-                    'Avisos de planejamento: nao foi possivel carregar metas',
+                    'Avisos de planejamento: não foi possível carregar metas',
                     error,
                     'Falha ao carregar metas'
                 );
@@ -266,9 +266,9 @@ class PlanningAlertsStore {
             })
             .catch((error) => {
                 logClientWarning(
-                    'Avisos de planejamento: nao foi possivel carregar orcamentos do periodo',
+                    'Avisos de planejamento: não foi possível carregar orçamentos do período',
                     error,
-                    'Falha ao carregar orcamentos do periodo'
+                    'Falha ao carregar orçamentos do período'
                 );
                 return this.budgetCache.get(period.key) || [];
             })

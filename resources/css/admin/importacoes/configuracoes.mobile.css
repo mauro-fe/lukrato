@@ -1,0 +1,128 @@
+@media (max-width: 1240px) {
+  .imp-config-context-grid,
+  .imp-config-template-grid,
+  .imp-field-grid--csv-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1060px) {
+  .imp-config-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .imp-config-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    position: static;
+  }
+
+  .imp-field-grid--mapping {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  [data-importacoes-page='configuracoes'] .imp-page-hero,
+  .imp-config-account-form {
+    grid-template-columns: 1fr;
+  }
+
+  [data-importacoes-page='configuracoes'] .imp-page-hero {
+    gap: 12px;
+  }
+
+  [data-importacoes-page='configuracoes'] .imp-page-hero__content,
+  [data-importacoes-page='configuracoes'] .imp-page-hero__aside {
+    gap: 12px;
+  }
+
+  .imp-config-account-form .btn {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .imp-field-grid,
+  .imp-field-grid--mapping,
+  .imp-mode-switch,
+  .imp-config-side,
+  .imp-config-template-grid,
+  .imp-config-side-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .imp-config-side__actions,
+  .imp-page-hero__actions {
+    flex-direction: column;
+  }
+
+  .imp-config-templates__summary-head {
+    grid-template-columns: 1fr;
+  }
+
+  .imp-config-templates__toggle {
+    justify-self: start;
+  }
+
+  .imp-config-side__actions .btn,
+  .imp-template-actions .btn,
+  .imp-page-hero__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .imp-config-page {
+    padding-bottom: calc(var(--spacing-6) + 88px);
+  }
+
+  .imp-config-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .imp-config-layout,
+  .imp-config-main,
+  .imp-config-side {
+    gap: 12px;
+  }
+
+  .imp-config-section,
+  .imp-manual-map,
+  .imp-config-template-group,
+  .imp-config-context-note,
+  .imp-config-hero-snapshot {
+    padding: 12px;
+  }
+
+  .imp-config-context-note__title,
+  .imp-config-templates__title,
+  .imp-config-flow-list strong {
+    font-size: 0.9rem;
+  }
+
+  .imp-config-context-note__copy,
+  .imp-config-templates__copy,
+  .imp-config-flow-list span,
+  .imp-config-csv-help,
+  .imp-card-text,
+  .imp-muted {
+    font-size: 0.79rem;
+  }
+
+  .imp-config-templates__summary-head {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .imp-template-actions {
+    display: grid;
+  }
+
+  .imp-mode-switch__item {
+    min-height: 38px;
+  }
+}

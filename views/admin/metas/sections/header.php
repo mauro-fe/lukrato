@@ -1,15 +1,14 @@
 <!-- ==================== HEADER ==================== -->
 <header class="met-page-header" data-aos="fade-up">
     <div class="met-page-header__text">
+        <p class="met-page-header__eyebrow">Planejamento</p>
         <h1 class="met-page-header__title">Metas</h1>
         <p class="met-page-header__desc">Quanto você já juntou e quanto falta para atingir seus objetivos</p>
     </div>
-    <button class="met-action-btn met-action-btn--success met-header-cta" id="btnNovaMetaHeader">
-        <i data-lucide="plus"></i>
-        <span>Criar Nova Meta</span>
-    </button>
-    <button class="met-action-btn" id="btnTemplates">
-        <i data-lucide="wand-sparkles"></i>
-        <span>Usar Template</span>
-    </button>
+
+    <div class="met-page-header__meta" aria-label="Resumo rápido da tela">
+        <span class="met-page-header__chip">Ritmo mensal</span>
+        <span class="met-page-header__chip">Busca rápida</span>
+        <span class="met-page-header__chip">Templates prontos</span>
+    </div>
 </header>

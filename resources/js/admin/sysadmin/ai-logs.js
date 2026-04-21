@@ -72,16 +72,16 @@ import {
     function typeLabel(type) {
         return {
             chat: 'Chat',
-            suggest_category: 'Sugestao',
-            analyze_spending: 'Analise',
-            categorize: 'Categorizacao',
-            analyze: 'Analise (novo)',
-            quick_query: 'Consulta rapida',
-            extract_transaction: 'Extracao',
-            create_entity: 'Criacao',
-            confirm_action: 'Confirmacao',
-            image_analysis: 'Analise de imagem',
-            audio_transcription: 'Transcricao',
+            suggest_category: 'Sugestão',
+            analyze_spending: 'Análise',
+            categorize: 'Categorização',
+            analyze: 'Análise (novo)',
+            quick_query: 'Consulta rápida',
+            extract_transaction: 'Extração',
+            create_entity: 'Criação',
+            confirm_action: 'Confirmação',
+            image_analysis: 'Análise de imagem',
+            audio_transcription: 'Transcrição',
             pay_fatura: 'Pagamento de fatura'
         }[type] || type || '-';
     }
@@ -180,7 +180,7 @@ import {
 
     function validateFilters(filters) {
         if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
-            return 'A data inicial nao pode ser maior que a data final.';
+            return 'A data inicial não pode ser maior que a data final.';
         }
 
         return null;
@@ -301,7 +301,7 @@ import {
             const statusLabels = {
                 active: 'Ativo',
                 quota_exceeded: 'Quota excedida',
-                invalid_key: 'Chave invalida',
+                invalid_key: 'Chave inválida',
                 error: 'Erro'
             };
 

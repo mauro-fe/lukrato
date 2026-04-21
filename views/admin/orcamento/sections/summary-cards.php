@@ -14,7 +14,7 @@
                 </div>
             </div>
             <div class="orc-summary-card__info">
-                <span class="orc-summary-card__label">Saude Financeira</span>
+                <span class="orc-summary-card__label">Saúde Financeira</span>
                 <span class="orc-summary-card__status" id="saudeLabel">Carregando...</span>
             </div>
         </div>
@@ -23,8 +23,8 @@
                 <i data-lucide="heart-pulse"></i>
             </div>
             <div class="orc-saude-cta__text">
-                <span class="orc-summary-card__label">Saude Financeira</span>
-                <span class="orc-saude-cta__msg">Defina orcamentos nas categorias para acompanhar sua saude
+                <span class="orc-summary-card__label">Saúde Financeira</span>
+                <span class="orc-saude-cta__msg">Defina orçamentos nas categorias para acompanhar sua saúde
                     financeira</span>
             </div>
         </div>
@@ -35,7 +35,7 @@
             <i data-lucide="wallet"></i>
         </div>
         <div class="orc-summary-card__info">
-            <span class="orc-summary-card__label">Orcado</span>
+            <span class="orc-summary-card__label">Orçado</span>
             <span class="orc-summary-card__value" id="totalOrcado">R$ --</span>
         </div>
     </div>
@@ -55,7 +55,7 @@
             <i data-lucide="piggy-bank"></i>
         </div>
         <div class="orc-summary-card__info">
-            <span class="orc-summary-card__label">Disponivel</span>
+            <span class="orc-summary-card__label">Disponível</span>
             <span class="orc-summary-card__value" id="totalDisponivel">R$ --</span>
         </div>
     </div>

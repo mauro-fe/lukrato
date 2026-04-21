@@ -156,16 +156,31 @@
     font-size: var(--font-size-base);
   }
 
+  .categories-section {
+    gap: var(--spacing-3);
+  }
+
+  .categories-section-header {
+    gap: var(--spacing-3);
+  }
+
+  .categories-section-title {
+    font-size: var(--font-size-lg);
+  }
+
   .category-count {
     font-size: var(--font-size-xs);
   }
 
   .category-card {
+    height: auto;
     min-height: auto;
   }
 
   .category-list {
+    overflow-y: auto;
     max-height: 400px;
+    scrollbar-gutter: stable;
   }
 
   .cat-card {

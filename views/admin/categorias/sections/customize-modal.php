@@ -1,10 +1,3 @@
-<div class="cat-customize-trigger">
-    <button class="cat-customize-open surface-card" id="btnCustomizeCategorias" type="button">
-        <i data-lucide="sliders-horizontal"></i>
-        <span>Personalizar tela</span>
-    </button>
-</div>
-
 <div class="cat-customize-overlay" id="categoriasCustomizeModalOverlay" style="display:none;">
     <div class="cat-customize-modal surface-card" role="dialog" aria-modal="true"
         aria-labelledby="categoriasCustomizeModalTitle">
@@ -33,7 +26,7 @@
                     <input type="checkbox" id="toggleCategoriasKpis" checked>
                 </label>
                 <label class="cat-customize-toggle">
-                    <span>Card de criacao</span>
+                    <span>Card de criação</span>
                     <input type="checkbox" id="toggleCategoriasCreateCard" checked>
                 </label>
                 <label class="cat-customize-toggle">

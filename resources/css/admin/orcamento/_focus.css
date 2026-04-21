@@ -1,0 +1,136 @@
+/* ============================================================================
+   FOCUS PANEL
+   ============================================================================ */
+
+.orc-focus-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: clamp(.95rem, .82vw + .72rem, 1.15rem);
+}
+
+.orc-focus-panel__main,
+.orc-focus-panel__content {
+  display: grid;
+  gap: 10px;
+}
+
+.orc-focus-panel__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: 6px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.orc-focus-callout {
+  display: grid;
+  gap: 14px;
+  padding: 13px 14px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 74%, transparent);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 72%),
+    color-mix(in srgb, var(--color-bg) 96%, transparent);
+}
+
+.orc-focus-callout > :first-child {
+  display: grid;
+  gap: 8px;
+}
+
+.orc-focus-callout__title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.orc-focus-callout__text {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: .82rem;
+  line-height: 1.52;
+  max-width: 34ch;
+}
+
+.orc-focus-callout__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: 4px;
+}
+
+.orc-focus-callout__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: .28rem .68rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 76%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 97%, transparent);
+  color: var(--color-text);
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+.orc-focus-callout__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .55rem;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.orc-focus-callout__actions .orc-action-btn {
+  justify-content: center;
+  min-height: 38px;
+  padding: .55rem .7rem;
+  font-size: .77rem;
+}
+
+.orc-focus-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .7rem;
+}
+
+.orc-focus-stat {
+  padding: .88rem .95rem;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  display: grid;
+  gap: 4px;
+}
+
+.orc-focus-stat__label {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 18%, var(--color-text-muted));
+}
+
+.orc-focus-stat__value {
+  font-size: .98rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.orc-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-text);
+}

@@ -979,7 +979,7 @@ export function initImportacoesIndexPage() {
             if (effectivePlanTier !== 'free') {
                 const paragraph = document.createElement('p');
                 paragraph.className = 'imp-card-text';
-                paragraph.textContent = 'Plano pago ativo: importações OFX/CSV liberadas sem limite prático.';
+                paragraph.textContent = 'Plano pago ativo. OFX e CSV liberados sem limite prático.';
                 planSummary.appendChild(paragraph);
                 return;
             }
@@ -1024,7 +1024,7 @@ export function initImportacoesIndexPage() {
             if (latestHistoryItems.length === 0) {
                 const emptyState = document.createElement('p');
                 emptyState.className = 'imp-card-text';
-                emptyState.textContent = 'Nenhum lote confirmado ainda. O histórico é atualizado assim que uma importação é confirmada.';
+                emptyState.textContent = 'Sem lotes confirmados ainda. O primeiro aparece aqui.';
                 historyContent.appendChild(emptyState);
                 return;
             }
@@ -2263,15 +2263,15 @@ export function initImportacoesIndexPage() {
 
             if (previewEmptyTitle) {
                 if (!hasSelectedFile && state.previewStatus === 'idle') {
-                    previewEmptyTitle.textContent = 'Envie um arquivo para gerar o preview';
+                    previewEmptyTitle.textContent = 'Envie um arquivo para abrir a revisão';
                 } else if (hasSelectedFile && state.previewStatus === 'file_selected') {
-                    previewEmptyTitle.textContent = 'Arquivo pronto para gerar o preview';
+                    previewEmptyTitle.textContent = 'Arquivo pronto para abrir a revisão';
                 } else if (state.previewStatus === 'loading_preview') {
-                    previewEmptyTitle.textContent = 'Estamos preparando a revisão do lote';
+                    previewEmptyTitle.textContent = 'Montando a revisão do lote';
                 } else if (hasRows && state.showOnlyPendingCategories && (previewSummary.uncategorizedRows || 0) === 0) {
                     previewEmptyTitle.textContent = 'Nenhuma linha pendente neste filtro';
                 } else {
-                    previewEmptyTitle.textContent = 'O preview aparece aqui depois do preparo';
+                    previewEmptyTitle.textContent = 'A revisão aparece aqui depois do preparo';
                 }
             }
 
@@ -2279,18 +2279,18 @@ export function initImportacoesIndexPage() {
                 if (!hasSelectedFile && state.previewStatus === 'idle') {
                     previewEmptyCopy.textContent = 'Escolha o contexto e envie OFX ou CSV para montar o preview.';
                 } else if (hasSelectedFile && state.previewStatus === 'file_selected') {
-                    previewEmptyCopy.textContent = 'Arquivo pronto. Clique em "Preparar preview".';
+                    previewEmptyCopy.textContent = 'Clique em "Preparar preview" para montar a leitura do lote.';
                 } else if (state.previewStatus === 'loading_preview') {
-                    previewEmptyCopy.textContent = 'Lendo o arquivo e preparando a revisão.';
+                    previewEmptyCopy.textContent = 'Lendo o arquivo e preparando o quadro de validação.';
                 } else if (hasRows && state.showOnlyPendingCategories && (previewSummary.uncategorizedRows || 0) === 0) {
-                    previewEmptyCopy.textContent = 'Todas as linhas visíveis já estão categorizadas. Desative o filtro para revisar o lote completo.';
+                    previewEmptyCopy.textContent = 'Todas as linhas visíveis já estão categorizadas. Desative o filtro para voltar ao lote completo.';
                 } else {
-                    previewEmptyCopy.textContent = 'Resumo do arquivo, validações, linhas normalizadas e categorização opcional serão exibidos aqui.';
+                    previewEmptyCopy.textContent = 'Resumo do lote, validações e linhas normalizadas aparecem aqui.';
                 }
             } else if (previewEmpty) {
                 previewEmpty.textContent = hasRows && state.showOnlyPendingCategories && (previewSummary.uncategorizedRows || 0) === 0
                     ? 'Todas as linhas já estão categorizadas.'
-                    : 'O preview será exibido aqui com resumo do arquivo, validações, linhas normalizadas e categorização opcional.';
+                    : 'Resumo do lote, validações e linhas normalizadas aparecem aqui.';
             }
 
             if (hasRenderableRows) {

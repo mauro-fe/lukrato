@@ -25,7 +25,8 @@ class ApplyOrcamentoSugestoesUseCase
     {
         $mes = (int) ($payload['mes'] ?? date('m'));
         $ano = (int) ($payload['ano'] ?? date('Y'));
-        $sugestoes = is_array($payload['sugestoes'] ?? null) ? $payload['sugestoes'] : [];
+        $sugestoesPayload = $payload['sugestoes'] ?? $payload['orcamentos'] ?? [];
+        $sugestoes = is_array($sugestoesPayload) ? $sugestoesPayload : [];
 
         $result = $this->orcamentoService->aplicarSugestoes($userId, $mes, $ano, $sugestoes);
 

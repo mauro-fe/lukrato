@@ -117,7 +117,16 @@
   }
 
   .categories-grid {
+    grid-template-columns: 1fr;
     gap: var(--spacing-3);
+  }
+
+  .categories-section-header {
+    align-items: stretch;
+  }
+
+  .categories-section-description {
+    max-width: none;
   }
 
   .category-header {
@@ -134,11 +143,14 @@
   }
 
   .category-card {
+    height: auto;
     min-height: 300px;
   }
 
   .category-list {
+    overflow-y: auto;
     max-height: 450px;
+    scrollbar-gutter: stable;
   }
 
   .cat-card-icon {

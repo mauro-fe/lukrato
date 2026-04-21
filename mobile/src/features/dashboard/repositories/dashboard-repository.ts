@@ -233,24 +233,24 @@ function buildFocus(
     return {
       title: 'As faturas do mes ja estao separadas do resto',
       description:
-        'Em vez de misturar tudo no saldo, o app destaca as faturas para a revisao ficar direta.',
+        'Em vez de misturar tudo no saldo, o app destaca as faturas para a revisão ficar direta.',
       amount: totalFaturas,
-      supportText: `${countFaturas} fatura(s) pendente(s) neste mes.`,
+      supportText: `${countFaturas} fatura(s) pendente(s) neste mês.`,
     };
   }
 
   const monthlyResult = Number(metrics.resultado ?? 0);
   return {
-    title: monthlyResult >= 0 ? 'Seu mes esta positivo ate aqui' : 'Seu mes pede ajuste',
+    title: monthlyResult >= 0 ? 'Seu mês está positivo até aqui' : 'Seu mês pede ajuste',
     description:
       monthlyResult >= 0
-        ? 'Sem pendencias urgentes, o dashboard reforca o resultado do mes para você decidir o proximo passo.'
+        ? 'Sem pendências urgentes, o dashboard reforça o resultado do mês para você decidir o próximo passo.'
         : 'Sem vencidos urgentes, o resultado mensal vira o melhor ponto de partida para reorganizar o caixa.',
     amount: monthlyResult,
     supportText:
       monthlyResult >= 0
-        ? 'Entrou mais dinheiro do que saiu no periodo atual.'
-        : 'As saidas do mes passaram das entradas registradas.',
+        ? 'Entrou mais dinheiro do que saiu no período atual.'
+        : 'As saídas do mês passaram das entradas registradas.',
   };
 }
 
@@ -268,21 +268,21 @@ function buildGuidedSteps(
     {
       id: '1',
       title: 'Registre primeiro o que entrou',
-      description: 'Quando a renda entra cedo, o saldo do mes fica confiavel para o resto das decisoes.',
+      description: 'Quando a renda entra cedo, o saldo do mês fica confiável para o resto das decisões.',
       cta: 'Adicionar receita',
       done: income > 0,
     },
     {
       id: '2',
-      title: 'Depois confirme os gastos que ja aconteceram',
-      description: 'Isso evita saldo inflado e reduz a sensacao de que falta contexto na tela.',
-      cta: 'Revisar lancamentos',
+      title: 'Depois confirme os gastos que já aconteceram',
+      description: 'Isso evita saldo inflado e reduz a sensação de que falta contexto na tela.',
+      cta: 'Revisar lançamentos',
       done: expenses > 0 || transactionCount >= 3,
     },
     {
       id: '3',
-      title: 'Por ultimo revise o que vence ou atrasou',
-      description: 'O objetivo e agir primeiro no que pode gerar multa, juros ou confusao no caixa.',
+      title: 'Por último revise o que vence ou atrasou',
+      description: 'O objetivo é agir primeiro no que pode gerar multa, juros ou confusão no caixa.',
       cta: 'Ver vencimentos',
       done: overdue === 0 && nextDueCount === 0,
     },
@@ -300,15 +300,15 @@ function buildInsights(
     insights.push({
       id: 'greeting',
       title: greeting.message,
-      description: 'Esse resumo vem do comportamento financeiro atual, nao de texto fixo de demonstracao.',
+      description: 'Esse resumo vem do comportamento financeiro atual, não de texto fixo de demonstração.',
     });
   }
 
   if (health?.score !== undefined) {
     insights.push({
       id: 'health',
-      title: `Seu Health Score esta em ${Math.round(health.score)}/100.`,
-      description: `Consistencia ${health.consistency || 'regular'}, ${health.categories || 0} categoria(s) usada(s) e taxa de poupanca de ${health.savingsRate || 0}%.`,
+      title: `Seu Health Score está em ${Math.round(health.score)}/100.`,
+      description: `Consistência ${health.consistency || 'regular'}, ${health.categories || 0} categoria(s) usada(s) e taxa de poupança de ${health.savingsRate || 0}%.`,
     });
   }
 
@@ -320,16 +320,16 @@ function buildInsights(
   if (countPagar > 0 || countReceber > 0) {
     insights.push({
       id: 'provisao',
-      title: `Ha ${countPagar} compromisso(s) a pagar e ${countReceber} a receber.`,
-      description: `O painel separa ${amountPagar.toFixed(2)} para saidas e ${amountReceber.toFixed(2)} para entradas previstas no mes.`,
+      title: `Há ${countPagar} compromisso(s) a pagar e ${countReceber} a receber.`,
+      description: `O painel separa ${amountPagar.toFixed(2)} para saídas e ${amountReceber.toFixed(2)} para entradas previstas no mês.`,
     });
   }
 
   if (!insights.length) {
     insights.push({
       id: 'fallback',
-      title: 'Seu painel ja esta ligado na API.',
-      description: 'Conforme os dados reais entrarem, os insights passam a refletir saldo, vencimentos e consistencia.',
+      title: 'Seu painel já está ligado na API.',
+      description: 'Conforme os dados reais entrarem, os insights passam a refletir saldo, vencimentos e consistência.',
     });
   }
 
@@ -339,17 +339,17 @@ function buildInsights(
 function getFallbackMessage(error: unknown) {
   if (error instanceof HttpClientError) {
     if (error.status === 401) {
-      return 'Sua sessao nao foi aceita pelo backend. Entre novamente para recarregar o dashboard.';
+      return 'Sua sessão não foi aceita pelo backend. Entre novamente para recarregar o dashboard.';
     }
 
     if (error.code === 'NO_BASE_URL') {
-      return 'A URL da API nao foi configurada para este aparelho.';
+      return 'A URL da API não foi configurada para este aparelho.';
     }
 
     return error.message;
   }
 
-  return 'Nao foi possivel carregar o dashboard agora.';
+  return 'Não foi possível carregar o dashboard agora.';
 }
 
 class DashboardRepository {
@@ -370,17 +370,17 @@ class DashboardRepository {
           limit: 5,
         }),
         httpClient.get<RemoteGreetingInsight>('api/v1/dashboard/greeting-insight').catch(() => {
-          warnings.push('Insight dinamico indisponivel no momento.');
+          warnings.push('Insight dinâmico indisponível no momento.');
           return null;
         }),
         httpClient.get<RemoteHealthScore>('api/v1/dashboard/health-score').catch(() => {
-          warnings.push('Health Score indisponivel no momento.');
+          warnings.push('Health Score indisponível no momento.');
           return null;
         }),
         httpClient.get<RemoteProvisao>('api/v1/dashboard/provisao', {
           month: monthKey,
         }).catch(() => {
-          warnings.push('Provisao financeira indisponivel no momento.');
+          warnings.push('Provisão financeira indisponível no momento.');
           return null;
         }),
       ]);

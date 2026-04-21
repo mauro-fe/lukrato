@@ -1,6 +1,14 @@
 <!-- Ranking -->
 <section class="leaderboard-section surface-card surface-card--interactive" id="gamLeaderboardSection">
-    <h2><i data-lucide="trophy"></i> Ranking</h2>
+    <div class="leaderboard-header">
+        <div class="leaderboard-heading">
+            <h2><i data-lucide="trophy"></i> Ranking</h2>
+            <p class="leaderboard-subtitle">Veja quem esta puxando a frente no ranking global e quanto falta para voce subir de colocacao.</p>
+        </div>
+        <?php if ($isPro ?? false): ?>
+            <span class="leaderboard-chip surface-chip surface-chip--soft surface-chip--compact">Top 10 global</span>
+        <?php endif; ?>
+    </div>
 
     <?php if ($isPro ?? false): ?>
         <!-- Ranking para usuários PRO -->

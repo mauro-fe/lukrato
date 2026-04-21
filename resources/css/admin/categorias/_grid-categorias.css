@@ -2,10 +2,57 @@
    GRID DE CATEGORIAS (RECEITAS E DESPESAS SEPARADAS)
    ============================================================================ */
 
+.categories-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.categories-section-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.categories-section-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.categories-section-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.categories-section-title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.18rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.categories-section-description {
+  margin: 0;
+  max-width: 720px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: var(--spacing-5);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-4);
+  align-items: stretch;
 }
 
 /* ============================================================================
@@ -16,7 +63,9 @@
   /* Mesmo tratamento de sombra que os KPI cards do dashboard */
   display: flex;
   flex-direction: column;
-  min-height: 360px;
+  min-height: 0;
+  width: 100%;
+  height: clamp(540px, 72vh, 900px);
 }
 
 /* ============================================================================
@@ -24,7 +73,7 @@
    ============================================================================ */
 
 .category-header {
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: var(--spacing-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -89,8 +138,8 @@
 }
 
 .header-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -135,13 +184,16 @@
 
 .category-list {
   flex: 1;
-  padding: var(--spacing-2) var(--spacing-3);
+  min-height: 0;
+  padding: var(--spacing-2);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
   overflow-y: auto;
-  max-height: 600px;
+  max-height: none;
   align-content: start;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
 }
 
 /* ============================================================================

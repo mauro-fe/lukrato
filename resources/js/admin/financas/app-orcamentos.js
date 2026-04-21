@@ -230,7 +230,7 @@ export function createFinancasOrcamentos({
 
         const result = await Swal.fire({
             title: 'Copiar mes anterior',
-            html: `Deseja copiar os orcamentos de <strong>${meses[mesAnt]}/${anoAnt}</strong> para o mes atual?`,
+            html: `Deseja copiar os orçamentos de <strong>${meses[mesAnt]}/${anoAnt}</strong> para o mes atual?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Sim, copiar',
@@ -250,7 +250,7 @@ export function createFinancasOrcamentos({
             if (handleLimitError(res)) return;
 
             if (res.success) {
-                Utils.showToast(`${res.data?.copiados || 0} orcamentos copiados!`, 'success');
+                Utils.showToast(`${res.data?.copiados || 0} orçamentos copiados!`, 'success');
                 await loadAll();
             } else {
                 Utils.showToast(res.message || 'Erro ao copiar', 'error');

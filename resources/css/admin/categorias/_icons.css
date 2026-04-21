@@ -19,7 +19,7 @@
 .create-card-content {
   display: flex;
   align-items: stretch;
-  min-height: 160px;
+  min-height: 0;
 }
 
 /* Area do icone (lado esquerdo) */
@@ -28,16 +28,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-5) var(--spacing-6);
+  gap: var(--spacing-2);
+  padding: var(--spacing-4) var(--spacing-4);
   border-right: 1px solid var(--glass-border);
-  min-width: 140px;
+  min-width: 112px;
   position: relative;
 }
 
 .create-icon-ring {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -75,8 +75,8 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: var(--spacing-5) var(--spacing-6);
-  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
+  gap: var(--spacing-3);
 }
 
 .create-form-header {
@@ -104,17 +104,26 @@
 .create-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
 }
 
 .create-form-fields {
   display: flex;
-  gap: var(--spacing-3);
-  align-items: center;
+  gap: var(--spacing-2);
+  align-items: stretch;
 }
 
 .create-field {
   flex: 1;
+}
+
+.create-form-fields .create-field:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.create-form-fields .create-field:last-child {
+  flex: 0 0 360px;
 }
 
 /* Input com icone interno */
@@ -177,6 +186,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 3px;
+  min-height: 44px;
   height: 100%;
 }
 
@@ -248,6 +258,7 @@
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: 2px;
 }
 
 .create-submit-btn:hover {

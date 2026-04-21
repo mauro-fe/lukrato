@@ -16,7 +16,7 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: '.dash-kpis',
                 title: 'Indicadores principais',
-                description: 'Este bloco resume entradas, saídas e resultado do periodo.',
+                description: 'Este bloco resume entradas, saídas e resultado do período.',
                 side: 'bottom',
                 align: 'start',
             },
@@ -45,22 +45,22 @@ export const TOUR_CONFIGS_CORE = {
         mobileSteps: [
             {
                 selector: '#saldoCard',
-                title: 'Resumo rapido',
-                description: 'Saldo e variação do mês em um unico card.',
+                title: 'Resumo rápido',
+                description: 'Saldo e variação do mês em um único card.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['#dashboardFirstTransactionCta', '#dashboardEmptyStateCta', '#fabButton'],
-                title: 'Novo lancamento',
+                title: 'Novo lançamento',
                 description: 'Registre uma entrada ou despesa por este atalho.',
                 side: 'top',
                 align: 'center',
             },
             {
                 selector: '#table-section',
-                title: 'Historico recente',
-                description: 'Lista de transacoes para revisão rapida.',
+                title: 'Histórico recente',
+                description: 'Lista de transações para revisão rápida.',
                 side: 'top',
                 align: 'center',
             },
@@ -124,14 +124,14 @@ export const TOUR_CONFIGS_CORE = {
         mobileSteps: [
             {
                 selector: '.lan-summary-strip',
-                title: 'Resumo do periodo',
+                title: 'Resumo do período',
                 description: 'Resumo do mês antes de entrar nos detalhes.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: ['#btnNovoLancamento', '#fabButton'],
-                title: 'Novo lancamento',
+                title: 'Novo lançamento',
                 description: 'Registre rapidamente sua movimentação.',
                 side: 'top',
                 align: 'center',
@@ -145,7 +145,7 @@ export const TOUR_CONFIGS_CORE = {
             },
             {
                 selector: '#lancamentosFeed',
-                title: 'Feed de transacoes',
+                title: 'Feed de transações',
                 description: 'Role para revisar e editar cada registro.',
                 side: 'top',
                 align: 'center',
@@ -225,28 +225,28 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: '#accountsGrid',
                 title: 'Suas contas',
-                description: 'Acompanhe saldo e acessos rapidos.',
+                description: 'Acompanhe saldo e acessos rápidos.',
                 side: 'top',
                 align: 'center',
             },
         ],
     },
     cartoes: {
-        label: 'Cartoes',
+        label: 'Cartões',
         version: DEFAULT_VERSION,
         primarySelector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
         steps: [
             {
                 selector: ['.cart-kpis', '.quick-stats-grid', '.cart-summary-grid'],
-                title: 'Resumo dos cartoes',
-                description: 'Acompanhe limite usado, disponivel e alertas.',
+                title: 'Resumo dos cartões',
+                description: 'Acompanhe limite usado, disponível e alertas.',
                 side: 'bottom',
                 align: 'start',
             },
             {
                 selector: ['#btnNovoCartao', '#btnNovoCartaoEmpty'],
                 title: 'Adicionar cartão',
-                description: 'Cadastre cartoes para controlar compras e faturas.',
+                description: 'Cadastre cartões para controlar compras e faturas.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -259,7 +259,7 @@ export const TOUR_CONFIGS_CORE = {
             },
             {
                 selector: ['#searchCartoes', '.cart-search-wrapper'],
-                title: 'Busca rapida',
+                title: 'Busca rápida',
                 description: 'Encontre um cartão por nome ou bandeira.',
                 side: 'bottom',
                 align: 'start',
@@ -274,7 +274,7 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: '.view-toggle',
                 title: 'Modo de visualização',
-                description: 'Troque layout conforme sua preferencia.',
+                description: 'Troque layout conforme sua preferência.',
                 side: 'left',
                 align: 'center',
             },
@@ -297,7 +297,7 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: ['#searchCartoes', '.cart-search-wrapper'],
                 title: 'Buscar cartão',
-                description: 'Filtro rapido para localizar o cartão certo.',
+                description: 'Filtro rápido para localizar o cartão certo.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -325,13 +325,13 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: '#btnFiltrar',
                 title: 'Aplicar filtros',
-                description: 'Atualize a lista com os parametros escolhidos.',
+                description: 'Atualize a lista com os parâmetros escolhidos.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '.view-toggle',
-                title: 'Trocar visualizacão',
+                title: 'Trocar visualização',
                 description: 'Alterne entre cards e lista.',
                 side: 'left',
                 align: 'center',
@@ -354,15 +354,15 @@ export const TOUR_CONFIGS_CORE = {
         mobileSteps: [
             {
                 selector: '.filters-modern',
-                title: 'Contexto do periodo',
-                description: 'Escolha filtros para reduzir ruido.',
+                title: 'Contexto do período',
+                description: 'Escolha filtros para reduzir ruído.',
                 side: 'bottom',
                 align: 'center',
             },
             {
                 selector: '#btnFiltrar',
                 title: 'Atualizar listagem',
-                description: 'Recarregue resultados apos ajustar filtros.',
+                description: 'Recarregue resultados após ajustar filtros.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -427,7 +427,7 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: ['.create-card', '#formNova'],
                 title: 'Criar categoria',
-                description: 'Formulario principal para novas categorias.',
+                description: 'Formulário principal para novas categorias.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -448,20 +448,20 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: '.despesas-card',
                 title: 'Despesas',
-                description: 'Categorias de gastos para controle diario.',
+                description: 'Categorias de gastos para controle diário.',
                 side: 'top',
                 align: 'center',
             },
         ],
     },
     relatorios: {
-        label: 'Relatorios',
+        label: 'Relatórios',
         version: DEFAULT_VERSION,
         primarySelector: ['.rel-section-tabs .rel-section-tab[data-section="relatorios"]', '.tabs-card .tab-btn[data-view="category"]'],
         steps: [
             {
                 selector: '.quick-stats-grid',
-                title: 'Resumo do periodo',
+                title: 'Resumo do período',
                 description: 'As métricas principais mostram contexto antes do detalhe.',
                 side: 'bottom',
                 align: 'start',
@@ -475,7 +475,7 @@ export const TOUR_CONFIGS_CORE = {
             },
             {
                 selector: '.tabs-card',
-                title: 'Modelos de analise',
+                title: 'Modelos de análise',
                 description: 'Escolha categoria, saldo diário, contas, cartões ou anual.',
                 side: 'top',
                 align: 'center',
@@ -541,7 +541,7 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: '#btnNovoOrcamento',
                 title: 'Novo limite',
-                description: 'Crie um limite manual para categoria especifica.',
+                description: 'Crie um limite manual para categoria específica.',
                 side: 'bottom',
                 align: 'center',
             },
@@ -557,7 +557,7 @@ export const TOUR_CONFIGS_CORE = {
             {
                 selector: '#summaryOrcamentos',
                 title: 'Resumo do mês',
-                description: 'Panorama rapido dos limites no periodo.',
+                description: 'Panorama rápido dos limites no período.',
                 side: 'bottom',
                 align: 'center',
             },

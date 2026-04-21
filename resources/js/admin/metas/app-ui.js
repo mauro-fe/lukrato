@@ -180,7 +180,7 @@ export function createMetasUi({
                         <p class="met-focus-callout__text">Use um template para sair do zero mais rapido ou crie uma meta com valor e prazo.</p>
                     </div>
                     <div class="met-focus-callout__actions">
-                        <button type="button" class="met-action-btn met-action-btn--success" onclick="metasManager.openMetaModal()">
+                        <button type="button" class="met-action-btn met-action-btn--primary" onclick="metasManager.openMetaModal()">
                             <i data-lucide="plus"></i>
                             <span>Criar Meta</span>
                         </button>
@@ -203,7 +203,7 @@ export function createMetasUi({
             : (nextMeta.dias_restantes < 0
                 ? 'Prazo vencido.'
                 : `${nextMeta.dias_restantes} dia${nextMeta.dias_restantes === 1 ? '' : 's'} restantes.`);
-        const primaryAction = `<button type="button" class="met-action-btn met-action-btn--success" onclick="metasManager.openMetaModal(${nextMeta.id})">
+        const primaryAction = `<button type="button" class="met-action-btn met-action-btn--primary" onclick="metasManager.openMetaModal(${nextMeta.id})">
                     <i data-lucide="pencil"></i>
                     <span>Revisar meta</span>
                </button>`;
@@ -302,15 +302,27 @@ export function createMetasUi({
     function renderInsights() {
         const section = document.getElementById('metInsightsSection');
         const grid = document.getElementById('metInsightsGrid');
+        const insightCount = document.getElementById('metInsightCount');
         if (!section || !grid) return;
 
         const insights = buildInsights();
         if (!insights.length) {
-            section.style.display = 'none';
+            section.style.display = '';
+            if (insightCount) insightCount.textContent = '0 insights';
+            grid.innerHTML = `
+                <div class="met-insights-empty">
+                    <i data-lucide="sparkles"></i>
+                    <p>Os insights aparecem quando houver metas suficientes para comparar ritmo, proximidade e prioridade.</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
             return;
         }
 
         section.style.display = '';
+        if (insightCount) {
+            insightCount.textContent = `${insights.length} ${insights.length === 1 ? 'insight' : 'insights'}`;
+        }
         grid.innerHTML = insights.map((insight) => {
             const action = insight.metaId
                 ? `<button type="button" class="met-insight-action" onclick="metasManager.openMetaModal(${insight.metaId})">
@@ -337,11 +349,13 @@ export function createMetasUi({
     function renderMetas() {
         const grid = document.getElementById('metasGrid');
         const empty = document.getElementById('metasEmpty');
+        const visibleCount = document.getElementById('metVisibleCount');
         if (!grid || !empty) return;
 
         if (!STATE.metas.length) {
             grid.style.display = 'none';
             empty.style.display = 'flex';
+            if (visibleCount) visibleCount.textContent = '0';
             return;
         }
 
@@ -350,6 +364,7 @@ export function createMetasUi({
         const filteredMetas = getFilteredMetas();
 
         if (!filteredMetas.length) {
+            if (visibleCount) visibleCount.textContent = '0';
             grid.innerHTML = `
                 <div class="met-soft-empty surface-card">
                     <i data-lucide="search-x"></i>
@@ -358,6 +373,10 @@ export function createMetasUi({
             `;
             if (window.lucide) lucide.createIcons();
             return;
+        }
+
+        if (visibleCount) {
+            visibleCount.textContent = String(filteredMetas.length);
         }
 
         grid.innerHTML = filteredMetas.map((meta) => {
@@ -370,7 +389,7 @@ export function createMetasUi({
             const statusTag = meta.status !== 'ativa'
                 ? `<span class="met-card__badge met-card__badge--${meta.status === 'concluida' ? 'completed' : 'active'}">${Utils.capitalize(meta.status)}</span>`
                 : '<span class="met-card__badge met-card__badge--active">Ativa</span>';
-            const demoTag = isDemo ? '<span class="met-card__badge met-card__badge--active">Exemplo</span>' : '';
+            const demoTag = isDemo ? '<span class="met-card__badge met-card__badge--demo">Exemplo</span>' : '';
             const diasRestantes = meta.dias_restantes;
             const prazoInfo = diasRestantes !== null && diasRestantes !== undefined
                 ? (diasRestantes > 0
@@ -378,11 +397,13 @@ export function createMetasUi({
                     : '<span class="met-card__deadline" style="color:#ef4444">Prazo vencido!</span>')
                 : '';
             const aporteInfo = meta.aporte_mensal_sugerido > 0
-                ? `<span class="met-card__hint"><i data-lucide="calendar-range" style="width:12px;height:12px"></i> ${Utils.formatCurrency(meta.aporte_mensal_sugerido)}/mes sugeridos</span>`
+                ? `<span class="met-card__hint met-card__hint--aporte"><i data-lucide="calendar-range" style="width:12px;height:12px"></i> ${Utils.formatCurrency(meta.aporte_mensal_sugerido)}/mes sugeridos</span>`
                 : '';
             const contaBadge = meta.conta_id
-                ? `<span class="met-card__hint"><i data-lucide="landmark" style="width:12px;height:12px"></i> ${Utils.escHtml(meta.conta_nome || 'Conta vinculada')} - saldo sincronizado</span>`
+                ? `<span class="met-card__hint met-card__hint--account"><i data-lucide="landmark" style="width:12px;height:12px"></i> ${Utils.escHtml(meta.conta_nome || 'Conta vinculada')} - saldo sincronizado</span>`
                 : '';
+            const topMetaRow = [prazoInfo, aporteInfo].filter(Boolean).join('');
+            const contextRow = [contaBadge, demoTag].filter(Boolean).join('');
 
             return `
             <div class="met-card surface-card surface-card--interactive ${isCompleted ? 'met-card--completed' : ''}" style="--met-card-color: ${cor}" data-aos="fade-up">
@@ -390,11 +411,11 @@ export function createMetasUi({
                     <div class="met-card__title-group">
                         <span class="met-card__icon">${tipoEmoji}</span>
                         <div class="met-card__info">
-                            <span class="met-card__name">${Utils.escHtml(meta.titulo)}</span>
-                            ${prazoInfo}
-                            ${aporteInfo}
-                            ${contaBadge}
-                            ${demoTag}
+                            <div class="met-card__title-row">
+                                <span class="met-card__name">${Utils.escHtml(meta.titulo)}</span>
+                            </div>
+                            ${topMetaRow ? `<div class="met-card__meta-row">${topMetaRow}</div>` : ''}
+                            ${contextRow ? `<div class="met-card__context-row">${contextRow}</div>` : ''}
                         </div>
                     </div>
                     <div class="met-card__actions">
@@ -416,10 +437,12 @@ export function createMetasUi({
                     </div>
                 </div>
                 <div class="met-card__footer">
-                    <span class="met-card__pct">${progresso.toFixed(1)}%</span>
-                    ${prioridadeTag}
+                    <div class="met-card__footer-meta">
+                        <span class="met-card__pct">${progresso.toFixed(1)}%</span>
+                        ${prioridadeTag}
+                        ${statusTag}
+                    </div>
                     <span class="met-card__remaining-value">Faltam ${Utils.formatCurrency(Math.max(0, (meta.valor_alvo || 0) - (meta.valor_atual || 0)))}</span>
-                    ${statusTag}
                 </div>
                 ${isCompleted ? '<div class="met-celebrate"><i data-lucide="party-popper" style="width:14px;height:14px"></i> Meta atingida!</div>' : ''}
             </div>`;

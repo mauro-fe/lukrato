@@ -2,9 +2,56 @@
    RESPONSIVE
    ============================================================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 1180px) {
+  .orc-workspace-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .orc-workspace-side {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .orc-workspace-side .orc-customize-trigger {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 980px) {
+  .orc-page-header,
+  .orc-listing-shell__head,
+  .orc-insights-section__head {
+    grid-template-columns: 1fr;
+  }
+
+  .orc-page-header__meta {
+    justify-content: flex-start;
+  }
+
   .orc-summary-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .orc-insight-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .orc-insight-action {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .orc-overview-shell,
+  .orc-listing-shell,
+  .orc-insights-section,
+  .orc-focus-panel {
+    padding: 14px;
   }
 
   .orc-actions-bar {
@@ -16,12 +63,18 @@
     grid-template-columns: 1fr;
   }
 
+  .orc-focus-panel__stats,
+  .orc-workspace-side {
+    grid-template-columns: 1fr;
+  }
+
   .orc-focus-callout {
     flex-direction: column;
     align-items: stretch;
   }
 
   .orc-focus-callout__actions {
+    grid-template-columns: 1fr;
     min-width: 0;
   }
 
@@ -30,11 +83,15 @@
   }
 
   .orc-actions-bar__left {
-    justify-content: center;
+    justify-content: stretch;
   }
 
   .orc-action-btn {
     justify-content: center;
+  }
+
+  .orc-actions-bar__left .orc-action-btn {
+    width: 100%;
   }
 
   .orc-grid {
@@ -45,10 +102,24 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .orc-summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
-  .orc-summary-grid {
+  .orc-page {
+    gap: var(--spacing-4);
+  }
+
+  .orc-page-header__chip,
+  .orc-insights-section__count {
+    width: 100%;
+  }
+
+  .orc-page-header__meta {
+    display: grid;
     grid-template-columns: 1fr;
   }
 }

@@ -1,50 +1,179 @@
 @import './_base.css';
 
+.imp-config-page {
+  gap: var(--spacing-4);
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero {
+  padding: clamp(1rem, 1.05vw + 0.78rem, 1.25rem);
+  gap: 14px;
+  grid-template-columns: minmax(0, 1.34fr) minmax(270px, 0.8fr);
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero__content,
+[data-importacoes-page='configuracoes'] .imp-page-hero__aside {
+  gap: 10px;
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero__title {
+  font-size: clamp(1.3rem, 1.1rem + 0.72vw, 1.78rem);
+  line-height: 1.15;
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero__lead {
+  max-width: 50ch;
+  line-height: 1.42;
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero__meta-inline {
+  gap: 8px;
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero__meta-inline .imp-chip {
+  min-height: 28px;
+  font-size: 0.66rem;
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero__actions {
+  gap: 8px;
+}
+
+[data-importacoes-page='configuracoes'] .imp-page-hero__actions .btn {
+  min-height: 35px;
+  padding-inline: 12px;
+  font-size: 0.78rem;
+}
+
+.imp-config-hero-snapshot {
+  gap: 10px;
+  padding: 11px 12px;
+}
+
+.imp-config-hero-snapshot .imp-hero-snapshot__grid {
+  gap: 8px;
+}
+
+.imp-config-hero-snapshot .imp-hero-snapshot__item strong {
+  font-size: 0.84rem;
+}
+
 .imp-config-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.72fr) minmax(300px, 1fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.92fr);
   gap: var(--spacing-4);
   align-items: start;
 }
 
-.imp-config-main,
-.imp-config-side {
+.imp-config-main {
   display: grid;
   gap: var(--spacing-4);
 }
 
-.imp-config-card {
-  padding: clamp(1rem, 1.1vw + 0.7rem, 1.45rem);
+.imp-config-side {
   display: grid;
-  gap: var(--spacing-3);
+  gap: 12px;
+  align-content: start;
+  position: sticky;
+  top: 84px;
+}
+
+.imp-config-card {
+  padding: clamp(1rem, 1.1vw + 0.72rem, 1.35rem);
+  display: grid;
+  gap: 12px;
+}
+
+.imp-config-card--context,
+.imp-config-card--profile,
+.imp-config-side-card {
+  gap: 14px;
+}
+
+.imp-config-context-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.imp-config-context-note {
+  display: grid;
+  gap: 6px;
+  padding: 14px 15px;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 72%),
+    color-mix(in srgb, var(--color-bg) 91%, transparent);
+}
+
+.imp-config-context-note__eyebrow {
+  color: var(--color-text-muted);
+  font-size: 0.66rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.imp-config-context-note__title {
+  color: var(--color-text);
+  font-size: 0.98rem;
+  font-weight: 780;
+  line-height: 1.32;
+}
+
+.imp-config-context-note__copy {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .imp-config-account-form,
 .imp-config-save-form {
   display: grid;
-  gap: var(--spacing-3);
+  gap: 12px;
+}
+
+.imp-config-account-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.imp-config-account-form .btn {
+  min-width: 168px;
 }
 
 .imp-config-section {
   border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-3);
+  padding: 13px 14px;
   display: grid;
-  gap: var(--spacing-3);
+  gap: 12px;
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+}
+
+.imp-config-section__head {
+  gap: 4px;
 }
 
 .imp-config-csv-block {
-  background: color-mix(in srgb, var(--color-primary) 3%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--glass-border));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.014), transparent 68%),
+    color-mix(in srgb, var(--color-primary) 4%, var(--color-bg));
 }
 
 .imp-field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-3);
+  gap: 12px;
 }
 
 .imp-field-grid--csv-options {
-  grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 0.9fr));
+  align-items: end;
 }
 
 .imp-field-grid--mapping {
@@ -61,12 +190,12 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-2);
+  gap: 8px;
 }
 
 .imp-mode-switch__item {
   position: relative;
-  min-height: 42px;
+  min-height: 40px;
   border-radius: var(--radius-full);
   border: 1px solid color-mix(in srgb, var(--glass-border) 92%, transparent);
   background: color-mix(in srgb, var(--color-bg) 92%, transparent);
@@ -96,7 +225,7 @@
   min-height: 36px;
   border-radius: var(--radius-full);
   padding: 0 8px;
-  font-size: var(--font-size-sm);
+  font-size: 0.8rem;
   font-weight: 680;
   color: var(--color-text-muted);
 }
@@ -113,8 +242,8 @@
   align-items: center;
   gap: 10px;
   color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-weight: 520;
+  font-size: 0.8rem;
+  font-weight: 580;
 }
 
 .imp-checkbox input[type='checkbox'] {
@@ -124,32 +253,129 @@
 }
 
 .imp-config-csv-help {
-  margin-top: -2px;
+  margin: -2px 0 0;
+  padding: 11px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  font-size: 0.78rem;
+  line-height: 1.48;
 }
 
 .imp-manual-map {
-  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
-  padding: var(--spacing-3);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg) 93%, transparent);
+  padding: 12px 13px;
   display: grid;
-  gap: var(--spacing-3);
+  gap: 12px;
+}
+
+.imp-config-templates {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--glass-border) 86%, transparent);
+}
+
+.imp-config-templates__summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.imp-config-templates__summary::-webkit-details-marker {
+  display: none;
+}
+
+.imp-config-templates__summary-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.imp-config-templates__title {
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 760;
+  line-height: 1.36;
+}
+
+.imp-config-templates__copy {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.imp-config-templates__toggle {
+  color: var(--color-text-muted);
+  font-size: 0.66rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.imp-config-templates[open] .imp-config-templates__toggle {
+  color: var(--color-primary);
+}
+
+.imp-config-templates__body {
+  display: grid;
+  gap: 12px;
+}
+
+.imp-config-template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.imp-config-template-group {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+}
+
+.imp-config-template-group__title {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .imp-template-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-2);
-  border-top: 1px solid color-mix(in srgb, var(--glass-border) 86%, transparent);
-  padding-top: var(--spacing-3);
+  gap: 8px;
+  border-top: 0;
+  padding-top: 0;
+}
+
+.imp-template-actions .btn {
+  min-height: 34px;
+  font-size: 0.78rem;
 }
 
 .imp-save-actions {
   display: grid;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-2);
+  gap: 8px;
+  margin-top: 2px;
   border-top: 1px solid color-mix(in srgb, var(--glass-border) 86%, transparent);
-  padding-top: var(--spacing-3);
+  padding-top: 12px;
+}
+
+.imp-save-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.imp-save-actions [data-imp-config-save-feedback] {
+  min-height: 20px;
 }
 
 .imp-save-actions [data-status='loading'] {
@@ -167,43 +393,61 @@
 .imp-config-side__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-2);
+  gap: 8px;
 }
 
-@media (max-width: 1160px) {
-  .imp-field-grid--csv-options {
-    grid-template-columns: 1fr;
-  }
+.imp-config-side-summary {
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-@media (max-width: 1060px) {
-  .imp-config-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .imp-config-side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .imp-field-grid--mapping {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.imp-config-side-summary > div {
+  min-height: 74px;
+  padding: 10px 11px;
+  gap: 3px;
 }
 
-@media (max-width: 768px) {
-  .imp-field-grid {
-    grid-template-columns: 1fr;
-  }
+.imp-config-side-summary dt {
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+}
 
-  .imp-mode-switch {
-    grid-template-columns: 1fr;
-  }
+.imp-config-side-summary dd {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
 
-  .imp-field-grid--mapping {
-    grid-template-columns: 1fr;
-  }
+.imp-config-side-summary__item--full {
+  grid-column: 1 / -1;
+}
 
-  .imp-config-side {
-    grid-template-columns: 1fr;
-  }
+.imp-config-flow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.imp-config-flow-list li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+}
+
+.imp-config-flow-list strong {
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 730;
+}
+
+.imp-config-flow-list span {
+  color: var(--color-text-muted);
+  font-size: 0.77rem;
+  line-height: 1.44;
 }
