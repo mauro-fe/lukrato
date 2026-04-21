@@ -29,7 +29,7 @@ describe('admin/shared/api', () => {
         delete global.window;
     });
 
-    it('resolve a api base URL separadamente da base de navegacao', async () => {
+    it('resolve a api base URL separadamente da base de navegação', async () => {
         const { getBaseUrl, getApiBaseUrl, getCSRFToken, buildAppUrl, buildAssetUrl, buildUrl } = await import('./api.js');
 
         expect(getBaseUrl()).toBe('https://lukrato.com.br/');
@@ -80,7 +80,7 @@ describe('admin/shared/api', () => {
         expect(getCSRFToken()).toBe('legacy-token');
     });
 
-    it('usa credentials include nas requisicoes da camada compartilhada', async () => {
+    it('usa credentials include nas requisições da camada compartilhada', async () => {
         global.fetch.mockResolvedValue({
             ok: true,
             status: 200,

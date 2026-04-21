@@ -51,7 +51,7 @@ class DeleteControllerTest extends TestCase
             ->andReturn([
                 'success' => true,
                 'status' => 200,
-                'message' => 'Importacao excluida com sucesso.',
+                'message' => 'Importação excluída com sucesso.',
                 'data' => [
                     'batch_id' => 77,
                     'batch_removed' => true,
@@ -84,7 +84,7 @@ class DeleteControllerTest extends TestCase
             ->andReturn([
                 'success' => false,
                 'status' => 409,
-                'message' => 'O lote ainda esta em processamento e nao pode ser excluido agora.',
+                'message' => 'O lote ainda está em processamento e não pode ser excluído agora.',
             ]);
 
         $controller = new DeleteController($service);
@@ -93,7 +93,7 @@ class DeleteControllerTest extends TestCase
 
         $this->assertSame(409, $response->getStatusCode());
         $this->assertFalse((bool) ($payload['success'] ?? true));
-        $this->assertSame('O lote ainda esta em processamento e nao pode ser excluido agora.', $payload['message'] ?? null);
+        $this->assertSame('O lote ainda está em processamento e não pode ser excluído agora.', $payload['message'] ?? null);
     }
 
     private function seedAuthenticatedUserSession(int $userId, string $name): void

@@ -26,12 +26,12 @@ class DeleteController extends ApiController
         try {
             $result = $this->deletionService->deleteBatchForUser($userId, $id);
         } catch (\Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao excluir importacao.');
+            return $this->internalErrorResponse($e, 'Erro ao excluir importação.');
         }
 
         if (!(bool) ($result['success'] ?? false)) {
             return Response::errorResponse(
-                (string) ($result['message'] ?? 'Nao foi possivel excluir a importacao.'),
+                (string) ($result['message'] ?? 'Não foi possível excluir a importação.'),
                 (int) ($result['status'] ?? 400),
                 $result['errors'] ?? null
             );
@@ -39,7 +39,7 @@ class DeleteController extends ApiController
 
         return Response::successResponse(
             $result['data'] ?? null,
-            (string) ($result['message'] ?? 'Importacao excluida com sucesso.'),
+            (string) ($result['message'] ?? 'Importação excluída com sucesso.'),
             (int) ($result['status'] ?? 200)
         );
     }

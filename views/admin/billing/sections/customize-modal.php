@@ -28,7 +28,7 @@
             <div class="bill-customize-group">
                 <p class="bill-customize-group-title">Blocos da tela</p>
                 <label class="bill-customize-toggle">
-                    <span>Cabecalho da pagina</span>
+                    <span>Cabeçalho da página</span>
                     <input type="checkbox" id="toggleBillingHeader" checked>
                 </label>
                 <label class="bill-customize-toggle">

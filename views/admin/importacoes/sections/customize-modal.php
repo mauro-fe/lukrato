@@ -29,7 +29,7 @@
             <div class="imp-customize-group">
                 <p class="imp-customize-group-title">Blocos da tela</p>
                 <label class="imp-customize-toggle">
-                    <span>Cabecalho de contexto</span>
+                    <span>Cabeçalho de contexto</span>
                     <input type="checkbox" id="toggleImpHero" checked>
                 </label>
                 <label class="imp-customize-toggle">

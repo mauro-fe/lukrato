@@ -34,6 +34,47 @@ function resolveSourceLabel(row) {
     }
 }
 
+function resolveReviewState(row, allowCategoryReview) {
+    if (!allowCategoryReview) {
+        return {
+            key: 'ready',
+            label: 'Validado',
+        };
+    }
+
+    if (!hasCategory(row)) {
+        return {
+            key: 'pending',
+            label: 'Sem categoria',
+        };
+    }
+
+    if (row?.categoriaEditada) {
+        return {
+            key: 'reviewed',
+            label: 'Revisado',
+        };
+    }
+
+    return {
+        key: 'ready',
+        label: 'Pronto',
+    };
+}
+
+function resolveTypeTone(row) {
+    const normalizedType = String(row?.type || '').trim().toLowerCase();
+    if (normalizedType === 'receita') {
+        return 'receita';
+    }
+
+    if (normalizedType === 'despesa') {
+        return 'despesa';
+    }
+
+    return 'neutral';
+}
+
 export function createImportacoesPreviewManager({
     previewRowsBody,
     isContaOfxPreviewActive,
@@ -208,6 +249,58 @@ export function createImportacoesPreviewManager({
         return span;
     };
 
+    const buildStackCell = (title, copy = '') => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'imp-preview-cell-stack';
+
+        const titleElement = document.createElement('span');
+        titleElement.className = 'imp-preview-cell-title';
+        titleElement.textContent = String(title || '-');
+        wrapper.appendChild(titleElement);
+
+        if (String(copy || '').trim() !== '') {
+            const copyElement = document.createElement('span');
+            copyElement.className = 'imp-preview-cell-copy imp-preview-cell-copy--truncate';
+            copyElement.textContent = String(copy);
+            wrapper.appendChild(copyElement);
+        }
+
+        return wrapper;
+    };
+
+    const buildAmountBadge = (row) => {
+        const amount = document.createElement('span');
+        amount.className = 'imp-preview-amount';
+        amount.dataset.tone = resolveTypeTone(row);
+        amount.textContent = String(row?.amountLabel || '-');
+        return amount;
+    };
+
+    const buildTypeBadge = (row) => {
+        const badge = document.createElement('span');
+        badge.className = 'imp-preview-kind';
+        badge.dataset.kind = resolveTypeTone(row);
+        badge.textContent = String(row?.typeLabel || '-');
+        return badge;
+    };
+
+    const buildStatusBadge = (row) => {
+        const badge = document.createElement('span');
+        const reviewState = resolveReviewState(row, isContaOfxPreviewActive());
+        badge.className = 'imp-preview-status-pill';
+        badge.dataset.review = reviewState.key;
+        badge.textContent = reviewState.label;
+        return badge;
+    };
+
+    const buildTableCell = (label, className, child) => {
+        const cell = document.createElement('td');
+        cell.className = `imp-preview-table__cell ${className}`;
+        cell.dataset.label = label;
+        cell.appendChild(child);
+        return cell;
+    };
+
     const buildCategorySelect = (row) => {
         if (!isContaOfxPreviewActive()) {
             return buildFallbackCell(row?.categoriaNome || '-');
@@ -346,33 +439,23 @@ export function createImportacoesPreviewManager({
 
         rows.forEach((row) => {
             const tr = document.createElement('tr');
-            const values = [row.date, row.description, row.amountLabel, row.typeLabel];
+            const reviewState = resolveReviewState(row, isContaOfxPreviewActive());
+            tr.dataset.review = reviewState.key;
+            tr.dataset.source = resolveSourceKey(row);
 
-            values.forEach((value) => {
-                const td = document.createElement('td');
-                td.textContent = String(value ?? '-');
-                tr.appendChild(td);
-            });
-
-            const categoriaTd = document.createElement('td');
-            categoriaTd.appendChild(buildCategorySelect(row));
-            tr.appendChild(categoriaTd);
-
-            const subcategoriaTd = document.createElement('td');
-            subcategoriaTd.appendChild(buildSubcategorySelect(row));
-            tr.appendChild(subcategoriaTd);
-
-            const origemTd = document.createElement('td');
             const origemBadge = document.createElement('span');
             origemBadge.className = 'imp-preview-source';
             origemBadge.dataset.source = resolveSourceKey(row);
             origemBadge.textContent = resolveSourceLabel(row);
-            origemTd.appendChild(origemBadge);
-            tr.appendChild(origemTd);
 
-            const statusTd = document.createElement('td');
-            statusTd.textContent = String(row.status ?? '-');
-            tr.appendChild(statusTd);
+            tr.appendChild(buildTableCell('Data', 'imp-preview-table__cell--date', buildStackCell(row?.date || '-', '')));
+            tr.appendChild(buildTableCell('Descrição', 'imp-preview-table__cell--description', buildStackCell(row?.description || '-', row?.memo || '')));
+            tr.appendChild(buildTableCell('Valor', 'imp-preview-table__cell--amount', buildAmountBadge(row)));
+            tr.appendChild(buildTableCell('Tipo', 'imp-preview-table__cell--type', buildTypeBadge(row)));
+            tr.appendChild(buildTableCell('Categoria', 'imp-preview-table__cell--category', buildCategorySelect(row)));
+            tr.appendChild(buildTableCell('Subcategoria', 'imp-preview-table__cell--subcategory', buildSubcategorySelect(row)));
+            tr.appendChild(buildTableCell('Origem', 'imp-preview-table__cell--source', origemBadge));
+            tr.appendChild(buildTableCell('Status', 'imp-preview-table__cell--status', buildStatusBadge(row)));
 
             previewRowsBody.appendChild(tr);
         });

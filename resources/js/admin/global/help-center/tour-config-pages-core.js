@@ -338,8 +338,8 @@ export const TOUR_CONFIGS_CORE = {
             },
             {
                 selector: '#faturasListHeader',
-                title: 'Cabecalho da listagem',
-                description: 'Resumo rapido da visualizacão ativa.',
+                title: 'Cabeçalho da listagem',
+                description: 'Resumo rápido da visualização ativa.',
                 side: 'bottom',
                 align: 'start',
             },

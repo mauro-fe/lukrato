@@ -36,7 +36,7 @@ class ImportacaoEnvBoundaryTest extends TestCase
         $this->assertSame(
             [],
             $violations,
-            'Importacao services devem acessar ambiente apenas pela configuracao de runtime.'
+            'importação services devem acessar ambiente apenas pela configuração de runtime.'
         );
     }
 }

@@ -1,7 +1,7 @@
 import { NAVIGATION_VERSION } from './tour-shared.js';
 
 export const NAVIGATION_TOUR_CONFIG = {
-    label: 'Navegacao',
+    label: 'Navegação',
     version: NAVIGATION_VERSION,
     primarySelector: {
         desktop: ['#edgeMenuBtn', '.sidebar .nav-item[href*="dashboard"]'],
@@ -17,15 +17,15 @@ export const NAVIGATION_TOUR_CONFIG = {
         },
         {
             selector: '.sidebar .nav-item[href*="dashboard"]',
-            title: 'Inicio rapido',
+            title: 'Início rápido',
             description: 'Dashboard mostra panorama financeiro geral.',
             side: 'right',
             align: 'center',
         },
         {
             selector: '.sidebar .nav-item[href*="lancamentos"]',
-            title: 'Fluxo diario',
-            description: 'Lancamentos e a tela principal para registros.',
+            title: 'Fluxo diário',
+            description: 'Lançamentos e a tela principal para registros.',
             side: 'right',
             align: 'center',
         },
@@ -38,15 +38,15 @@ export const NAVIGATION_TOUR_CONFIG = {
         },
         {
             selector: '.sidebar .nav-item[href*="relatorios"]',
-            title: 'Analise',
-            description: 'Relatorios mostram padroes para decisoes.',
+            title: 'Análise',
+            description: 'Relatórios mostram padrões para decisões.',
             side: 'right',
             align: 'center',
         },
         {
             selector: ['.sidebar-footer .nav-item[href*="perfil"]', '#sidebarSuggestionBtn'],
-            title: 'Acoes finais',
-            description: 'No rodape voce encontra perfil e feedback.',
+            title: 'Ações finais',
+            description: 'No rodapé você encontra perfil e feedback.',
             side: 'right',
             align: 'center',
         },
@@ -63,14 +63,14 @@ export const NAVIGATION_TOUR_CONFIG = {
         {
             selector: '.sidebar',
             title: 'Menu lateral',
-            description: 'Com o menu aberto, voce acessa todas as telas.',
+            description: 'Com o menu aberto, você acessa todas as telas.',
             side: 'right',
             align: 'center',
             ensureSidebarOpen: true,
         },
         {
             selector: '.sidebar .nav-item[href*="lancamentos"]',
-            title: 'Lancamentos',
+            title: 'Lançamentos',
             description: 'Atalho para registrar movimentações do dia.',
             side: 'right',
             align: 'center',
@@ -78,8 +78,8 @@ export const NAVIGATION_TOUR_CONFIG = {
         },
         {
             selector: '.sidebar .nav-item[href*="relatorios"]',
-            title: 'Relatorios',
-            description: 'Acesse analises e visoes comparativas.',
+            title: 'Relatórios',
+            description: 'Acesse análises e visões comparativas.',
             side: 'right',
             align: 'center',
             ensureSidebarOpen: true,
@@ -87,7 +87,7 @@ export const NAVIGATION_TOUR_CONFIG = {
         {
             selector: ['.sidebar .sidebar-close-btn', '#sidebarBackdrop'],
             title: 'Fechar menu',
-            description: 'Toque no X ou fora do menu para voltar ao conteudo.',
+            description: 'Toque no X ou fora do menu para voltar ao conteúdo.',
             side: 'right',
             align: 'center',
             ensureSidebarOpen: true,

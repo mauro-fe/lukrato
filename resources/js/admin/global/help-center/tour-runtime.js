@@ -451,7 +451,7 @@ export async function startTutorialRuntime(helpCenter, target) {
     const steps = helpCenter.buildSteps(target);
 
     if (steps.length === 0) {
-        window.LK?.toast?.info('Ainda nao existe tutorial pronto para este fluxo.');
+        window.LK?.toast?.info('Ainda não existe tutorial pronto para este fluxo.');
         return false;
     }
 
@@ -531,7 +531,7 @@ export async function startTutorialRuntime(helpCenter, target) {
 export async function startCurrentPageTutorialRuntime(helpCenter, _options = {}) {
     const target = helpCenter.getPageTutorialTarget();
     if (!target) {
-        window.LK?.toast?.info('Ainda nao existe tutorial pronto para esta tela.');
+        window.LK?.toast?.info('Ainda não existe tutorial pronto para esta tela.');
         return false;
     }
 
@@ -541,7 +541,7 @@ export async function startCurrentPageTutorialRuntime(helpCenter, _options = {})
 export async function startNavigationTutorialRuntime(helpCenter, _options = {}) {
     const target = helpCenter.getNavigationTutorialTarget();
     if (!target) {
-        window.LK?.toast?.info('Ainda nao existe tutorial de navegacao.');
+        window.LK?.toast?.info('Ainda não existe tutorial de navegação.');
         return false;
     }
 
@@ -550,7 +550,7 @@ export async function startNavigationTutorialRuntime(helpCenter, _options = {}) 
 
 export async function showCurrentPageTipsRuntime(helpCenter) {
     if (!helpCenter.hasTips()) {
-        window.LK?.toast?.info('Ainda nao existe dica rapida para esta tela.');
+        window.LK?.toast?.info('Ainda não existe dica rápida para esta tela.');
         return false;
     }
 

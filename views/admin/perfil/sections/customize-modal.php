@@ -29,11 +29,11 @@
                 <div class="profile-customize-group">
                     <p class="profile-customize-group-title">Blocos da tela</p>
                     <label class="profile-customize-toggle">
-                        <span>Cabecalho do perfil</span>
+                        <span>Cabeçalho do perfil</span>
                         <input type="checkbox" id="togglePerfilHeader" checked>
                     </label>
                     <label class="profile-customize-toggle">
-                        <span>Navegacao por abas</span>
+                        <span>Navegação por abas</span>
                         <input type="checkbox" id="togglePerfilTabs" checked>
                     </label>
                 </div>

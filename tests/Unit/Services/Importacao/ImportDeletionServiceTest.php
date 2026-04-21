@@ -277,7 +277,7 @@ class ImportDeletionServiceTest extends TestCase
         try {
             DB::connection()->getPdo();
         } catch (\Throwable) {
-            $this->markTestSkipped('Database connection required for importacao deletion tests');
+            $this->markTestSkipped('Database connection required for importação deletion tests');
         }
     }
 

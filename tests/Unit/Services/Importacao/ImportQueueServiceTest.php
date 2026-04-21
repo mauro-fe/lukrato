@@ -281,7 +281,7 @@ class ImportQueueServiceTest extends TestCase
         try {
             DB::connection()->getPdo();
         } catch (\Throwable) {
-            $this->markTestSkipped('Database connection required for importacao queue tests');
+            $this->markTestSkipped('Database connection required for importação queue tests');
         }
     }
 

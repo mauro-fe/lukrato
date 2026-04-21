@@ -53,22 +53,22 @@ function buildUploadPrompt(importTarget, sourceType) {
         return importTarget === 'cartao'
             ? {
                 title: 'Envie o CSV da fatura',
-                copy: 'O melhor cenário aqui é data, descrição e valor legíveis; sem coluna de tipo, valor positivo vira despesa e negativo vira estorno.',
+                copy: 'Mantenha data, descrição e valor legíveis. Sem coluna de tipo, valor positivo vira despesa e negativo vira estorno.',
             }
             : {
                 title: 'Envie o CSV no padrão de conta',
-                copy: 'Esperamos tipo;data;descricao;valor com ;, datas dd/mm/yyyy, vírgula decimal e sem linhas incompletas no final.',
+                copy: 'Use tipo;data;descricao;valor com ;, datas dd/mm/yyyy e vírgula decimal.',
             };
     }
 
     return importTarget === 'cartao'
         ? {
             title: 'Envie o OFX da fatura',
-            copy: 'Compras e parcelas do MEMO entram automáticas, inclusive quando vier algo como "Parcela 3/6".',
+            copy: 'Compras e parcelas do MEMO entram automáticas.',
         }
         : {
             title: 'Envie o OFX do extrato',
-            copy: 'Pix, depósito e histórico entram automáticos, mesmo se o banco usar TRNTYPE genérico.',
+            copy: 'Pix, depósito e histórico entram automáticos.',
         };
 }
 
@@ -140,13 +140,13 @@ function buildDetectedImportTargetNoteText(detectedImportTarget, autoAdjusted = 
 export function buildAdvancedDescription(importTarget, sourceType) {
     if (sourceType === 'csv') {
         return importTarget === 'cartao'
-            ? 'Se a fatura vier em CSV, basta manter data, descrição e valor legíveis. Sem coluna de tipo, valor positivo vira despesa e negativo vira estorno; abra o avançado só se cabeçalho, delimitador ou data fugirem do padrão.'
-            : 'Para CSV de conta no padrão Lukrato, use tipo;data;descricao;valor com ;, datas em dd/mm/yyyy, valores com vírgula e remova linhas vazias ou incompletas no fim. Abra o avançado só se o arquivo fugir disso.';
+            ? 'Use data, descrição e valor. Abra o avançado só se cabeçalho, delimitador ou data fugirem do padrão.'
+            : 'Use tipo;data;descricao;valor com ;, datas em dd/mm/yyyy e vírgula decimal. Abra o avançado só se o arquivo fugir disso.';
     }
 
     return importTarget === 'cartao'
-        ? 'OFX de fatura entra automático. Compras parceladas podem vir no MEMO, como "Parcela 3/6", sem exigir mapeamento manual.'
-        : 'OFX bancário entra automático, mesmo quando o banco marca tudo como TRNTYPE genérico. O Lukrato usa data, valor e histórico do extrato.';
+        ? 'OFX de fatura entra automático. Parcelas podem vir no MEMO sem ajuste manual.'
+        : 'OFX bancário entra automático. O Lukrato usa data, valor e histórico do extrato.';
 }
 
 export function buildTemplateMeta(importTarget) {
@@ -298,7 +298,7 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
             return {
                 state: 'warning',
                 title: 'Selecione um cartão',
-                copy: 'Escolha o cartão/fatura que vai receber o arquivo antes de preparar o preview.',
+                copy: 'Escolha o cartão/fatura antes de preparar o preview.',
             };
         }
 
@@ -306,7 +306,7 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
             return {
                 state: 'warning',
                 title: currentCardLabel(),
-                copy: 'Este cartão não tem conta vinculada para herdar o perfil CSV. OFX pode seguir, mas CSV pode exigir ajuste manual.',
+                copy: 'Sem conta vinculada para herdar o perfil CSV. OFX segue normal; CSV pode exigir ajuste manual.',
             };
         }
 
@@ -323,7 +323,7 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
         return {
             state: 'warning',
             title: 'Selecione uma conta',
-            copy: 'Escolha a conta que vai receber o arquivo para liberar o preview.',
+            copy: 'Escolha a conta antes de preparar o preview.',
         };
     }
 
@@ -331,8 +331,8 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
         state: 'ready',
         title: currentAccountLabel(),
         copy: state.targetAutoAdjustedToDetectedFile
-            ? `${buildDetectedImportTargetNoteText('conta', true)} A conta selecionada define o contexto do preview e do perfil CSV aplicado.`
-            : 'A conta selecionada define o contexto do preview e do perfil CSV aplicado.',
+            ? `${buildDetectedImportTargetNoteText('conta', true)} Esta conta define o preview e o perfil CSV aplicado.`
+            : 'Esta conta define o preview e o perfil CSV aplicado.',
     };
 }
 
@@ -358,7 +358,7 @@ export function buildReadinessGuide(state, quota, {
         return {
             state: 'info',
             title: 'Montando preview',
-            copy: 'Validando o arquivo, normalizando linhas e preparando a revisão final.',
+            copy: 'Validando o arquivo e preparando a revisão final.',
         };
     }
 
@@ -400,7 +400,7 @@ export function buildReadinessGuide(state, quota, {
             return {
                 state: 'ready',
                 title: 'Preview pronto para revisar',
-                copy: `${state.previewSummary.uncategorizedRows} linha(s) ainda sem categoria. Você pode confirmar agora ou revisar antes da importação.`,
+                copy: `${state.previewSummary.uncategorizedRows} linha(s) sem categoria. Você pode revisar agora ou confirmar assim mesmo.`,
             };
         }
 
@@ -415,7 +415,7 @@ export function buildReadinessGuide(state, quota, {
         return {
             state: 'warning',
             title: state.selectedImportTarget === 'cartao' ? 'Falta escolher o cartão' : 'Falta escolher a conta',
-            copy: 'Defina o contexto da importação antes de enviar o arquivo.',
+            copy: 'Defina o contexto antes de enviar o arquivo.',
         };
     }
 

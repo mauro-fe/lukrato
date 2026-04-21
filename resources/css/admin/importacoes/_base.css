@@ -15,11 +15,17 @@
 }
 
 .imp-page-hero {
+  position: relative;
+  overflow: hidden;
   padding: clamp(1.1rem, 1.6vw, 1.6rem);
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(0, 1.3fr) minmax(300px, 0.82fr);
   gap: var(--spacing-4);
   align-items: start;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 62%),
+    color-mix(in srgb, var(--color-bg) 94%, transparent);
 }
 
 .imp-page-hero--compact {
@@ -28,7 +34,7 @@
 
 .imp-page-hero__content {
   display: grid;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   align-content: start;
 }
 
@@ -54,8 +60,95 @@
   margin: 0;
   color: var(--color-text-muted);
   line-height: 1.5;
-  max-width: 64ch;
+  max-width: 58ch;
   font-size: var(--font-size-sm);
+}
+
+.imp-hero-stepper {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.imp-hero-step {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px 15px;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.imp-hero-step__index {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.imp-hero-step__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.imp-hero-step__title {
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.imp-hero-step__copy {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.imp-hero-step[data-state='active'] {
+  border-color: color-mix(in srgb, var(--color-primary) 34%, var(--glass-border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 76%),
+    color-mix(in srgb, var(--color-bg) 90%, transparent);
+}
+
+.imp-hero-step[data-state='active'] .imp-hero-step__index {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  color: var(--color-primary);
+}
+
+.imp-hero-step[data-state='complete'] {
+  border-color: color-mix(in srgb, var(--color-success) 36%, var(--glass-border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-success) 10%, transparent), transparent 76%),
+    color-mix(in srgb, var(--color-bg) 90%, transparent);
+}
+
+.imp-hero-step[data-state='complete'] .imp-hero-step__index {
+  border-color: color-mix(in srgb, var(--color-success) 42%, transparent);
+  color: var(--color-success);
+}
+
+.imp-hero-step[data-state='warning'] {
+  border-color: color-mix(in srgb, var(--color-warning) 40%, var(--glass-border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-warning) 12%, transparent), transparent 76%),
+    color-mix(in srgb, var(--color-bg) 90%, transparent);
+}
+
+.imp-hero-step[data-state='warning'] .imp-hero-step__index {
+  border-color: color-mix(in srgb, var(--color-warning) 42%, transparent);
+  color: var(--color-warning);
 }
 
 .imp-page-hero__meta-inline {
@@ -77,6 +170,49 @@
 
 .imp-page-hero__aside--compact {
   justify-items: stretch;
+}
+
+.imp-hero-snapshot {
+  display: grid;
+  gap: 14px;
+  padding: 14px 15px;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+}
+
+.imp-hero-snapshot__eyebrow {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.imp-hero-snapshot__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.imp-hero-snapshot__item {
+  display: grid;
+  gap: 3px;
+}
+
+.imp-hero-snapshot__item span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.imp-hero-snapshot__item strong {
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 760;
+  line-height: 1.25;
 }
 
 .imp-hero-definition {

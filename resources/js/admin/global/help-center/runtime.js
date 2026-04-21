@@ -181,7 +181,7 @@ class HelpCenter {
             variant,
             key: `navigation.${variant}`,
             baseKey: 'navigation',
-            label: NAVIGATION_TOUR_CONFIG.label || 'Navegacao',
+            label: NAVIGATION_TOUR_CONFIG.label || 'Navegação',
             version: NAVIGATION_TOUR_CONFIG.version || NAVIGATION_VERSION,
             config: NAVIGATION_TOUR_CONFIG,
         };

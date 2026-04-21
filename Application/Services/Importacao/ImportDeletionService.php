@@ -42,7 +42,7 @@ class ImportDeletionService
             return [
                 'success' => false,
                 'status' => 404,
-                'message' => 'Lote de importacao nao encontrado.',
+                'message' => 'Lote de importação não encontrado.',
             ];
         }
 
@@ -50,7 +50,7 @@ class ImportDeletionService
             return [
                 'success' => false,
                 'status' => 409,
-                'message' => 'O lote ainda esta em processamento e nao pode ser excluido agora.',
+                'message' => 'O lote ainda está em processamento e não pode ser excluído agora.',
             ];
         }
 
@@ -66,7 +66,7 @@ class ImportDeletionService
                 return [
                     'success' => false,
                     'status' => 404,
-                    'message' => 'Lote de importacao nao encontrado.',
+                    'message' => 'Lote de importação não encontrado.',
                 ];
             }
 
@@ -74,7 +74,7 @@ class ImportDeletionService
                 return [
                     'success' => false,
                     'status' => 409,
-                    'message' => 'O lote ainda esta em processamento e nao pode ser excluido agora.',
+                    'message' => 'O lote ainda está em processamento e não pode ser excluído agora.',
                 ];
             }
 
@@ -134,7 +134,7 @@ class ImportDeletionService
                 return [
                     'success' => true,
                     'status' => 200,
-                    'message' => 'Importacao excluida com sucesso.',
+                    'message' => 'Importação excluída com sucesso.',
                     'data' => [
                         'batch_id' => $batchId,
                         'batch_removed' => true,
@@ -155,7 +155,7 @@ class ImportDeletionService
 
             $summary = $deletedCount > 0
                 ? sprintf('%d registro(s) preservado(s) por alteracao manual.', $retainedCount)
-                : sprintf('Nenhum registro foi excluido. %d registro(s) ainda estao preservados.', $retainedCount);
+                : sprintf('Nenhum registro foi excluído. %d registro(s) ainda estão preservados.', $retainedCount);
 
             $batchMeta['deletion'] = [
                 'partial' => true,
@@ -185,8 +185,8 @@ class ImportDeletionService
                 'success' => true,
                 'status' => 200,
                 'message' => $deletedCount > 0
-                    ? 'Importacao parcialmente excluida. Alguns registros foram preservados.'
-                    : 'Nenhum registro foi excluido porque os itens restantes foram alterados apos a importacao.',
+                    ? 'Importação parcialmente excluída. Alguns registros foram preservados.'
+                    : 'Nenhum registro foi excluído porque os itens restantes foram alterados após a importação.',
                 'data' => [
                     'batch_id' => (int) $batch->id,
                     'batch_removed' => false,
@@ -292,7 +292,7 @@ class ImportDeletionService
         if ($resolvedCartaoId === null) {
             return [
                 'action' => 'retain',
-                'reason' => 'O cartao relacionado nao esta mais disponivel para validar a reversao.',
+                'reason' => 'O cartão relacionado não está mais disponível para validar a reversão.',
             ];
         }
 
@@ -304,7 +304,7 @@ class ImportDeletionService
         if (!$cartao) {
             return [
                 'action' => 'retain',
-                'reason' => 'O cartao relacionado nao esta mais disponivel para validar a reversao.',
+                'reason' => 'O cartão relacionado não está mais disponível para validar a reversão.',
             ];
         }
 
@@ -329,44 +329,44 @@ class ImportDeletionService
     private function detectContaRetentionReason(Lancamento $lancamento, ImportacaoItem $item, ImportacaoLote $batch): ?string
     {
         if ((int) ($lancamento->conta_id ?? 0) !== (int) ($item->conta_id ?? 0)) {
-            return 'O lancamento foi movido para outra conta.';
+            return 'O lançamento foi movido para outra conta.';
         }
 
         if ((string) ($lancamento->tipo ?? '') !== (string) ($item->tipo ?? '')) {
-            return 'O tipo do lancamento foi alterado manualmente.';
+            return 'O tipo do lançamento foi alterado manualmente.';
         }
 
         if ($this->normalizeDate($lancamento->data ?? null) !== $this->normalizeDate($item->data ?? null)) {
-            return 'A data do lancamento foi alterada manualmente.';
+            return 'A data do lançamento foi alterada manualmente.';
         }
 
         if (!$this->sameMoney($lancamento->valor ?? null, $item->amount ?? null)) {
-            return 'O valor do lancamento foi alterado manualmente.';
+            return 'O valor do lançamento foi alterado manualmente.';
         }
 
         if (trim((string) ($lancamento->descricao ?? '')) !== trim((string) ($item->description ?? ''))) {
-            return 'A descricao do lancamento foi alterada manualmente.';
+            return 'A descrição do lançamento foi alterada manualmente.';
         }
 
         $expectedObservacao = $this->buildContaObservacao($item, $batch);
         if (trim((string) ($lancamento->observacao ?? '')) !== $expectedObservacao) {
-            return 'A observacao do lancamento foi alterada manualmente.';
+            return 'A observação do lançamento foi alterada manualmente.';
         }
 
         if (!(bool) ($lancamento->pago ?? false)) {
-            return 'O status de pagamento do lancamento foi alterado manualmente.';
+            return 'O status de pagamento do lançamento foi alterado manualmente.';
         }
 
         if ($this->normalizeDate($lancamento->data_pagamento ?? null) !== $this->normalizeDate($item->data ?? null)) {
-            return 'A data de pagamento do lancamento foi alterada manualmente.';
+            return 'A data de pagamento do lançamento foi alterada manualmente.';
         }
 
         if (!(bool) ($lancamento->afeta_caixa ?? false)) {
-            return 'O lancamento deixou de afetar caixa apos a importacao.';
+            return 'O lançamento deixou de afetar caixa após a importação.';
         }
 
         if ($this->toPositiveInt($lancamento->cartao_credito_id ?? null) !== null) {
-            return 'O lancamento foi vinculado a um cartao apos a importacao.';
+            return 'O lançamento foi vinculado a um cartão após a importação.';
         }
 
         return null;
@@ -410,7 +410,7 @@ class ImportDeletionService
         $expectedCartaoId = $this->toPositiveInt($raw['cartao_id'] ?? null) ?? (int) $cartao->id;
 
         if ((int) ($faturaItem->cartao_credito_id ?? 0) !== $expectedCartaoId) {
-            return 'O item da fatura foi movido para outro cartao.';
+            return 'O item da fatura foi movido para outro cartão.';
         }
 
         if ($expectedFaturaId !== null && (int) ($faturaItem->fatura_id ?? 0) !== $expectedFaturaId) {
@@ -422,7 +422,7 @@ class ImportDeletionService
         }
 
         if (trim((string) ($faturaItem->descricao ?? '')) !== $expectedDescricao) {
-            return 'A descricao do item da fatura foi alterada manualmente.';
+            return 'A descrição do item da fatura foi alterada manualmente.';
         }
 
         if (!$this->sameMoney($faturaItem->valor ?? null, $expectedValor)) {
@@ -438,31 +438,31 @@ class ImportDeletionService
         }
 
         if ($expectedCompetencia !== null && (int) ($faturaItem->mes_referencia ?? 0) !== (int) ($expectedCompetencia['mes'] ?? 0)) {
-            return 'A competencia do item da fatura foi alterada manualmente.';
+            return 'A competência do item da fatura foi alterada manualmente.';
         }
 
         if ($expectedCompetencia !== null && (int) ($faturaItem->ano_referencia ?? 0) !== (int) ($expectedCompetencia['ano'] ?? 0)) {
-            return 'A competencia do item da fatura foi alterada manualmente.';
+            return 'A competência do item da fatura foi alterada manualmente.';
         }
 
         if ((bool) ($faturaItem->eh_parcelado ?? false)) {
-            return 'O item da fatura foi parcelado apos a importacao.';
+            return 'O item da fatura foi parcelado após a importação.';
         }
 
         if ((int) ($faturaItem->parcela_atual ?? 1) !== 1 || (int) ($faturaItem->total_parcelas ?? 1) !== 1) {
-            return 'O item da fatura foi alterado em um parcelamento apos a importacao.';
+            return 'O item da fatura foi alterado em um parcelamento após a importação.';
         }
 
         if ($this->toPositiveInt($faturaItem->lancamento_id ?? null) !== null) {
-            return 'O item da fatura ja gerou um lancamento e foi preservado.';
+            return 'O item da fatura já gerou um lançamento e foi preservado.';
         }
 
         if ((bool) ($faturaItem->pago ?? false) !== $expectedPago) {
-            return 'O status de pagamento do item da fatura foi alterado apos a importacao.';
+            return 'O status de pagamento do item da fatura foi alterado após a importação.';
         }
 
         if ($this->normalizeDate($faturaItem->data_pagamento ?? null) !== $expectedDataPagamento) {
-            return 'A data de pagamento do item da fatura foi alterada apos a importacao.';
+            return 'A data de pagamento do item da fatura foi alterada após a importação.';
         }
 
         return null;

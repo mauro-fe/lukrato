@@ -321,7 +321,7 @@ async function handleDeleteClick(context, button) {
 
     const batchId = Number.parseInt(String(row.dataset.batchId || '0'), 10);
     if (!Number.isFinite(batchId) || batchId <= 0) {
-        notifyError('Nao foi possivel localizar o endpoint de exclusao.');
+        notifyError('Não foi possível localizar o endpoint de exclusão.');
         return;
     }
 
@@ -339,21 +339,21 @@ async function handleDeleteClick(context, button) {
             refreshHistoryMetrics(context);
         }
 
-        notifySuccess(payload?.message || 'Importacao excluida com sucesso.');
+        notifySuccess(payload?.message || 'Importação excluída com sucesso.');
     } catch (error) {
-        console.error('Erro ao excluir importacao:', error);
-        notifyError(resolveErrorMessage(error, 'Erro ao excluir importacao.'));
+        console.error('Erro ao excluir importação:', error);
+        notifyError(resolveErrorMessage(error, 'Erro ao excluir importação.'));
     } finally {
         setButtonLoading(button, false);
     }
 }
 
 async function confirmDelete() {
-    const message = 'Isso removera o lote, o rastreio da importacao e os registros que ainda estiverem intactos. Registros alterados manualmente serao preservados.';
+    const message = 'Isso removerá o lote, o rastreio da importação e os registros que ainda estiverem intactos. Registros alterados manualmente serão preservados.';
 
     if (window.LKFeedback?.confirm) {
         const result = await window.LKFeedback.confirm(message, {
-            title: 'Excluir importacao?',
+            title: 'Excluir importação?',
             confirmButtonText: 'Sim, excluir',
             cancelButtonText: 'Cancelar',
             confirmButtonColor: '#dc2626',
@@ -404,7 +404,7 @@ function patchRow(row, batch) {
     const actionHint = row.querySelector('[data-imp-history-action-hint]');
     if (actionHint) {
         actionHint.textContent = canDelete
-            ? 'Lote parcialmente preservado. Voce pode tentar excluir novamente depois.'
+            ? 'Lote parcialmente preservado. Você pode tentar excluir novamente depois.'
             : 'Aguarde o processamento terminar para excluir.';
     }
 }

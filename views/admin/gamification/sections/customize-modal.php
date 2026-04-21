@@ -21,7 +21,7 @@
             <div class="gam-customize-group">
                 <p class="gam-customize-group-title">Blocos da tela</p>
                 <label class="gam-customize-toggle">
-                    <span>Cabecalho</span>
+                    <span>Cabeçalho</span>
                     <input type="checkbox" id="toggleGamHeader" checked>
                 </label>
                 <label class="gam-customize-toggle">
