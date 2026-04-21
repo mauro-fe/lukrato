@@ -7,7 +7,7 @@
  * ============================================================================
  */
 
-import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { CONFIG, STATE, Utils, Modules, VIEW_META } from './state.js';
 
 // Local aliases
 const formatCurrency = (v) => Utils.formatCurrency(v);
@@ -50,6 +50,131 @@ function _resolveCartesianChartHeight(el, fallback = 380) {
         .find((value) => Number.isFinite(value) && value > 0) ?? viewportFallback;
 
     return Math.max(260, Math.round(rawHeight - paddingY));
+}
+
+const REPORT_VISUAL_META = {
+    [CONFIG.VIEWS.CATEGORY]: {
+        tone: 'category',
+        kicker: 'Leitura por categoria',
+        icon: 'pie-chart'
+    },
+    [CONFIG.VIEWS.BALANCE]: {
+        tone: 'balance',
+        kicker: 'Pulso do caixa',
+        icon: 'line-chart'
+    },
+    [CONFIG.VIEWS.COMPARISON]: {
+        tone: 'comparison',
+        kicker: 'Balanço operacional',
+        icon: 'bar-chart-3'
+    },
+    [CONFIG.VIEWS.ACCOUNTS]: {
+        tone: 'accounts',
+        kicker: 'Distribuição por conta',
+        icon: 'wallet'
+    },
+    [CONFIG.VIEWS.EVOLUTION]: {
+        tone: 'evolution',
+        kicker: 'Linha do tempo financeira',
+        icon: 'git-branch'
+    },
+    [CONFIG.VIEWS.ANNUAL_SUMMARY]: {
+        tone: 'annual',
+        kicker: 'Visão anual consolidada',
+        icon: 'calendar-days'
+    },
+    [CONFIG.VIEWS.ANNUAL_CATEGORY]: {
+        tone: 'annual',
+        kicker: 'Mapa anual por categoria',
+        icon: 'pie-chart'
+    }
+};
+
+function _getReportPeriodLabel() {
+    if (Utils.isYearlyView()) {
+        return `Ano ${String(STATE.currentMonth || '').split('-')[0]}`;
+    }
+
+    return Utils.formatMonthLabel(STATE.currentMonth);
+}
+
+function _getCategoryTypeLabel() {
+    const type = Utils.getActiveCategoryType();
+
+    const labels = {
+        despesas_por_categoria: 'Despesas',
+        receitas_por_categoria: 'Receitas',
+        despesas_anuais_por_categoria: 'Despesas anuais',
+        receitas_anuais_por_categoria: 'Receitas anuais'
+    };
+
+    return labels[type] || null;
+}
+
+function _getSelectedAccountLabel() {
+    if (!STATE.currentAccount) return null;
+
+    const account = STATE.accounts.find((item) => String(item.id) === String(STATE.currentAccount));
+    return account?.name || `Conta #${STATE.currentAccount}`;
+}
+
+function _buildChartShell(content, overrides = {}) {
+    const viewMeta = VIEW_META[STATE.currentView] || VIEW_META[CONFIG.VIEWS.CATEGORY];
+    const visualMeta = REPORT_VISUAL_META[STATE.currentView] || REPORT_VISUAL_META[CONFIG.VIEWS.CATEGORY];
+    const chips = [
+        {
+            icon: 'calendar-days',
+            label: _getReportPeriodLabel()
+        }
+    ];
+
+    const categoryTypeLabel = _getCategoryTypeLabel();
+    if (categoryTypeLabel) {
+        chips.push({
+            icon: 'filter',
+            label: categoryTypeLabel,
+            accent: true
+        });
+    }
+
+    const accountLabel = _getSelectedAccountLabel();
+    if (accountLabel) {
+        chips.push({
+            icon: 'landmark',
+            label: accountLabel
+        });
+    }
+
+    const title = overrides.title || viewMeta.title;
+    const description = overrides.description || viewMeta.description;
+
+    return `
+        <div class="report-visual-shell chart-shell chart-shell--${visualMeta.tone}">
+            <div class="report-visual-header">
+                <div class="report-visual-copy">
+                    <span class="report-visual-kicker">
+                        <i data-lucide="${visualMeta.icon}"></i>
+                        <span>${escapeHtml(overrides.kicker || visualMeta.kicker)}</span>
+                    </span>
+                    <h3 class="report-visual-title">${escapeHtml(title)}</h3>
+                    <p class="report-visual-description">${escapeHtml(description)}</p>
+                </div>
+
+                <div class="report-visual-badges">
+                    ${chips.map((chip) => `
+                        <span class="report-visual-badge${chip.accent ? ' report-visual-badge--accent' : ''}">
+                            <i data-lucide="${chip.icon}"></i>
+                            <span>${escapeHtml(chip.label)}</span>
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="chart-shell-body">
+                ${content}
+            </div>
+        </div>
+    `;
 }
 
 // ─── Chart Manager ───────────────────────────────────────────────────────────
@@ -139,7 +264,7 @@ export const ChartManager = {
             ? [processedEntries.slice(0, chunkSize), processedEntries.slice(chunkSize)].filter(chunk => chunk.length)
             : [processedEntries];
 
-        const html = `
+        const html = _buildChartShell(`
             <div class="chart-container chart-container-pie">
                 <div class="chart-dual">
                     ${chunks.map((_, idx) => `
@@ -151,7 +276,7 @@ export const ChartManager = {
             </div>
             <div id="subcategoryDrilldown" class="drilldown-panel" aria-hidden="true"></div>
             ${isMobile ? '<div id="categoryListMobile" class="category-list-mobile"></div>' : ''}
-        `;
+        `);
 
         Modules.UI.setContent(html);
         ChartManager.destroy();
@@ -589,13 +714,13 @@ export const ChartManager = {
 
         if (!labels.length) return Modules.UI.showEmptyState();
 
-        Modules.UI.setContent(`
+        Modules.UI.setContent(_buildChartShell(`
             <div class="chart-container chart-container-line">
                 <div class="chart-wrapper chart-wrapper-line">
                     <div id="chart0"></div>
                 </div>
             </div>
-        `);
+        `));
 
         ChartManager.destroy();
 
@@ -639,11 +764,6 @@ export const ChartManager = {
             grid: { borderColor: theme.gridColor, strokeDashArray: 4 },
             tooltip: { theme: theme.mode, y: { formatter: (v) => formatCurrency(v) } },
             legend: { position: 'bottom', labels: { colors: theme.textColor } },
-            title: {
-                text: 'Evolução do Saldo Mensal',
-                align: 'center',
-                style: { fontSize: '16px', fontWeight: 'bold', color: theme.textColor },
-            },
             dataLabels: { enabled: false },
             theme: { mode: theme.mode },
         });
@@ -664,13 +784,21 @@ export const ChartManager = {
 
         if (!labels.length) return Modules.UI.showEmptyState();
 
-        Modules.UI.setContent(`
+        const chartTitle = STATE.currentView === CONFIG.VIEWS.ACCOUNTS
+            ? 'Receitas x Despesas por Conta'
+            : STATE.currentView === CONFIG.VIEWS.ANNUAL_SUMMARY
+                ? 'Resumo Anual por Mês'
+                : 'Receitas x Despesas';
+
+        Modules.UI.setContent(_buildChartShell(`
             <div class="chart-container chart-container-bar">
                 <div class="chart-wrapper chart-wrapper-bar">
                     <div id="chart0"></div>
                 </div>
             </div>
-        `);
+        `, {
+            title: chartTitle
+        }));
 
         ChartManager.destroy();
 
@@ -679,12 +807,6 @@ export const ChartManager = {
         const theme = _getTheme();
         const chartEl = document.getElementById('chart0');
         const chartHeight = _resolveCartesianChartHeight(chartEl, 420);
-
-        const chartTitle = STATE.currentView === CONFIG.VIEWS.ACCOUNTS
-            ? 'Receitas x Despesas por Conta'
-            : STATE.currentView === CONFIG.VIEWS.ANNUAL_SUMMARY
-                ? 'Resumo Anual por Mês'
-                : 'Receitas x Despesas';
 
         const chart = new ApexCharts(chartEl, {
             chart: {
@@ -723,11 +845,6 @@ export const ChartManager = {
                 y: { formatter: (v) => formatCurrency(v) },
             },
             legend: { position: 'bottom', labels: { colors: theme.textColor }, markers: { shape: 'circle' } },
-            title: {
-                text: chartTitle,
-                align: 'center',
-                style: { fontSize: '16px', fontWeight: 'bold', color: theme.textColor },
-            },
             dataLabels: { enabled: false },
             theme: { mode: theme.mode },
         });

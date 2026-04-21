@@ -6,9 +6,17 @@
  * ============================================================================
  */
 
-import { CONFIG, STATE, Utils, escapeHtml, safeColor } from './state.js';
+import { CONFIG, STATE, Utils, VIEW_META, escapeHtml, safeColor } from './state.js';
 
 const formatCurrency = (v) => Utils.formatCurrency(v);
+
+function getReportPeriodLabel() {
+    if (Utils.isYearlyView()) {
+        return `Ano ${String(STATE.currentMonth || '').split('-')[0]}`;
+    }
+
+    return Utils.formatMonthLabel(STATE.currentMonth);
+}
 
 export function updateTrendBadge(elementId, current, previous, invertColors = false) {
     const el = document.getElementById(elementId);
@@ -495,6 +503,14 @@ export function renderCardsReport(data) {
     const reportArea = document.getElementById('reportArea');
     if (!reportArea) return;
 
+    const cardsViewMeta = VIEW_META[CONFIG.VIEWS.CARDS] || {
+        title: 'Saude dos cartoes',
+        description: 'Monitore faturas, uso de limite e sinais de atencao nos cartoes.'
+    };
+    const totalCardsLabel = data.cards?.length
+        ? `${data.cards.length} cart${data.cards.length > 1 ? 'ões' : 'ão'} acompanhad${data.cards.length > 1 ? 'os' : 'o'}`
+        : 'Sem cartoes ativos';
+
     const resumoHTML = (data.resumo_consolidado && data.cards && data.cards.length > 0) ? `
         <div class="consolidated-summary">
             <div class="summary-header">
@@ -579,6 +595,28 @@ export function renderCardsReport(data) {
 
     reportArea.innerHTML = `
         <div class="cards-report-container">
+            <div class="report-visual-header report-visual-header--cards">
+                <div class="report-visual-copy">
+                    <span class="report-visual-kicker">
+                        <i data-lucide="credit-card"></i>
+                        <span>Radar dos cartoes</span>
+                    </span>
+                    <h3 class="report-visual-title">${escapeHtml(cardsViewMeta.title)}</h3>
+                    <p class="report-visual-description">${escapeHtml(cardsViewMeta.description)}</p>
+                </div>
+
+                <div class="report-visual-badges">
+                    <span class="report-visual-badge">
+                        <i data-lucide="calendar-days"></i>
+                        <span>${escapeHtml(getReportPeriodLabel())}</span>
+                    </span>
+                    <span class="report-visual-badge report-visual-badge--accent">
+                        <i data-lucide="wallet"></i>
+                        <span>${escapeHtml(totalCardsLabel)}</span>
+                    </span>
+                </div>
+            </div>
+
             ${resumoHTML}
             
             <div class="cards-grid">

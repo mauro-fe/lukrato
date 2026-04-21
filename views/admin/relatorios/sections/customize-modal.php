@@ -1,10 +1,3 @@
-    <div class="rel-customize-trigger">
-        <button class="rel-customize-open surface-card" id="btnCustomizeRelatorios" type="button">
-            <i data-lucide="sliders-horizontal"></i>
-            <span>Personalizar tela</span>
-        </button>
-    </div>
-
     <div class="rel-customize-overlay" id="relatoriosCustomizeModalOverlay" style="display:none;">
         <div class="rel-customize-modal surface-card" role="dialog" aria-modal="true"
             aria-labelledby="relatoriosCustomizeModalTitle">

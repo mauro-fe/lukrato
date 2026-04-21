@@ -679,7 +679,7 @@
     ]
   },
   "admin/relatorios/index.js": {
-    "file": "assets/relatorios-lRY7GEUn.js",
+    "file": "assets/relatorios-BIRAmaJT.js",
     "name": "relatorios",
     "src": "admin/relatorios/index.js",
     "isEntry": true,
@@ -692,7 +692,7 @@
       "_reports-BC0wIUpu.js"
     ],
     "css": [
-      "assets/relatorios-BCnODPBN.css"
+      "assets/relatorios-DZvINER1.css"
     ]
   },
   "admin/sysadmin/ai-chat.js": {

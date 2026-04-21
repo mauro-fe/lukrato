@@ -22,7 +22,145 @@
   margin-top: var(--spacing-5);
 }
 
+.report-visual-shell {
+  --report-accent: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.report-visual-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  border-radius: calc(var(--radius-xl) + 2px);
+  border: 1px solid color-mix(in srgb, var(--report-accent) 18%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--report-accent) 18%, transparent), transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--report-accent) 12%, transparent), color-mix(in srgb, var(--report-accent) 3%, var(--color-surface)) 62%);
+  overflow: hidden;
+}
+
+.report-visual-header::after {
+  content: "";
+  position: absolute;
+  inset: auto auto 0 0;
+  width: 140px;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--report-accent), transparent);
+}
+
+.report-visual-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.report-visual-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  color: var(--report-accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.report-visual-kicker i,
+.report-visual-kicker svg {
+  width: 14px;
+  height: 14px;
+}
+
+.report-visual-title {
+  margin: 0 0 var(--spacing-2);
+  color: var(--color-text);
+  font-size: clamp(1.2rem, 1.6vw, 1.6rem);
+  line-height: 1.1;
+}
+
+.report-visual-description {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.report-visual-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  max-width: min(100%, 360px);
+}
+
+.report-visual-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 36px;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  backdrop-filter: blur(12px);
+}
+
+.report-visual-badge i,
+.report-visual-badge svg {
+  width: 14px;
+  height: 14px;
+  color: var(--report-accent);
+}
+
+.report-visual-badge--accent {
+  border-color: color-mix(in srgb, var(--report-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--report-accent) 10%, transparent);
+}
+
+.chart-shell-body {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.chart-shell--category {
+  --report-accent: #e67e22;
+}
+
+.chart-shell--balance {
+  --report-accent: #3b82f6;
+}
+
+.chart-shell--comparison {
+  --report-accent: #ef4444;
+}
+
+.chart-shell--accounts {
+  --report-accent: #14b8a6;
+}
+
+.chart-shell--evolution {
+  --report-accent: #22c55e;
+}
+
+.chart-shell--annual {
+  --report-accent: #f59e0b;
+}
+
 .chart-container {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--report-accent) 12%, transparent), transparent 35%),
+    linear-gradient(180deg, color-mix(in srgb, var(--report-accent) 5%, transparent), transparent 26%),
+    var(--glass-bg);
   padding: var(--spacing-6);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
@@ -35,6 +173,15 @@
   border: 1px solid var(--glass-border);
   transition: all var(--transition-smooth);
   width: 100%;
+}
+
+.chart-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--report-accent) 12%, transparent);
+  pointer-events: none;
 }
 
 .chart-container:hover {
@@ -98,7 +245,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--spacing-5);
-  margin-top: var(--spacing-5);
+  margin-top: 0;
   width: 100%;
 }
 

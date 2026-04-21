@@ -3,6 +3,28 @@
    ============================================================================ */
 
 @media (max-width: 768px) {
+  .controls-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .controls-actions {
+    min-width: 0;
+    width: 100%;
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+
+  .controls-actions .control-group {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .control-group--action .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .reports-context-card {
     flex-direction: column;
     padding: var(--spacing-4);

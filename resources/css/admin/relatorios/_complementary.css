@@ -172,10 +172,11 @@
 
 /* Controls Row */
 .controls-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: stretch;
   gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
-  flex-wrap: wrap;
+  margin-bottom: var(--spacing-5);
 }
 
 .report-filter-summary {
@@ -214,6 +215,30 @@
   gap: var(--spacing-2);
 }
 
+.controls-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  min-width: 280px;
+  padding: var(--spacing-3);
+}
+
+.controls-actions .control-group {
+  min-width: 0;
+  width: auto;
+  flex: 0 0 auto;
+  gap: 0;
+}
+
+.control-group--action {
+  justify-content: flex-end;
+}
+
+.control-group--action .btn {
+  min-height: 42px;
+}
+
 .control-group.hidden {
   display: none;
 }
@@ -233,8 +258,27 @@
 
 /* Report Card */
 .report-card {
+  position: relative;
   min-height: 500px;
   padding: var(--spacing-5);
+  overflow: hidden;
+}
+
+.report-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 180px;
+  background: radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 62%);
+  pointer-events: none;
+}
+
+.report-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  min-height: 100%;
 }
 
 .report-state-actions {

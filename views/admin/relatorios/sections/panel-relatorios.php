@@ -77,24 +77,25 @@
                 </select>
             </div>
 
-            <div class="control-group surface-control-box surface-control-box--interactive" id="clearFiltersWrapper"
-                style="display:none; align-items: flex-end;">
-                <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary"
-                    title="Resetar filtros para padrão" style="white-space: nowrap;">
-                    <i data-lucide="eraser"></i>
-                    Limpar Filtros
-                </button>
-            </div>
+            <div class="controls-actions surface-control-box surface-control-box--interactive" id="reportActionsRow">
+                <div class="control-group control-group--action" id="clearFiltersWrapper" style="display:none;">
+                    <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary"
+                        title="Resetar filtros para padrão" style="white-space: nowrap;">
+                        <i data-lucide="eraser"></i>
+                        Limpar Filtros
+                    </button>
+                </div>
 
-            <div class="control-group surface-control-box surface-control-box--interactive" id="exportControl"
-                style="margin-left: auto; align-items: flex-end;">
-                <button type="button" id="exportBtn" class="btn btn-secondary btn-compact-export"
-                    <?= !$isPro ? 'disabled title="Recurso PRO"' : '' ?>>
-                    <i data-lucide="download"></i>
-                    <span>Exportar</span>
-                    <?php if (!$isPro): ?><span class="tab-pro-badge surface-chip surface-chip--pro surface-chip--xs"
-                            style="margin-left:4px"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
-                </button>
+                <div class="control-group control-group--action" id="exportControl">
+                    <button type="button" id="exportBtn" class="btn btn-secondary btn-compact-export"
+                        <?= !$isPro ? 'disabled title="Recurso PRO"' : '' ?>>
+                        <i data-lucide="download"></i>
+                        <span>Exportar</span>
+                        <?php if (!$isPro): ?><span
+                                class="tab-pro-badge surface-chip surface-chip--pro surface-chip--xs"
+                                style="margin-left:4px"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
+                    </button>
+                </div>
             </div>
         </div>
 
