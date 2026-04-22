@@ -5,6 +5,31 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
     } = dependencies;
 
     Object.assign(ManagerClass.prototype, {
+        syncPageModeState() {
+            const root = this.getRootElement?.();
+            if (!root || !this.isPageMode?.()) {
+                return;
+            }
+
+            const page = root.closest('.lancamento-create-page');
+            const currentStep = String(this.currentStep || 1);
+            const currentType = typeof this.tipoAtual === 'string' ? this.tipoAtual : '';
+
+            [root, page].forEach((element) => {
+                if (!element) {
+                    return;
+                }
+
+                element.dataset.wizardStep = currentStep;
+
+                if (currentType !== '') {
+                    element.dataset.wizardTipo = currentType;
+                } else {
+                    delete element.dataset.wizardTipo;
+                }
+            });
+        },
+
         closeModal() {
             const root = this.getRootElement?.();
             if (!root) {
@@ -39,6 +64,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             this.goToStep(1);
             this.restaurarCabecalhoPadrao();
             this.resetarFormulario();
+            this.syncPageModeState();
         },
 
         initWizard() {
@@ -86,6 +112,8 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
                 step1.classList.add('active');
                 step1.style.display = '';
             }
+
+            this.syncPageModeState();
         },
 
         renderProgress() {
@@ -137,6 +165,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             }
 
             this.renderProgress();
+            this.syncPageModeState();
 
             const contaInfo = document.getElementById('globalContaInfo');
             if (contaInfo) {

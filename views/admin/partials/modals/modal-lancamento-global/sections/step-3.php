@@ -9,7 +9,7 @@
     </div>
 
     <!-- Conta Destino (somente para transferência) -->
-    <div class="lk-form-group" id="globalContaDestinoGroup" style="display: none;">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--destination" id="globalContaDestinoGroup" style="display: none;">
         <label for="globalLancamentoContaDestino" class="lk-label required">
             <i data-lucide="arrow-left-right"></i>
             Conta de Destino
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Forma de Pagamento (para despesas) -->
-    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaPagamentoGroup" style="display: none;">
+    <div class="lk-form-group lk-forma-pagamento-section lk-page-step-panel lk-page-step-panel--payment-surface" id="globalFormaPagamentoGroup" style="display: none;">
         <input type="hidden" id="globalFormaPagamento" name="forma_pagamento" value="">
         <label class="lk-forma-pagamento-label">
             <i data-lucide="wallet"></i>
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Forma de Recebimento (para receitas) -->
-    <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaRecebimentoGroup" style="display: none;">
+    <div class="lk-form-group lk-forma-pagamento-section lk-page-step-panel lk-page-step-panel--payment-surface" id="globalFormaRecebimentoGroup" style="display: none;">
         <input type="hidden" id="globalFormaRecebimento" name="forma_recebimento" value="">
         <label class="lk-forma-pagamento-label">
             <i data-lucide="hand-coins"></i>
@@ -98,7 +98,7 @@
     </div>
 
     <!-- Seleção de Cartão (quando forma é cartão de crédito) -->
-    <div class="lk-form-group lk-forma-cartao-info" id="globalCartaoCreditoGroup">
+    <div class="lk-form-group lk-forma-cartao-info lk-page-step-panel lk-page-step-panel--detail" id="globalCartaoCreditoGroup">
         <label for="globalLancamentoCartaoCredito" class="lk-label">
             <i data-lucide="credit-card"></i>
             Qual cartão?
@@ -116,7 +116,7 @@
     </div>
 
     <!-- Seleção de Fatura para Estorno -->
-    <div class="lk-form-group" id="globalFaturaEstornoGroup" style="display: none;">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--detail" id="globalFaturaEstornoGroup" style="display: none;">
         <label for="globalLancamentoFaturaEstorno" class="lk-label">
             <i data-lucide="receipt"></i>
             Em qual fatura aplicar o estorno?
@@ -133,7 +133,7 @@
     </div>
 
     <!-- Parcelamento (somente se cartão selecionado) -->
-    <div class="lk-form-group" id="globalParcelamentoGroup" style="display: none;">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--detail" id="globalParcelamentoGroup" style="display: none;">
         <div class="lk-checkbox-wrapper">
             <label class="lk-checkbox-label">
                 <input type="checkbox" id="globalLancamentoParcelado" name="eh_parcelado" class="lk-checkbox">
@@ -150,7 +150,7 @@
     </div>
 
     <!-- Assinatura / Recorrência no Cartão (somente se cartão selecionado) -->
-    <div class="lk-form-group" id="globalAssinaturaCartaoGroup" style="display: none;">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--detail" id="globalAssinaturaCartaoGroup" style="display: none;">
         <div class="lk-checkbox-wrapper" style="margin-bottom: 0.5rem;">
             <label class="lk-checkbox-label">
                 <input type="checkbox" id="globalLancamentoAssinaturaCartao" name="recorrente_cartao" value="1"
@@ -212,7 +212,7 @@
     </div>
 
     <!-- Número de Parcelas (quando parcelado) -->
-    <div class="lk-form-group" id="globalNumeroParcelasGroup" style="display: none;">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--detail" id="globalNumeroParcelasGroup" style="display: none;">
         <label for="globalLancamentoTotalParcelas" class="lk-label required">
             <i data-lucide="list-ordered"></i>
             <span id="globalNumeroParcelasLabelTexto">Número de parcelas</span>

@@ -4,6 +4,7 @@
 
 @media (max-width: 768px) {
   .controls-row {
+    width: 100%;
     grid-template-columns: 1fr;
     gap: var(--spacing-3);
   }

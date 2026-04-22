@@ -180,8 +180,10 @@
 }
 
 .controls-row[data-layout-density="sparse"] {
+  width: fit-content;
+  max-width: 100%;
   grid-template-columns: minmax(0, min(720px, 1fr)) max-content;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--spacing-3);
 }
 
@@ -190,15 +192,16 @@
 }
 
 .controls-row[data-layout-density="sparse"] .controls-actions {
-  align-self: start;
+  align-self: end;
+  justify-content: flex-start;
 }
 
 .controls-row[data-layout-density="sparse"][data-view="cards"] {
-  grid-template-columns: minmax(0, min(680px, 1fr)) max-content;
+  grid-template-columns: minmax(360px, 680px) max-content;
 }
 
 .controls-row[data-layout-density="sparse"][data-view="accounts"] {
-  grid-template-columns: minmax(0, min(700px, 1fr)) max-content;
+  grid-template-columns: minmax(360px, 700px) max-content;
 }
 
 .report-filter-summary {
@@ -251,6 +254,10 @@
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+.controls-row[data-layout-density="sparse"][data-has-clear="false"] .controls-actions {
+  gap: var(--spacing-2);
 }
 
 .controls-actions .control-group {

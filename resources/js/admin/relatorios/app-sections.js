@@ -246,6 +246,8 @@ export function createSectionHandlers({ API }) {
             return;
         }
 
+        insightsContainer.classList.add('insights-grid--has-featured');
+
         const insightsHTML = data.insights
             .map((insight, index) => {
                 const lucideIcon = INSIGHT_ICON_MAP[insight.icon] || insight.icon;
@@ -313,10 +315,20 @@ export function createSectionHandlers({ API }) {
 
         comparativesContainer.innerHTML =
             `<div class="comp-top-row">${monthlyHTML}${yearlyHTML}</div>` +
-            `<div class="comp-duo-grid">${mediaDiariaHTML}${taxaEconomiaHTML}</div>` +
-            categoriesHTML +
-            evolucaoHTML +
-            formasHTML;
+            `<section class="comparatives-subsection comparatives-subsection--metrics">
+                <div class="comparatives-subsection-header">
+                    <span class="comparatives-subsection-kicker">Leituras rápidas</span>
+                    <h4>Indicadores de eficiência</h4>
+                </div>
+                <div class="comp-duo-grid">${mediaDiariaHTML}${taxaEconomiaHTML}</div>
+            </section>` +
+            `<section class="comparatives-subsection comparatives-subsection--analysis">
+                <div class="comparatives-subsection-header">
+                    <span class="comparatives-subsection-kicker">Leituras complementares</span>
+                    <h4>Entenda onde a diferença apareceu</h4>
+                </div>
+                <div class="comparatives-support-stack">${categoriesHTML}${evolucaoHTML}${formasHTML}</div>
+            </section>`;
 
         if (window.lucide) lucide.createIcons();
         renderEvolucaoChart(data.evolucao || []);

@@ -9,7 +9,7 @@
     </div>
 
     <!-- Descrição -->
-    <div class="lk-form-group">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--description">
         <label for="globalLancamentoDescricao" class="lk-label required">
             <i data-lucide="align-left"></i>
             Descrição
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Valor -->
-    <div class="lk-form-group">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--value">
         <label for="globalLancamentoValor" class="lk-label required">
             <i data-lucide="dollar-sign"></i>
             Valor
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <div class="lk-form-group" id="globalMetaGroup" style="display: none;">
+    <div class="lk-form-group lk-page-step-panel lk-page-step-panel--meta" id="globalMetaGroup" style="display: none;">
         <label for="globalLancamentoMeta" class="lk-label">
             <i data-lucide="target"></i>
             Vincular a uma meta

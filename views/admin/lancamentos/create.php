@@ -14,7 +14,7 @@ $lancamentoWizardPresetAccountId = $wizardPresetAccountId;
 $lancamentoWizardTipo = $wizardTipo;
 ?>
 
-<section class="lancamento-create-page">
+<section class="lancamento-create-page" data-wizard-step="1">
     <div class="lancamento-create-page__toolbar">
         <a class="lancamento-create-page__back" href="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>"
             data-no-transition="true">
