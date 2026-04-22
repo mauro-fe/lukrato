@@ -26,7 +26,7 @@
   --report-accent: var(--color-primary);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
 }
 
 .report-visual-header {
@@ -35,12 +35,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-4);
-  padding: var(--spacing-5);
+  padding: var(--spacing-4) var(--spacing-5);
   border-radius: calc(var(--radius-xl) + 2px);
   border: 1px solid color-mix(in srgb, var(--report-accent) 18%, var(--glass-border));
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--report-accent) 18%, transparent), transparent 42%),
-    linear-gradient(135deg, color-mix(in srgb, var(--report-accent) 12%, transparent), color-mix(in srgb, var(--report-accent) 3%, var(--color-surface)) 62%);
+    radial-gradient(circle at top right, color-mix(in srgb, var(--report-accent) 14%, transparent), transparent 40%),
+    linear-gradient(135deg, color-mix(in srgb, var(--report-accent) 8%, transparent), color-mix(in srgb, var(--report-accent) 2%, var(--color-surface)) 62%);
   overflow: hidden;
 }
 
@@ -80,7 +80,7 @@
 .report-visual-title {
   margin: 0 0 var(--spacing-2);
   color: var(--color-text);
-  font-size: clamp(1.2rem, 1.6vw, 1.6rem);
+  font-size: clamp(1.1rem, 1.35vw, 1.45rem);
   line-height: 1.1;
 }
 
@@ -88,8 +88,8 @@
   margin: 0;
   max-width: 60ch;
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  line-height: 1.6;
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
 .report-visual-badges {
@@ -104,13 +104,13 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-2);
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 var(--spacing-3);
   border-radius: var(--radius-full);
   border: 1px solid color-mix(in srgb, var(--color-text-muted) 14%, transparent);
   background: color-mix(in srgb, var(--color-surface) 88%, transparent);
   color: var(--color-text);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
   backdrop-filter: blur(12px);
 }
@@ -158,14 +158,14 @@
 
 .chart-container {
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--report-accent) 12%, transparent), transparent 35%),
-    linear-gradient(180deg, color-mix(in srgb, var(--report-accent) 5%, transparent), transparent 26%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--report-accent) 8%, transparent), transparent 32%),
+    linear-gradient(180deg, color-mix(in srgb, var(--report-accent) 3%, transparent), transparent 22%),
     var(--glass-bg);
-  padding: var(--spacing-6);
+  padding: var(--spacing-4) var(--spacing-5);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   position: relative;
-  min-height: 500px;
+  min-height: clamp(320px, 52vh, 640px);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -180,7 +180,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  border: 1px solid color-mix(in srgb, var(--report-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--report-accent) 8%, transparent);
   pointer-events: none;
 }
 
@@ -212,16 +212,15 @@
 }
 
 .chart-container-pie {
-  min-height: 400px;
+  min-height: clamp(300px, 40vh, 460px);
 }
 
 .chart-wrapper-pie {
-  max-width: 650px;
+  max-width: 520px;
 }
 
 .chart-container-bar {
-  min-height: 500px;
-  padding: var(--spacing-4);
+  min-height: clamp(340px, 54vh, 620px);
 }
 
 .chart-wrapper-bar {
@@ -231,8 +230,7 @@
 }
 
 .chart-container-line {
-  min-height: 500px;
-  padding: var(--spacing-4);
+  min-height: clamp(340px, 56vh, 660px);
 }
 
 .chart-wrapper-line {
@@ -250,7 +248,7 @@
 }
 
 .chart-dual .chart-container {
-  min-height: 400px;
+  min-height: clamp(280px, 36vh, 420px);
   width: 100%;
 }
 

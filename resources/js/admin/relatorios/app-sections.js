@@ -247,14 +247,15 @@ export function createSectionHandlers({ API }) {
         }
 
         const insightsHTML = data.insights
-            .map((insight) => {
+            .map((insight, index) => {
                 const lucideIcon = INSIGHT_ICON_MAP[insight.icon] || insight.icon;
                 return `
-                <div class="insight-card insight-${insight.type} surface-card surface-card--interactive">
+                <div class="insight-card insight-${insight.type} surface-card surface-card--interactive${index === 0 ? ' insight-card--featured' : ''}">
                     <div class="insight-icon">
                         <i data-lucide="${lucideIcon}"></i>
                     </div>
                     <div class="insight-content">
+                        ${index === 0 ? '<span class="insight-priority-pill">Destaque do período</span>' : ''}
                         <h4>${escapeHtml(insight.title)}</h4>
                         <p>${escapeHtml(insight.message)}</p>
                     </div>
@@ -302,8 +303,8 @@ export function createSectionHandlers({ API }) {
             return;
         }
 
-        const monthlyHTML = renderComparative('Comparativo Mensal', data.monthly, 'mês anterior');
-        const yearlyHTML = renderComparative('Comparativo Anual', data.yearly, 'ano anterior');
+        const monthlyHTML = renderComparative('Comparativo Mensal', data.monthly, 'mês anterior', 'monthly');
+        const yearlyHTML = renderComparative('Comparativo Anual', data.yearly, 'ano anterior', 'annual');
         const categoriesHTML = renderCategoryComparison(data.categories || []);
         const evolucaoHTML = renderEvolucao(data.evolucao || []);
         const mediaDiariaHTML = renderMediaDiaria(data.mediaDiaria);

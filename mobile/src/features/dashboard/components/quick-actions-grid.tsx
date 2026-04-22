@@ -15,7 +15,7 @@ export function QuickActionsGrid({ actions }: QuickActionsGridProps) {
 
   return (
     <AppCard>
-      <Text style={styles.title}>Atalhos que o usuario entende rápido</Text>
+      <Text style={styles.title}>Atalhos que o usuário entende rápido</Text>
       <View style={styles.grid}>
         {actions.map((action) => (
           <Pressable

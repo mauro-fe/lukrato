@@ -145,6 +145,7 @@ function setupFilters(reportType, accountSelect) {
         const hasTypeFilter = reportType && reportType.selectedIndex > 0;
         const hasAccountFilter = accountSelect && accountSelect.value !== '';
         clearFiltersWrapper.style.display = (hasTypeFilter || hasAccountFilter) ? 'flex' : 'none';
+        UI.syncControlsLayoutState();
     };
 
     reportType?.addEventListener('change', showClearBtn);

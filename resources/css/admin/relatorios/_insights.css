@@ -36,11 +36,34 @@
 }
 
 .insight-card {
+  --insight-accent: var(--color-primary);
   border-left: 4px solid var(--color-primary);
   padding: var(--spacing-4);
   display: flex;
   gap: var(--spacing-3);
   animation: insightSlideIn 0.5s ease-out both;
+}
+
+.insight-card--featured {
+  grid-column: span 2;
+  position: relative;
+  border-left-width: 0;
+  border: 1px solid color-mix(in srgb, var(--insight-accent) 28%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--insight-accent) 16%, transparent), transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--insight-accent) 10%, transparent), color-mix(in srgb, var(--insight-accent) 3%, var(--color-surface)) 62%);
+  padding: var(--spacing-5);
+  overflow: hidden;
+}
+
+.insight-card--featured::after {
+  content: "";
+  position: absolute;
+  inset: auto auto 0 0;
+  width: 160px;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--insight-accent), transparent);
 }
 
 /* Stagger animation for each card */
@@ -90,18 +113,22 @@
 }
 
 .insight-success {
+  --insight-accent: #2ecc71;
   border-left-color: #2ecc71;
 }
 
 .insight-warning {
+  --insight-accent: #f39c12;
   border-left-color: #f39c12;
 }
 
 .insight-danger {
+  --insight-accent: #e74c3c;
   border-left-color: #e74c3c;
 }
 
 .insight-info {
+  --insight-accent: #3498db;
   border-left-color: #3498db;
   
 }
@@ -120,6 +147,17 @@
 .insight-icon svg {
   width: 22px;
   height: 22px;
+}
+
+.insight-card--featured .insight-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-xl);
+}
+
+.insight-card--featured .insight-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .insight-success .insight-icon {
@@ -146,6 +184,22 @@
   flex: 1;
 }
 
+.insight-priority-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--insight-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--insight-accent) 24%, transparent);
+  color: var(--insight-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .insight-content h4 {
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -153,11 +207,20 @@
   margin: 0 0 var(--spacing-2) 0;
 }
 
+.insight-card--featured .insight-content h4 {
+  font-size: var(--font-size-lg);
+}
+
 .insight-content p {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin: 0;
   line-height: 1.5;
+}
+
+.insight-card--featured .insight-content p {
+  max-width: 60ch;
+  font-size: 0.95rem;
 }
 
 /* ============================================================================
@@ -188,14 +251,70 @@
 }
 
 .comparative-card {
+  --comp-accent: var(--color-primary);
+  position: relative;
   padding: var(--spacing-5);
   overflow: visible;
 }
 
+.comparative-card--hero {
+  border: 1px solid color-mix(in srgb, var(--comp-accent) 22%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--comp-accent) 14%, transparent), transparent 40%),
+    linear-gradient(135deg, color-mix(in srgb, var(--comp-accent) 9%, transparent), color-mix(in srgb, var(--comp-accent) 2%, var(--color-surface)) 62%);
+}
+
+.comparative-card--hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--comp-accent) 10%, transparent);
+  pointer-events: none;
+}
+
+.comparative-card--monthly {
+  --comp-accent: #f59e0b;
+}
+
+.comparative-card--annual {
+  --comp-accent: #3b82f6;
+}
+
+.comparative-card--support {
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+}
+
+.comparative-card--compact {
+  padding: var(--spacing-4);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
 .comparative-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
   margin-bottom: var(--spacing-5);
   padding-bottom: var(--spacing-4);
   border-bottom: 2px solid var(--glass-border);
+}
+
+.comparative-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.comparative-kicker {
+  display: inline-flex;
+  align-items: center;
+  color: var(--comp-accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .comparative-card h3 {
@@ -220,7 +339,7 @@
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-3);
-  background: var(--color-primary);
+  background: var(--comp-accent);
   color: white;
   border-radius: var(--radius-md);
   font-weight: 600;
@@ -240,6 +359,51 @@
   color: var(--color-text-muted);
   font-weight: 600;
   text-transform: capitalize;
+}
+
+.comparative-glance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.comparative-glance-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+}
+
+.comparative-glance-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.comparative-glance-label i,
+.comparative-glance-label svg {
+  width: 14px;
+  height: 14px;
+}
+
+.comparative-glance-value {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.comparative-glance-trend {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: currentColor;
 }
 
 .comparative-grid-new {
@@ -399,7 +563,7 @@
   display: flex;
   gap: var(--spacing-4);
   align-items: center;
-  padding: var(--spacing-5);
+  padding: var(--spacing-4);
 }
 
 .comp-mini-icon {
@@ -684,7 +848,19 @@
 
 
 @media (max-width: 768px) {
+  .insight-card--featured {
+    grid-column: span 1;
+  }
+
   .comp-duo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparative-header {
+    flex-direction: column;
+  }
+
+  .comparative-glance {
     grid-template-columns: 1fr;
   }
 

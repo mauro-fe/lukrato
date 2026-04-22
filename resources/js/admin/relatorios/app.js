@@ -515,7 +515,42 @@ export const UI = {
             ? '<i data-lucide="info"></i><span>O resumo do topo continua consolidado. O filtro por conta afeta este gráfico e a aba Comparativos.</span>'
             : '<i data-lucide="info"></i><span>Use o filtro de conta para analisar um recorte específico sem perder o consolidado do topo.</span>';
 
+        UI.syncControlsLayoutState();
+
         if (window.lucide) lucide.createIcons();
+    },
+
+    syncControlsLayoutState() {
+        const controlsRow = document.getElementById('relControlsRow');
+        if (!controlsRow) return;
+
+        const typeWrapper = document.getElementById('typeSelectWrapper');
+        const accountWrapper = document.getElementById('accountSelectWrapper');
+        const clearWrapper = document.getElementById('clearFiltersWrapper');
+        const summaryEl = document.getElementById('reportFilterSummary');
+
+        const isVisible = (element) => {
+            if (!element) return false;
+            if (element.classList.contains('hidden')) return false;
+            if (element.style.display === 'none') return false;
+
+            const computedDisplay = window.getComputedStyle(element).display;
+            return computedDisplay !== 'none';
+        };
+
+        const visiblePrimaryControls = [typeWrapper, accountWrapper].filter(isVisible).length;
+        const hasClearAction = isVisible(clearWrapper);
+        const layoutDensity = visiblePrimaryControls <= 1 ? 'sparse' : 'full';
+
+        controlsRow.dataset.layoutDensity = layoutDensity;
+        controlsRow.dataset.controlCount = String(visiblePrimaryControls);
+        controlsRow.dataset.view = STATE.currentView;
+        controlsRow.dataset.hasClear = hasClearAction ? 'true' : 'false';
+
+        if (summaryEl) {
+            summaryEl.dataset.layoutDensity = layoutDensity;
+            summaryEl.dataset.view = STATE.currentView;
+        }
     },
 
     updateControls() {
@@ -534,6 +569,8 @@ export const UI = {
         if (accountWrapper) {
             accountWrapper.classList.remove('hidden');
         }
+
+        UI.syncControlsLayoutState();
     },
 
     syncTypeSelect() {

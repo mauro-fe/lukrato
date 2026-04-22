@@ -77,7 +77,7 @@
                 </select>
             </div>
 
-            <div class="controls-actions surface-control-box surface-control-box--interactive" id="reportActionsRow">
+            <div class="controls-actions" id="reportActionsRow">
                 <div class="control-group control-group--action" id="clearFiltersWrapper" style="display:none;">
                     <button type="button" id="btnLimparFiltrosRel" class="btn btn-secondary"
                         title="Resetar filtros para padrão" style="white-space: nowrap;">

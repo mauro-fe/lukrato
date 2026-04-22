@@ -175,10 +175,13 @@ export function renderCategoryComparison(categories) {
     }).join('');
 
     return `
-        <div class="comparative-card comp-full-width surface-card surface-card--interactive">
+        <div class="comparative-card comparative-card--support comp-full-width surface-card surface-card--interactive">
             <div class="comparative-header">
-                <h3><i data-lucide="bar-chart-3"></i> Top Categorias de Despesa</h3>
-                <span class="comp-subtitle">Mês atual vs anterior</span>
+                <div class="comparative-heading">
+                    <span class="comparative-kicker">Peso nas despesas</span>
+                    <h3><i data-lucide="bar-chart-3"></i> Top Categorias de Despesa</h3>
+                    <span class="comp-subtitle">Mês atual vs anterior</span>
+                </div>
             </div>
             <div class="cat-comp-list">
                 <div class="cat-comp-header-row">
@@ -197,10 +200,13 @@ export function renderEvolucao(evolucao) {
     if (!evolucao || evolucao.length === 0) return '';
 
     return `
-        <div class="comparative-card comp-full-width surface-card surface-card--interactive">
+        <div class="comparative-card comparative-card--support comp-full-width surface-card surface-card--interactive">
             <div class="comparative-header">
-                <h3><i data-lucide="line-chart"></i> Evolução dos Últimos 6 Meses</h3>
-                <span class="comp-subtitle">Receitas, despesas e saldo ao longo do tempo</span>
+                <div class="comparative-heading">
+                    <span class="comparative-kicker">Ritmo recente</span>
+                    <h3><i data-lucide="line-chart"></i> Evolução dos Últimos 6 Meses</h3>
+                    <span class="comp-subtitle">Receitas, despesas e saldo ao longo do tempo</span>
+                </div>
             </div>
             <div class="evolucao-chart-wrapper">
                 <div id="evolucaoMiniChart" style="min-height:220px;"></div>
@@ -275,7 +281,7 @@ export function renderMediaDiaria(data) {
     const varIcon = data.variacao > 0 ? 'arrow-up' : data.variacao < 0 ? 'arrow-down' : 'equal';
 
     return `
-        <div class="comparative-card comp-mini-card surface-card surface-card--interactive">
+        <div class="comparative-card comparative-card--compact comp-mini-card surface-card surface-card--interactive">
             <div class="comp-mini-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
                 <i data-lucide="calendar-clock"></i>
             </div>
@@ -303,7 +309,7 @@ export function renderTaxaEconomia(data) {
     const gradientColor = isPositive ? '#2ecc71, #27ae60' : '#e74c3c, #c0392b';
 
     return `
-        <div class="comparative-card comp-mini-card surface-card surface-card--interactive">
+        <div class="comparative-card comparative-card--compact comp-mini-card surface-card surface-card--interactive">
             <div class="comp-mini-icon" style="background: linear-gradient(135deg, ${gradientColor});">
                 <i data-lucide="piggy-bank" style= "color: white"></i>
             </div>
@@ -361,10 +367,13 @@ export function renderFormasPagamento(formas) {
     }).join('');
 
     return `
-        <div class="comparative-card comp-full-width surface-card surface-card--interactive">
+        <div class="comparative-card comparative-card--support comp-full-width surface-card surface-card--interactive">
             <div class="comparative-header">
-                <h3><i data-lucide="wallet"></i> Formas de Pagamento</h3>
-                <span class="comp-subtitle">Distribuição mês atual vs anterior</span>
+                <div class="comparative-heading">
+                    <span class="comparative-kicker">Mix operacional</span>
+                    <h3><i data-lucide="wallet"></i> Formas de Pagamento</h3>
+                    <span class="comp-subtitle">Distribuição mês atual vs anterior</span>
+                </div>
             </div>
             <div class="forma-comp-list">
                 ${rows}
@@ -373,7 +382,7 @@ export function renderFormasPagamento(formas) {
     `;
 }
 
-export function renderComparative(title, data, period) {
+export function renderComparative(title, data, period, variant = 'monthly') {
     const getTrendIcon = (value) => {
         if (value > 0) return '<i data-lucide="arrow-up"></i>';
         if (value < 0) return '<i data-lucide="arrow-down"></i>';
@@ -420,15 +429,57 @@ export function renderComparative(title, data, period) {
         }
     };
 
+    const glanceItems = [
+        {
+            label: 'Receitas',
+            icon: 'trending-up',
+            value: formatCurrency(data.current.receitas),
+            trendText: getTrendText(data.variation.receitas),
+            trendClass: getTrendClass(data.variation.receitas, false)
+        },
+        {
+            label: 'Despesas',
+            icon: 'trending-down',
+            value: formatCurrency(data.current.despesas),
+            trendText: getTrendText(data.variation.despesas),
+            trendClass: getTrendClass(data.variation.despesas, true)
+        },
+        {
+            label: 'Saldo',
+            icon: 'wallet',
+            value: formatCurrency(data.current.saldo),
+            trendText: getTrendText(data.variation.saldo),
+            trendClass: getTrendClass(data.variation.saldo, false)
+        }
+    ];
+
+    const kickerText = variant === 'annual' ? 'Leitura anual' : 'Leitura mensal';
+
     return `
-        <div class="comparative-card surface-card surface-card--interactive">
+        <div class="comparative-card comparative-card--hero comparative-card--${variant} surface-card surface-card--interactive">
             <div class="comparative-header">
-                <h3>${escapeHtml(title)}</h3>
+                <div class="comparative-heading">
+                    <span class="comparative-kicker">${escapeHtml(kickerText)}</span>
+                    <h3>${escapeHtml(title)}</h3>
+                </div>
                 <div class="period-labels">
                     <span class="period-current"><i data-lucide="calendar" style="color: white;"></i> ${getCurrentPeriod()}</span>
                     <span class="period-separator">vs</span>
                     <span class="period-previous">${getPreviousPeriod()}</span>
                 </div>
+            </div>
+
+            <div class="comparative-glance">
+                ${glanceItems.map((item) => `
+                    <div class="comparative-glance-item ${item.trendClass}">
+                        <span class="comparative-glance-label">
+                            <i data-lucide="${item.icon}"></i>
+                            <span>${item.label}</span>
+                        </span>
+                        <strong class="comparative-glance-value">${item.value}</strong>
+                        <span class="comparative-glance-trend">${item.trendText}</span>
+                    </div>
+                `).join('')}
             </div>
             
             <div class="comparative-grid-new">
@@ -512,15 +563,19 @@ export function renderCardsReport(data) {
         : 'Sem cartoes ativos';
 
     const resumoHTML = (data.resumo_consolidado && data.cards && data.cards.length > 0) ? `
-        <div class="consolidated-summary">
-            <div class="summary-header">
-                <div class="summary-icon">
-                    <i data-lucide="credit-card" style="color: white"></i>
+        <div class="consolidated-summary consolidated-summary--fused">
+            <div class="summary-topline">
+                <div class="summary-title-block">
+                    <span class="summary-eyebrow">
+                        <i data-lucide="credit-card"></i>
+                        <span>Visão Geral dos Cartões</span>
+                    </span>
+                    <p class="summary-lead">Resumo consolidado de todos os seus cartões de crédito</p>
                 </div>
-                <div class="summary-title">
-                    <h3>Visão Geral dos Cartões</h3>
-                    <p>Resumo consolidado de todos os seus cartões de crédito</p>
-                </div>
+                <span class="summary-context-badge">
+                    <i data-lucide="wallet"></i>
+                    <span>${escapeHtml(totalCardsLabel)}</span>
+                </span>
             </div>
             
             <div class="summary-grid">
@@ -594,7 +649,7 @@ export function renderCardsReport(data) {
     ` : '';
 
     reportArea.innerHTML = `
-        <div class="cards-report-container">
+        <div class="cards-report-container cards-report-container--compact-top">
             <div class="report-visual-header report-visual-header--cards">
                 <div class="report-visual-copy">
                     <span class="report-visual-kicker">
@@ -602,17 +657,12 @@ export function renderCardsReport(data) {
                         <span>Radar dos cartoes</span>
                     </span>
                     <h3 class="report-visual-title">${escapeHtml(cardsViewMeta.title)}</h3>
-                    <p class="report-visual-description">${escapeHtml(cardsViewMeta.description)}</p>
                 </div>
 
                 <div class="report-visual-badges">
                     <span class="report-visual-badge">
                         <i data-lucide="calendar-days"></i>
                         <span>${escapeHtml(getReportPeriodLabel())}</span>
-                    </span>
-                    <span class="report-visual-badge report-visual-badge--accent">
-                        <i data-lucide="wallet"></i>
-                        <span>${escapeHtml(totalCardsLabel)}</span>
                     </span>
                 </div>
             </div>

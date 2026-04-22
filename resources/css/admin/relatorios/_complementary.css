@@ -173,10 +173,32 @@
 /* Controls Row */
 .controls-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) max-content;
+  align-items: end;
   gap: var(--spacing-4);
-  margin-bottom: var(--spacing-5);
+  margin-bottom: var(--spacing-4);
+}
+
+.controls-row[data-layout-density="sparse"] {
+  grid-template-columns: minmax(0, min(720px, 1fr)) max-content;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.controls-row[data-layout-density="sparse"] .control-group:not(.hidden) {
+  max-width: 720px;
+}
+
+.controls-row[data-layout-density="sparse"] .controls-actions {
+  align-self: start;
+}
+
+.controls-row[data-layout-density="sparse"][data-view="cards"] {
+  grid-template-columns: minmax(0, min(680px, 1fr)) max-content;
+}
+
+.controls-row[data-layout-density="sparse"][data-view="accounts"] {
+  grid-template-columns: minmax(0, min(700px, 1fr)) max-content;
 }
 
 .report-filter-summary {
@@ -184,6 +206,10 @@
   flex-wrap: wrap;
   gap: var(--spacing-2);
   margin: calc(var(--spacing-6) * -0.35) 0 var(--spacing-3);
+}
+
+.report-filter-summary[data-layout-density="sparse"] {
+  margin-top: calc(var(--spacing-4) * -0.1);
 }
 
 .report-scope-note {
@@ -220,8 +246,11 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--spacing-3);
-  min-width: 280px;
-  padding: var(--spacing-3);
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .controls-actions .control-group {
@@ -237,6 +266,7 @@
 
 .control-group--action .btn {
   min-height: 42px;
+  padding-inline: var(--spacing-4);
 }
 
 .control-group.hidden {
@@ -259,7 +289,7 @@
 /* Report Card */
 .report-card {
   position: relative;
-  min-height: 500px;
+  min-height: clamp(320px, 56vh, 720px);
   padding: var(--spacing-5);
   overflow: hidden;
 }
@@ -277,7 +307,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5);
+  gap: var(--spacing-4);
   min-height: 100%;
 }
 
