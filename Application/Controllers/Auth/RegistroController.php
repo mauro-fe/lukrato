@@ -109,13 +109,13 @@ class RegistroController extends WebController
             }
         }
 
-        LogService::warning('Login automatico falhou apos registro Google', ['email' => $email]);
+        LogService::warning('Login automático falhou após registro Google', ['email' => $email]);
         return $this->responseHandler->success($result, false);
     }
 
     private function logRegistrationSuccess(string $email, array $result, string $provider): void
     {
-        LogService::info('Novo usuario registrado com sucesso.', [
+        LogService::info('Novo usuário registrado com sucesso.', [
             'email' => $email,
             'ip' => $this->request->ip() ?? 'unknown',
             'user_id' => $result['user_id'] ?? 'unknown',
@@ -128,7 +128,7 @@ class RegistroController extends WebController
         LogService::persist(
             LogLevel::WARNING,
             LogCategory::AUTH,
-            'Registro: falha de validacao',
+            'Registro: falha de validação',
             ['email' => $email, 'ip' => $this->request->ip() ?? 'unknown', 'errors' => $e->getErrors()]
         );
 

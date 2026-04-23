@@ -6,7 +6,7 @@
     <!-- PREVISÃO FINANCEIRA — toggled via personalização -->
     <section class="provisao-section surface-card surface-card--interactive surface-card--clip" id="sectionPrevisao"
         style="display:none;">
-        <h2 class="provisao-title" id="provisaoTitle">Panorama projetado</h2>
+        <h2 class="provisao-title" id="provisaoTitle">Fechamento previsto</h2>
         <p class="provisao-headline" id="provisaoHeadline"></p>
 
         <!-- Alertas de vencidos -->
@@ -48,7 +48,7 @@
             <div class="provisao-card pagar">
                 <div class="provisao-card-icon"><i data-lucide="arrow-up-right"></i></div>
                 <div class="provisao-card-body">
-                    <span class="provisao-card-label">A pagar</span>
+                    <span class="provisao-card-label">Restante a pagar</span>
                     <span class="provisao-card-value" id="provisaoPagar">R$ 0,00</span>
                     <span class="provisao-card-count" id="provisaoPagarCount">0 pendentes</span>
                 </div>
@@ -56,7 +56,7 @@
             <div class="provisao-card receber">
                 <div class="provisao-card-icon"><i data-lucide="arrow-down-left"></i></div>
                 <div class="provisao-card-body">
-                    <span class="provisao-card-label">A receber</span>
+                    <span class="provisao-card-label">Restante a receber</span>
                     <span class="provisao-card-value" id="provisaoReceber">R$ 0,00</span>
                     <span class="provisao-card-count" id="provisaoReceberCount">0 pendentes</span>
                 </div>
@@ -64,9 +64,9 @@
             <div class="provisao-card projetado">
                 <div class="provisao-card-icon"><i data-lucide="trending-up"></i></div>
                 <div class="provisao-card-body">
-                    <span class="provisao-card-label">Saldo projetado</span>
+                    <span class="provisao-card-label">Saldo no fim do mês</span>
                     <span class="provisao-card-value" id="provisaoProjetado">R$ 0,00</span>
-                    <span class="provisao-card-count" id="provisaoProjetadoLabel">saldo atual: R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoProjetadoLabel">entra no próximo mês com R$ 0,00</span>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@
         <div class="provisao-proximos">
             <div class="provisao-proximos-header">
                 <span class="provisao-proximos-title" id="provisaoProximosTitle">
-                    <i data-lucide="clock"></i> Próximos Vencimentos
+                    <i data-lucide="clock"></i> Próximos compromissos
                 </span>
                 <a href="<?= BASE_URL ?>lancamentos" class="provisao-ver-todos" id="provisaoVerTodos">
                     Ver todos <i data-lucide="arrow-right"></i>
@@ -101,7 +101,7 @@
             <div class="provisao-pro-content">
                 <div class="provisao-pro-icon"><i data-lucide="crown"></i></div>
                 <h3>Previsão completa</h3>
-                <p>Veja receitas, despesas e saldo projetado com o plano Pro.</p>
+                <p>Veja entradas, saídas e o fechamento previsto do mês com o plano Pro.</p>
                 <a href="<?= BASE_URL ?>billing" class="provisao-pro-btn">
                     <i data-lucide="gem"></i> Assinar Pro
                 </a>

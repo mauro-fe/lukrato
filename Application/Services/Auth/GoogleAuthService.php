@@ -99,7 +99,7 @@ class GoogleAuthService
         $email = mb_strtolower(trim($userInfo['email']));
         $name = $userInfo['name'];
 
-        LogService::info('Processando usuario Google', [
+        LogService::info('Processando usuário Google', [
             'google_id' => $googleId,
             'email' => $email,
             'name' => $name,
@@ -108,7 +108,7 @@ class GoogleAuthService
         // 1) Busca por google_id
         $usuario = Usuario::where('google_id', $googleId)->first();
         if ($usuario) {
-            LogService::info('Usuario encontrado por google_id', ['usuario_id' => $usuario->id]);
+            LogService::info('Usuário encontrado por google_id', ['usuario_id' => $usuario->id]);
             $this->concludePendingEmailChangeIfMatchesGoogle($usuario, $email);
             $this->updateUserName($usuario, $name);
             return ['usuario' => $usuario, 'is_new' => false];
@@ -117,7 +117,7 @@ class GoogleAuthService
         // 2) Busca por email principal
         $usuario = Usuario::whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
         if ($usuario) {
-            LogService::info('Usuario encontrado por email, vinculando google_id', ['usuario_id' => $usuario->id]);
+            LogService::info('Usuário encontrado por email, vinculando google_id', ['usuario_id' => $usuario->id]);
             $usuario->google_id = $googleId;
             if ($usuario->nome === '' || $usuario->nome === null) {
                 $usuario->nome = $name;
@@ -139,7 +139,7 @@ class GoogleAuthService
         }
 
         // 4) Nao existe: solicitar confirmacao para criar conta nova
-        LogService::info('Usuario nao encontrado, solicitando confirmacao', ['email' => $email]);
+        LogService::info('Usuário não encontrado, solicitando confirmação', ['email' => $email]);
 
         return [
             'needs_confirmation' => true,
@@ -282,7 +282,7 @@ class GoogleAuthService
 
             $this->sessionManager->createSession($usuario, false);
 
-            LogService::info('Login automatico apos registro Google realizado', [
+            LogService::info('Login automático após registro Google realizado', [
                 'user_id' => $userId,
                 'email' => $email,
             ]);
@@ -301,7 +301,7 @@ class GoogleAuthService
     private function createGoogleClient(): Google_Client
     {
         if (!$this->runtimeConfig->hasGoogleOauthCredentials()) {
-            throw new RuntimeException('Google OAuth nao configurado no .env');
+            throw new RuntimeException('Google OAuth não configurado no .env');
         }
 
         $client = new Google_Client();

@@ -1,1 +1,0 @@
-document.addEventListener("DOMContentLoaded",()=>{const t=document.getElementById("modalLancamentoGlobalOverlay"),e=window.lancamentoGlobalManager;t&&e?.openModal&&window.setTimeout(()=>{e.openModal(function(t){return{source:"contas"===t.dataset.source?"contas":"global",presetAccountId:t.dataset.presetAccountId||null,tipo:t.dataset.tipo||null}}(t))},0)});

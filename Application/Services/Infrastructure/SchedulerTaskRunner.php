@@ -66,27 +66,27 @@ class SchedulerTaskRunner
                 'recommended_schedule' => 'a cada 10 minutos',
             ],
             self::TASK_DISPATCH_BIRTHDAYS => [
-                'description' => 'Dispara notificacoes de aniversario.',
-                'recommended_schedule' => 'diariamente as 08:00',
+                'description' => 'Dispara notificações de aniversário.',
+                'recommended_schedule' => 'diariamente às 08:00',
             ],
             self::TASK_DISPATCH_FATURA_REMINDERS => [
-                'description' => 'Dispara lembretes de vencimento de fatura de cartao.',
+                'description' => 'Dispara lembretes de vencimento de fatura de cartão.',
                 'recommended_schedule' => 'a cada 1 hora',
             ],
             self::TASK_PROCESS_EXPIRED_SUBSCRIPTIONS => [
-                'description' => 'Processa expiracao e bloqueio de assinaturas PRO.',
+                'description' => 'Processa expiração e bloqueio de assinaturas PRO.',
                 'recommended_schedule' => 'a cada 1 hora',
             ],
             self::TASK_GENERATE_RECURRING_LANCAMENTOS => [
-                'description' => 'Gera proximos lancamentos recorrentes vencidos.',
-                'recommended_schedule' => 'diariamente as 02:00',
+                'description' => 'Gera próximos lançamentos recorrentes vencidos.',
+                'recommended_schedule' => 'diariamente às 02:00',
             ],
             self::TASK_PROCESS_RECURRING_CARD_ITEMS => [
-                'description' => 'Gera itens recorrentes de cartao de credito.',
-                'recommended_schedule' => 'diariamente as 03:00',
+                'description' => 'Gera itens recorrentes de cartão de crédito.',
+                'recommended_schedule' => 'diariamente às 03:00',
             ],
             self::TASK_DISPATCH_SCHEDULED_CAMPAIGNS => [
-                'description' => 'Envia campanhas agendadas cujo horario ja chegou.',
+                'description' => 'Envia campanhas agendadas cujo horário já chegou.',
                 'recommended_schedule' => 'a cada 5 minutos',
             ],
         ];

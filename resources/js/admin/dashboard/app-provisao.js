@@ -14,6 +14,28 @@ export function createProvisao({
     escapeHtml,
     logClientError,
 }) {
+    const formatMonthLabel = (monthStr, { includeYear = true } = {}) => {
+        try {
+            const [year, month] = String(monthStr || '').split('-').map(Number);
+            return new Date(year, month - 1, 1).toLocaleDateString('pt-BR', {
+                month: 'long',
+                ...(includeYear ? { year: 'numeric' } : {}),
+            });
+        } catch {
+            return includeYear ? 'este mês' : 'próximo mês';
+        }
+    };
+
+    const getNextMonth = (monthStr) => {
+        try {
+            const [year, month] = String(monthStr || '').split('-').map(Number);
+            const nextDate = new Date(year, month, 1);
+            return `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
+        } catch {
+            return Utils.getCurrentMonth();
+        }
+    };
+
     const Provisao = {
         isProUser: null,
 
@@ -55,17 +77,21 @@ export function createProvisao({
 
             const p = data.provisao || {};
             const money = Utils.money;
+            const monthRef = data.month || Utils.getCurrentMonth();
+            const monthLabel = formatMonthLabel(monthRef);
+            const monthLabelShort = formatMonthLabel(monthRef, { includeYear: false });
+            const nextMonthLabel = formatMonthLabel(getNextMonth(monthRef), { includeYear: false });
             const titleSummaryEl = document.getElementById('provisaoTitle');
             const headlineEl = document.getElementById('provisaoHeadline');
 
             if (titleSummaryEl) {
-                titleSummaryEl.textContent = `Se continuar assim, você termina o mês com ${money(p.saldo_projetado || 0)}`;
+                titleSummaryEl.textContent = `Fechamento previsto de ${monthLabel}`;
             }
 
             if (headlineEl) {
                 headlineEl.textContent = (p.saldo_projetado || 0) >= 0
-                    ? 'A previsão abaixo considera seu saldo atual, o que ainda vai entrar e o que ainda vai sair.'
-                    : 'A previsao indica aperto no fim do mes se o ritmo atual continuar.';
+                    ? `Se nada mudar, você fecha ${monthLabelShort} com ${money(p.saldo_projetado || 0)}. A leitura abaixo considera saldo atual de ${money(p.saldo_atual || 0)}, o que ainda entra e o que ainda sai.`
+                    : `Se nada mudar, você fecha ${monthLabelShort} com ${money(p.saldo_projetado || 0)}. A leitura abaixo considera saldo atual de ${money(p.saldo_atual || 0)}, o que ainda entra e o que ainda sai.`;
             }
 
             // Atualizar título e link conforme plano
@@ -73,7 +99,7 @@ export function createProvisao({
             const verTodosEl = document.getElementById('provisaoVerTodos');
             if (titleEl) {
                 titleEl.innerHTML = isPro
-                    ? '<i data-lucide="clock"></i> Próximos Vencimentos'
+                    ? '<i data-lucide="clock"></i> Próximos compromissos'
                     : '<i data-lucide="credit-card"></i> Próximas Faturas';
             }
             if (verTodosEl) {
@@ -132,7 +158,9 @@ export function createProvisao({
                 if (receberCount) receberCount.textContent = 'Pro';
             }
 
-            if (projetadoLabel) projetadoLabel.textContent = `saldo atual: ${money(p.saldo_atual || 0)}`;
+            if (projetadoLabel) {
+                projetadoLabel.textContent = `entra em ${nextMonthLabel} com ${money(p.saldo_projetado || 0)}`;
+            }
 
             // Alertas de vencidos (separados por tipo)
             const vencidos = data.vencidos || {};

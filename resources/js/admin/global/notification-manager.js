@@ -43,6 +43,43 @@ import { escapeHtml } from '../shared/utils.js';
         return false;
     }
 
+    const TYPE_META = {
+        alerta: { icon: 'triangle-alert', tone: 'warning', label: 'Alerta' },
+        alert: { icon: 'triangle-alert', tone: 'warning', label: 'Alerta' },
+        reminder: { icon: 'alarm-clock', tone: 'info', label: 'Lembrete' },
+        lembrete: { icon: 'alarm-clock', tone: 'info', label: 'Lembrete' },
+        promo: { icon: 'tag', tone: 'promo', label: 'Promo' },
+        update: { icon: 'rocket', tone: 'update', label: 'Atualizacao' },
+        success: { icon: 'circle-check', tone: 'success', label: 'Sucesso' },
+        info: { icon: 'info', tone: 'info', label: 'Aviso' },
+        subscription_expired: { icon: 'crown', tone: 'warning', label: 'Plano' },
+        subscription_blocked: { icon: 'shield-alert', tone: 'danger', label: 'Plano' },
+        referral_referred: { icon: 'gift', tone: 'success', label: 'Indicacao' },
+        referral_referrer: { icon: 'gift', tone: 'success', label: 'Indicacao' },
+    };
+
+    function normalizeCssColor(value) {
+        const color = String(value || '').trim();
+        return /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(color) ? color : '';
+    }
+
+    function getNotificationMeta(item) {
+        const rawType = String(item.tipo || item.type || '').trim().toLowerCase();
+        const meta = TYPE_META[rawType] || TYPE_META.info;
+        const accent = normalizeCssColor(item.cor || item.color);
+
+        return {
+            ...meta,
+            accent,
+            type: rawType || 'info',
+        };
+    }
+
+    function isNotificationRead(item) {
+        const read = item.lida ?? item.read ?? item.is_read ?? false;
+        return read === true || read === 1 || read === '1';
+    }
+
     const NotificationApi = {
         async fetchList() {
             try {
@@ -93,10 +130,12 @@ import { escapeHtml } from '../shared/utils.js';
             this.menu = document.getElementById('lk-bell-menu');
             this.listEl = document.getElementById('lk-bell-list');
             this.badge = document.getElementById('lk-bell-badge');
+            this.summary = document.getElementById('lk-bell-summary');
             this.markReadBtn = document.getElementById('lk-mark-read');
             this.isMenuOpen = false;
             this.loadedOnce = false;
             this.isRefreshing = false;
+            this.isLoadingList = false;
             this.refreshTimeout = null;
 
             if (!this.bellBtn || !this.menu || !this.listEl) {
@@ -106,6 +145,8 @@ import { escapeHtml } from '../shared/utils.js';
             const initialText = (this.badge?.textContent ?? '').trim();
             this.initialUnread = Number.parseInt(initialText, 10) || 0;
             this.unreadCount = this.initialUnread;
+            this.updateSummary();
+            this.updateMarkReadButton();
 
             this.refreshUnread = this.refreshUnread.bind(this);
             this.loadList = this.loadList.bind(this);
@@ -129,12 +170,6 @@ import { escapeHtml } from '../shared/utils.js';
             document.addEventListener('lukrato:notifications-changed', () => {
                 this.refreshUnread();
             });
-            this.menu.addEventListener('transitionend', (event) => {
-                if (event.target !== this.menu || event.propertyName !== 'opacity') return;
-                if (this.menu.classList.contains('visible')) {
-                    this.loadList();
-                }
-            });
         }
 
         toggleMenu(event) {
@@ -144,20 +179,26 @@ import { escapeHtml } from '../shared/utils.js';
 
         openMenu() {
             this.isMenuOpen = true;
-            this.menu.classList.add('visible');
             this.menu.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                this.menu.classList.add('visible');
+            });
             this.bellBtn.setAttribute('aria-expanded', 'true');
 
             if (!this.loadedOnce) {
                 this.loadList();
+            } else {
+                this.refreshUnread();
             }
         }
 
         closeMenu() {
             this.isMenuOpen = false;
             this.menu.classList.remove('visible');
-            this.menu.classList.add('hidden');
             this.bellBtn.setAttribute('aria-expanded', 'false');
+            window.setTimeout(() => {
+                if (!this.isMenuOpen) this.menu.classList.add('hidden');
+            }, 220);
         }
 
         handleOutsideClick(event) {
@@ -191,21 +232,72 @@ import { escapeHtml } from '../shared/utils.js';
             }
 
             if (this.markReadBtn) {
-                this.markReadBtn.disabled = unread === 0;
+                this.updateMarkReadButton();
             }
+
+            this.updateSummary();
+        }
+
+        updateSummary() {
+            if (!this.summary) return;
+
+            const unread = Number(this.unreadCount || 0);
+            if (unread > 0) {
+                const label = unread > 99 ? '99+' : String(unread);
+                this.summary.textContent = `${label} nao lido${unread === 1 ? '' : 's'}`;
+                this.summary.classList.add('has-unread');
+            } else {
+                this.summary.textContent = 'Tudo lido';
+                this.summary.classList.remove('has-unread');
+            }
+        }
+
+        updateMarkReadButton(isLoading = false) {
+            if (!this.markReadBtn) return;
+
+            if (isLoading) {
+                this.markReadBtn.disabled = true;
+                this.markReadBtn.innerHTML = '<i data-lucide="loader-2" class="icon-spin"></i><span>Aguarde...</span>';
+                this.refreshIcons();
+                return;
+            }
+
+            const hasUnread = Number(this.unreadCount || 0) > 0;
+            this.markReadBtn.disabled = !hasUnread;
+            this.markReadBtn.innerHTML = hasUnread
+                ? '<i data-lucide="check-check"></i><span>Marcar como lidas</span>'
+                : '<i data-lucide="check-check"></i><span>Tudo lido</span>';
+            this.refreshIcons();
+        }
+
+        refreshIcons() {
+            if (window.lucide?.createIcons) {
+                window.lucide.createIcons();
+            }
+        }
+
+        renderListState(type, message) {
+            const icon = type === 'loading' ? 'loader-2' : type === 'error' ? 'triangle-alert' : 'bell';
+            const extraClass = type === 'loading' ? ' is-loading' : '';
+            this.listEl.innerHTML = `
+                <div class="lk-popover-state lk-popover-state--${type}${extraClass}">
+                    <span class="lk-popover-state-icon" aria-hidden="true">
+                        <i data-lucide="${icon}"${type === 'loading' ? ' class="icon-spin"' : ''}></i>
+                    </span>
+                    <span>${escapeHtml(message)}</span>
+                </div>
+            `;
+            this.refreshIcons();
         }
 
         renderList(items) {
             if (!Array.isArray(items) || items.length === 0) {
-                this.listEl.innerHTML = '<div class="py-3 text-center" style="opacity:.75">Nenhum aviso.</div>';
                 this.setBadge(0);
+                this.renderListState('empty', 'Nenhum aviso por enquanto.');
                 return;
             }
 
-            const unread = items.filter((item) => {
-                const read = item.lida ?? item.read ?? item.is_read ?? false;
-                return read === false || read === 0 || read === '0';
-            }).length;
+            const unread = items.filter((item) => !isNotificationRead(item)).length;
 
             this.setBadge(unread);
 
@@ -214,31 +306,41 @@ import { escapeHtml } from '../shared/utils.js';
                 const body = item.mensagem || item.body || item.descricao || '';
                 const timeRaw = item.data || item.created_at || item.timestamp || '';
                 const time = formatNotificationTime(timeRaw);
-                const isRead = Boolean(item.lida ?? item.read ?? item.is_read ?? false);
+                const isRead = isNotificationRead(item);
                 const readClass = isRead ? 'is-read' : '';
                 const tagClass = isRead ? 'lk-item-tag-read' : 'lk-item-tag-new';
                 const tagText = isRead ? 'Lida' : 'Novo';
+                const meta = getNotificationMeta(item);
+                const itemId = escapeHtml(item.id || '');
+                const accentStyle = meta.accent ? ` style="--lk-item-accent: ${meta.accent}"` : '';
 
                 return `
-                    <div class="lk-popover-item ${readClass}" data-id="${item.id || ''}">
+                    <article class="lk-popover-item lk-popover-item--${meta.tone} ${readClass}" data-id="${itemId}"${accentStyle}>
+                        <span class="lk-popover-item-icon" aria-hidden="true">
+                            <i data-lucide="${meta.icon}"></i>
+                        </span>
                         <div class="lk-popover-item-content">
                             <div class="lk-item-header">
                                 <strong class="lk-item-title">${escapeHtml(title)}</strong>
                                 <span class="lk-item-tag ${tagClass}">${tagText}</span>
                             </div>
-                            <div class="lk-item-body">${escapeHtml(body)}</div>
-                            ${time ? `<div class="lk-item-time">${escapeHtml(time)}</div>` : ''}
+                            ${body ? `<p class="lk-item-body">${escapeHtml(body)}</p>` : ''}
+                            <div class="lk-item-meta">
+                                <span class="lk-item-type">${escapeHtml(meta.label)}</span>
+                                ${time ? `<span class="lk-item-time"><i data-lucide="clock-3"></i>${escapeHtml(time)}</span>` : ''}
+                            </div>
                         </div>
-                    </div>
+                    </article>
                 `;
             }).join('');
+            this.refreshIcons();
         }
 
         async loadList() {
-            this.listEl.innerHTML = '<div class="py-3 text-center">Carregando...</div>';
-            if (this.markReadBtn) {
-                this.markReadBtn.disabled = true;
-            }
+            if (this.isLoadingList) return;
+            this.isLoadingList = true;
+            this.renderListState('loading', 'Carregando avisos...');
+            this.updateMarkReadButton(true);
 
             try {
                 const items = await NotificationApi.fetchList();
@@ -246,8 +348,11 @@ import { escapeHtml } from '../shared/utils.js';
                 this.loadedOnce = true;
             } catch (error) {
                 console.error('Erro ao carregar lista de avisos:', error);
-                this.listEl.innerHTML = '<div class="py-3 text-center text-danger">Falha ao carregar avisos.</div>';
                 this.setBadge(this.unreadCount);
+                this.renderListState('error', 'Falha ao carregar avisos.');
+            } finally {
+                this.isLoadingList = false;
+                this.updateMarkReadButton();
             }
         }
 
@@ -287,8 +392,7 @@ import { escapeHtml } from '../shared/utils.js';
         async handleMarkAllRead() {
             if (!this.markReadBtn) return;
 
-            this.markReadBtn.disabled = true;
-            this.markReadBtn.textContent = 'Aguarde...';
+            this.updateMarkReadButton(true);
 
             try {
                 const ok = await NotificationApi.markAllRead();
@@ -303,8 +407,7 @@ import { escapeHtml } from '../shared/utils.js';
                 console.error('Erro ao marcar como lidas:', error);
                 toastError(error?.message || 'Falha ao marcar como lidas.');
             } finally {
-                this.markReadBtn.textContent = 'Marcar como lidas';
-                this.markReadBtn.disabled = this.unreadCount === 0;
+                this.updateMarkReadButton();
             }
         }
     }

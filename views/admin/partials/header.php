@@ -122,34 +122,84 @@ $footerModules = is_array($footerModules ?? null)
         }
 
         .lk-preboot-card {
+            position: relative;
+            overflow: hidden;
             width: min(360px, calc(100vw - 2rem));
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 0.85rem;
-            padding: 1.35rem 1.5rem;
-            border-radius: 20px;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.34);
+            padding: 1.55rem 1.6rem 1.45rem;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(18, 32, 48, 0.94), rgba(9, 23, 37, 0.96));
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
             text-align: center;
         }
 
+        .lk-preboot-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316, rgba(249, 115, 22, 0.18), transparent);
+        }
+
         .lk-preboot-spinner {
-            width: 64px;
-            height: 64px;
+            position: relative;
+            width: 78px;
+            height: 78px;
             border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.12);
+            display: grid;
+            place-items: center;
+            background: rgba(249, 115, 22, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.14), 0 14px 34px rgba(249, 115, 22, 0.12);
+        }
+
+        .lk-preboot-spinner::before {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border-radius: inherit;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+
+        .lk-preboot-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 2px solid rgba(249, 115, 22, 0.16);
             border-top-color: #f97316;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: lk-preboot-spin 0.9s linear infinite;
+            border-right-color: rgba(249, 115, 22, 0.48);
+        }
+
+        .lk-preboot-orbit {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            transform-origin: 50% 50%;
+            animation: lk-preboot-spin 0.95s linear infinite;
+            will-change: transform;
+        }
+
+        .lk-preboot-orbit-dot {
+            content: "";
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #f97316;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16), 0 0 18px rgba(249, 115, 22, 0.55);
+            transform: translateX(-50%);
         }
 
         .lk-preboot-logo {
-            width: 34px;
-            height: 34px;
+            position: relative;
+            z-index: 1;
+            width: 40px;
+            height: 40px;
             object-fit: contain;
             filter: drop-shadow(0 6px 14px rgba(249, 115, 22, 0.24));
         }
@@ -159,7 +209,7 @@ $footerModules = is_array($footerModules ?? null)
             color: #f8fafc;
             font-size: 1rem;
             font-weight: 700;
-            letter-spacing: 0.01em;
+            letter-spacing: 0;
         }
 
         .lk-preboot-subtitle {
@@ -177,10 +227,8 @@ $footerModules = is_array($footerModules ?? null)
 
         @media (prefers-reduced-motion: reduce) {
 
-            .lk-preboot-overlay,
-            .lk-preboot-spinner {
+            .lk-preboot-overlay {
                 transition: none;
-                animation: none;
             }
         }
     </style>
@@ -281,6 +329,10 @@ $footerModules = is_array($footerModules ?? null)
     <div class="lk-preboot-overlay" id="lkPrebootOverlay" aria-hidden="true">
         <div class="lk-preboot-card" role="status" aria-live="polite">
             <div class="lk-preboot-spinner" aria-hidden="true">
+                <span class="lk-preboot-ring"></span>
+                <span class="lk-preboot-orbit">
+                    <span class="lk-preboot-orbit-dot"></span>
+                </span>
                 <img src="<?= BASE_URL ?>assets/img/icone.png" alt="" class="lk-preboot-logo">
             </div>
             <p class="lk-preboot-title">Carregando...</p>
@@ -422,6 +474,9 @@ $footerModules = is_array($footerModules ?? null)
                     <div class="lk-page-loader__card">
                         <div class="lk-page-loader__logo-wrap" aria-hidden="true">
                             <span class="lk-page-loader__ring"></span>
+                            <span class="lk-page-loader__orbit">
+                                <span class="lk-page-loader__orbit-dot"></span>
+                            </span>
                             <img src="<?= BASE_URL ?>assets/img/icone.png" alt="" class="lk-page-loader__logo">
                         </div>
                         <p id="lk-page-loader-title" class="lk-page-loader__title">Carregando...</p>

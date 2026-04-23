@@ -23,6 +23,7 @@
     const mpPrevYear = document.getElementById('mpPrevYear');
     const mpNextYear = document.getElementById('mpNextYear');
     const mpGrid = document.getElementById('mpGrid');
+    const mpCurrentLabel = document.getElementById('mpCurrentLabel');
     const mpTodayBtn = document.getElementById('mpTodayBtn');
     const mpInput = document.getElementById('mpInputMonth');
     const yearPickerWrap = document.getElementById('yearPicker');
@@ -73,6 +74,10 @@
     let yearState = clampYear(Number(sessionStorage.getItem(YEAR_STORAGE_KEY) ?? modalYear)) ?? modalYear;
     const modalSystem = window.LK?.modalSystem;
 
+    const updateCurrentLabel = () => {
+        if (mpCurrentLabel) mpCurrentLabel.textContent = monthLabel(state);
+    };
+
     // ---- bootstrap modal
     const ensureMonthModal = () => {
         if (!modalEl || !window.bootstrap?.Modal) return null;
@@ -96,7 +101,6 @@
     };
 
     let yearModalInstance = null;
-    let yearModalFocus = yearState;
 
     const ensureYearModal = () => {
         if (!yearModalEl || !window.bootstrap?.Modal) return null;
@@ -106,7 +110,6 @@
     };
 
     const openYearModal = () => {
-        yearModalFocus = yearState;
         buildYearGrid();
         if (yearInput) yearInput.value = String(yearState);
         ensureYearModal()?.show();
@@ -147,6 +150,7 @@
             elText.textContent = monthLabel(state);
             elText.setAttribute('data-month', state);
         }
+        updateCurrentLabel();
         const inferredYear = Number(state.split('-')[0]);
         if (Number.isFinite(inferredYear)) {
             applyYearDisplay(inferredYear, { store: false });
@@ -184,15 +188,26 @@
     const buildGrid = () => {
         if (!mpYearLabel || !mpGrid) return;
         mpYearLabel.textContent = modalYear;
+        mpGrid.setAttribute('aria-label', `Meses de ${modalYear}`);
 
         let html = '';
+        const currentMonth = toYM(new Date());
         for (let i = 0; i < 12; i++) {
             const ym = `${modalYear}-${String(i + 1).padStart(2, '0')}`;
-            const active = ym === state ? 'btn-warning text-dark fw-bold' : 'btn-outline-light';
+            const isSelected = ym === state;
+            const isCurrentMonth = ym === currentMonth;
+            const classes = [
+                'mp-month',
+                'btn',
+                'btn-outline-light',
+                isSelected ? 'is-selected' : '',
+                isCurrentMonth ? 'is-current-month' : '',
+            ].filter(Boolean).join(' ');
             html += `
                 <div class="col-4">
-                    <button type="button" class="mp-month btn ${active}" data-val="${ym}">
-                        ${SHORT[i]}
+                    <button type="button" class="${classes}" data-val="${ym}" aria-pressed="${isSelected}" aria-label="${monthLabel(ym)}">
+                        <span class="mp-month__index">${String(i + 1).padStart(2, '0')}</span>
+                        <span class="mp-month__name">${SHORT[i]}</span>
                     </button>
                 </div>`;
         }

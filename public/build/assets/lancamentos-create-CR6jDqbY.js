@@ -1,0 +1,1 @@
+function n(e){return{source:e.dataset.source==="contas"?"contas":"global",presetAccountId:e.dataset.presetAccountId||null,tipo:e.dataset.tipo||null}}document.addEventListener("DOMContentLoaded",()=>{const e=document.getElementById("modalLancamentoGlobalOverlay"),t=window.lancamentoGlobalManager;!e||!t?.openModal||window.setTimeout(()=>{t.openModal(n(e))},0)});

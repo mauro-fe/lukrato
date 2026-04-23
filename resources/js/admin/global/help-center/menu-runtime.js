@@ -41,19 +41,19 @@ export function bindMenuRuntime(helpCenter) {
         if (window.LK?.toast) {
             window.LK.toast.success(nextValue
                 ? 'Convites de tutorial reativados.'
-                : 'Convites automaticos pausados.');
+                : 'Convites automáticos pausados.');
         }
     });
 
     helpCenter.elements.helpResetBtn?.addEventListener('click', async () => {
         const confirmed = await (window.LK?.confirm
             ? window.LK.confirm({
-                title: 'Recomecar tutoriais?',
+                title: 'Recomeçar tutoriais?',
                 text: 'Isso libera novamente tours e dicas das telas principais.',
-                confirmText: 'Recomecar',
+                confirmText: 'Recomeçar',
                 cancelText: 'Cancelar',
             })
-            : Promise.resolve(window.confirm('Recomecar tutoriais desta conta?')));
+            : Promise.resolve(window.confirm('Recomeçar tutoriais desta conta?')));
 
         if (!confirmed) {
             return;
@@ -135,6 +135,11 @@ export function renderMenuStateRuntime(helpCenter) {
         }
 
         helpCenter.elements.helpStatus.textContent = status;
+        helpCenter.elements.helpStatus.dataset.status = status
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, '-');
     }
 
     if (helpCenter.elements.helpTourBtn) {
@@ -155,12 +160,20 @@ export function renderMenuStateRuntime(helpCenter) {
     if (helpCenter.elements.helpAutoOfferBtn) {
         const icon = helpCenter.preferences.settings.auto_offer ? 'bell' : 'bell-off';
         const text = helpCenter.preferences.settings.auto_offer
-            ? 'Desativar convite automatico'
-            : 'Ativar convite automatico';
+            ? 'Desativar convite automático'
+            : 'Ativar convite automático';
+        const description = helpCenter.preferences.settings.auto_offer
+            ? 'Controle quando os tutoriais aparecem.'
+            : 'Volte a receber sugestões automáticas.';
 
         helpCenter.elements.helpAutoOfferBtn.innerHTML = `
-            <i data-lucide="${icon}"></i>
-            <span>${text}</span>
+            <span class="top-nav-help-action__icon">
+                <i data-lucide="${icon}"></i>
+            </span>
+            <span class="top-nav-help-action__copy">
+                <strong>${text}</strong>
+                <small>${description}</small>
+            </span>
         `;
     }
 

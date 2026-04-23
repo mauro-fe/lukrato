@@ -621,6 +621,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .lk-main .lk-page-loader__orbit {
+    animation: lk-loader-ring 0.95s linear infinite !important;
+    animation-duration: 0.95s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
 
 /* ============================================================================
