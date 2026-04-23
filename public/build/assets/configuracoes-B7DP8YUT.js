@@ -1,4 +1,4 @@
-import{g as T,l as P,b as A}from"./account-page-CcP5kAET.js";import{p as M,e as y,f as _,b,k as B}from"./api-EIRNFJb7.js";import{d as D}from"./engagement-CShT00jW.js";import"./profile-p7alQoN4.js";import"./runtime-config-BDcybaNg.js";import"./ui-preferences-B8SkNUZA.js";async function H(){return window.Swal?(await Swal.fire({title:"Confirmar exclusao de conta",html:`
+import{g as T,l as P,b as A}from"./account-page-CrWAAGwU.js";import{p as M,e as y,f as _,b,k as B}from"./api-EIRNFJb7.js";import{d as D}from"./engagement-CShT00jW.js";import"./profile-p7alQoN4.js";import"./runtime-config-BDcybaNg.js";import"./ui-preferences-CU21e-N9.js";async function H(){return window.Swal?(await Swal.fire({title:"Confirmar exclusao de conta",html:`
             <div style="text-align:left;padding:1rem;">
                 <p style="font-size:1.1rem;margin-bottom:1rem;"><strong>Esta acao e permanente e irreversivel.</strong></p>
                 <p style="margin-bottom:0.5rem;">Ao confirmar, os seguintes dados serao permanentemente removidos:</p>

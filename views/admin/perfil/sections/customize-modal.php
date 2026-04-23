@@ -1,46 +1,31 @@
-    <div class="profile-customize-trigger">
-        <button class="profile-customize-open" id="btnCustomizePerfil" type="button">
-            <i data-lucide="sliders-horizontal"></i>
-            <span>Personalizar tela</span>
-        </button>
-    </div>
+<?php
+$customizeModal = [
+    'title' => 'Personalizar perfil',
+    'description' => 'Comece no modo essencial e habilite os blocos quando quiser.',
+    'trigger' => [
+        'render' => true,
+        'id' => 'btnCustomizePerfil',
+        'label' => 'Personalizar tela',
+        'wrapperClass' => 'profile-customize-trigger',
+    ],
+    'ids' => [
+        'overlay' => 'perfilCustomizeModalOverlay',
+        'title' => 'perfilCustomizeModalTitle',
+        'description' => 'perfilCustomizeModalDescription',
+        'close' => 'btnCloseCustomizePerfil',
+        'save' => 'btnSaveCustomizePerfil',
+        'presetEssential' => 'btnPresetEssencialPerfil',
+        'presetComplete' => 'btnPresetCompletoPerfil',
+    ],
+    'groups' => [
+        [
+            'title' => 'Blocos da tela',
+            'items' => [
+                ['id' => 'togglePerfilHeader', 'label' => 'Cabeçalho do perfil'],
+                ['id' => 'togglePerfilTabs', 'label' => 'Navegação por abas'],
+            ],
+        ],
+    ],
+];
 
-    <div class="profile-customize-overlay" id="perfilCustomizeModalOverlay" style="display:none;">
-        <div class="profile-customize-modal surface-card" role="dialog" aria-modal="true"
-            aria-labelledby="perfilCustomizeModalTitle">
-            <div class="profile-customize-header">
-                <h3 class="profile-customize-title" id="perfilCustomizeModalTitle">Personalizar perfil</h3>
-                <button class="profile-customize-close" id="btnCloseCustomizePerfil" type="button"
-                    aria-label="Fechar personalizacao">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-
-            <div class="profile-customize-body">
-                <p class="profile-customize-desc">Comece no modo essencial e habilite os blocos quando quiser.</p>
-
-                <div class="profile-customize-presets" role="group" aria-label="Preset de visualização">
-                    <button class="profile-customize-preset" id="btnPresetEssencialPerfil" type="button">Modo
-                        essencial</button>
-                    <button class="profile-customize-preset" id="btnPresetCompletoPerfil" type="button">Modo
-                        completo</button>
-                </div>
-
-                <div class="profile-customize-group">
-                    <p class="profile-customize-group-title">Blocos da tela</p>
-                    <label class="profile-customize-toggle">
-                        <span>Cabeçalho do perfil</span>
-                        <input type="checkbox" id="togglePerfilHeader" checked>
-                    </label>
-                    <label class="profile-customize-toggle">
-                        <span>Navegação por abas</span>
-                        <input type="checkbox" id="togglePerfilTabs" checked>
-                    </label>
-                </div>
-            </div>
-
-            <div class="profile-customize-footer">
-                <button class="profile-customize-save" id="btnSaveCustomizePerfil" type="button">Salvar</button>
-            </div>
-        </div>
-    </div>
+require dirname(__DIR__, 2) . '/shared/customize-modal.php';

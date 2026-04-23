@@ -151,6 +151,27 @@ export function createPageCustomizer(config) {
             : { ...essentialDefaults };
     }
 
+    function prefsMatchPreset(prefs, preset) {
+        return toggleKeys.every((key) => !!prefs[key] === !!preset[key]);
+    }
+
+    function syncPresetButtons(prefs) {
+        const btnPresetEssencial = document.getElementById(modal.presetEssentialButtonId);
+        const btnPresetCompleto = document.getElementById(modal.presetCompleteButtonId);
+        const presetsAreEqual = prefsMatchPreset(essentialDefaults, completeDefaults);
+        const essentialActive = prefsMatchPreset(prefs, essentialDefaults);
+        const completeActive = !presetsAreEqual && prefsMatchPreset(prefs, completeDefaults);
+
+        [
+            [btnPresetEssencial, essentialActive],
+            [btnPresetCompleto, completeActive]
+        ].forEach(([button, active]) => {
+            if (!button) return;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    }
+
     function loadLocalCacheRaw() {
         return safeRun(() => {
             const raw = localStorage.getItem(storageKey);
@@ -240,6 +261,8 @@ export function createPageCustomizer(config) {
                 checkbox.checked = !!prefs[checkboxId];
             }
         });
+
+        syncPresetButtons(prefs);
     }
 
     function collectPrefsFromModal() {
@@ -323,6 +346,15 @@ export function createPageCustomizer(config) {
         }
     }
 
+    function bindToggleChangeActions() {
+        toggleKeys.forEach((checkboxId) => {
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => syncPresetButtons(collectPrefsFromModal()));
+            }
+        });
+    }
+
     function bindModalActions() {
         const btnOpen = document.getElementById(modal.openButtonId);
         const btnClose = document.getElementById(modal.closeButtonId);
@@ -391,6 +423,7 @@ export function createPageCustomizer(config) {
 
         bindModalActions();
         bindPresetActions();
+        bindToggleChangeActions();
     }
 
     return {

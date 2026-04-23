@@ -17,6 +17,7 @@
         '.modal-fatura-overlay',
         '.parcelas-modal-overlay',
         '[id$="CustomizeModalOverlay"]',
+        '.lk-customize-overlay',
         '.swal2-popup',
         '[data-lk-modal-scope]'
     ].join(', ');
@@ -30,6 +31,7 @@
         '.sys-customize-title',
         '.rel-customize-title',
         '.dash-modal__title',
+        '.lk-customize-title',
         '[id$="CustomizeModalTitle"]',
         '.card-detail-info h2',
         '.parcelas-modal-title',
@@ -45,6 +47,7 @@
         '.sys-customize-desc',
         '.rel-customize-desc',
         '.dash-modal__desc',
+        '.lk-customize-desc',
         '[class*="customize-desc"]'
     ].join(', ');
 
@@ -59,6 +62,7 @@
         '.sys-customize-close',
         '.rel-customize-close',
         '.dash-modal__close',
+        '.lk-customize-close',
         '[data-action="fecharModalPost"]',
         '[data-action="fecharModalCupom"]',
         '[data-action="close-parcelas"]',

@@ -27,7 +27,7 @@
     ]
   },
   "../css/admin/base.css": {
-    "file": "assets/admin-base-D95jsAC7.css",
+    "file": "assets/admin-base-Bpey8PNN.css",
     "src": "../css/admin/base.css",
     "isEntry": true,
     "name": "admin-base",
@@ -135,13 +135,13 @@
     "file": "assets/jetbrains-mono-latin-700-BYuf6tUa.woff2",
     "src": "../fonts/jetbrains-mono-latin-700.woff2"
   },
-  "_account-page-CcP5kAET.js": {
-    "file": "assets/account-page-CcP5kAET.js",
+  "_account-page-CrWAAGwU.js": {
+    "file": "assets/account-page-CrWAAGwU.js",
     "name": "account-page",
     "imports": [
       "_profile-p7alQoN4.js",
       "_api-EIRNFJb7.js",
-      "_ui-preferences-B8SkNUZA.js",
+      "_ui-preferences-CU21e-N9.js",
       "_runtime-config-BDcybaNg.js"
     ]
   },
@@ -243,8 +243,8 @@
     "file": "assets/ui-H2yoVZe7.js",
     "name": "ui"
   },
-  "_ui-preferences-B8SkNUZA.js": {
-    "file": "assets/ui-preferences-B8SkNUZA.js",
+  "_ui-preferences-CU21e-N9.js": {
+    "file": "assets/ui-preferences-CU21e-N9.js",
     "name": "ui-preferences",
     "imports": [
       "_api-EIRNFJb7.js"
@@ -311,14 +311,14 @@
     ]
   },
   "admin/billing/index.js": {
-    "file": "assets/billing-BKIX5Xuk.js",
+    "file": "assets/billing-CzDIy8K4.js",
     "name": "billing",
     "src": "admin/billing/index.js",
     "isEntry": true,
     "imports": [
       "_api-EIRNFJb7.js",
       "_billing-C7Txo-Oa.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/billing-HhFVdyt6.css"
@@ -354,7 +354,7 @@
     ]
   },
   "admin/cartoes/index.js": {
-    "file": "assets/cartoes-CtZaPYjB.js",
+    "file": "assets/cartoes-wf_evppv.js",
     "name": "cartoes",
     "src": "admin/cartoes/index.js",
     "isEntry": true,
@@ -364,14 +364,14 @@
       "_ui-H2yoVZe7.js",
       "_faturas-osFPSmt_.js",
       "_finance-CgaDv1sH.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/cartoes-Cf46Gf_T.css"
     ]
   },
   "admin/categorias/index.js": {
-    "file": "assets/categorias-DiapNY7U.js",
+    "file": "assets/categorias-okUdpDfl.js",
     "name": "categorias",
     "src": "admin/categorias/index.js",
     "isEntry": true,
@@ -380,24 +380,24 @@
       "_api-EIRNFJb7.js",
       "_finance-CgaDv1sH.js",
       "_ui-H2yoVZe7.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/categorias-B56RJgOT.css"
     ]
   },
   "admin/configuracoes/index.js": {
-    "file": "assets/configuracoes-CXIPXfwb.js",
+    "file": "assets/configuracoes-B7DP8YUT.js",
     "name": "configuracoes",
     "src": "admin/configuracoes/index.js",
     "isEntry": true,
     "imports": [
-      "_account-page-CcP5kAET.js",
+      "_account-page-CrWAAGwU.js",
       "_api-EIRNFJb7.js",
       "_engagement-CShT00jW.js",
       "_profile-p7alQoN4.js",
       "_runtime-config-BDcybaNg.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/configuracoes-BOfIeQwf.css"
@@ -417,7 +417,7 @@
     ]
   },
   "admin/contas/index.js": {
-    "file": "assets/contas-K1veRrbt.js",
+    "file": "assets/contas-BEaUwoJV.js",
     "name": "contas",
     "src": "admin/contas/index.js",
     "isEntry": true,
@@ -425,7 +425,7 @@
       "_api-EIRNFJb7.js",
       "_ui-H2yoVZe7.js",
       "_finance-CgaDv1sH.js",
-      "_ui-preferences-B8SkNUZA.js",
+      "_ui-preferences-CU21e-N9.js",
       "_utils-Bj4jxwhy.js"
     ],
     "css": [
@@ -433,7 +433,7 @@
     ]
   },
   "admin/dashboard/index.js": {
-    "file": "assets/dashboard-DO0VJW6g.js",
+    "file": "assets/dashboard-CX-mOAQ0.js",
     "name": "dashboard",
     "src": "admin/dashboard/index.js",
     "isEntry": true,
@@ -444,14 +444,14 @@
       "_finance-CgaDv1sH.js",
       "_lancamentos-BFIM3VKH.js",
       "_utils-Bj4jxwhy.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/dashboard-CqwAqjPs.css"
     ]
   },
   "admin/faturas/index.js": {
-    "file": "assets/faturas-IEhe8cD4.js",
+    "file": "assets/faturas-C7K2Ekkt.js",
     "name": "faturas",
     "src": "admin/faturas/index.js",
     "isEntry": true,
@@ -460,21 +460,21 @@
       "_finance-CgaDv1sH.js",
       "_faturas-osFPSmt_.js",
       "_ui-H2yoVZe7.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/faturas-J0-pVYDn.css"
     ]
   },
   "admin/financas/index.js": {
-    "file": "assets/financas-BmKEyYVk.js",
+    "file": "assets/financas-DJQFT4lw.js",
     "name": "financas",
     "src": "admin/financas/index.js",
     "isEntry": true,
     "imports": [
       "_api-EIRNFJb7.js",
       "_finance-CgaDv1sH.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/financas-BNOGjUal.css"
@@ -507,7 +507,7 @@
     ]
   },
   "admin/gamification/index.js": {
-    "file": "assets/gamification-6q8UZDmv.js",
+    "file": "assets/gamification-DiQzbU8o.js",
     "name": "gamification",
     "src": "admin/gamification/index.js",
     "isEntry": true,
@@ -517,14 +517,14 @@
       "_ui-H2yoVZe7.js",
       "_utils-Bj4jxwhy.js",
       "_runtime-config-BDcybaNg.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/gamification-BtXHZsVv.css"
     ]
   },
   "admin/global/index.js": {
-    "file": "assets/global-BhwydMrI.js",
+    "file": "assets/global-Cy0bJtRh.js",
     "name": "global",
     "src": "admin/global/index.js",
     "isEntry": true,
@@ -574,7 +574,7 @@
     ]
   },
   "admin/importacoes/index.js": {
-    "file": "assets/importacoes-ObOe04IN.js",
+    "file": "assets/importacoes-Dy4akAN-.js",
     "name": "importacoes",
     "src": "admin/importacoes/index.js",
     "isEntry": true,
@@ -582,7 +582,7 @@
       "_importacoes-DVFg73bi.js",
       "_billing-C7Txo-Oa.js",
       "_finance-CgaDv1sH.js",
-      "_ui-preferences-B8SkNUZA.js",
+      "_ui-preferences-CU21e-N9.js",
       "_api-EIRNFJb7.js"
     ],
     "css": [
@@ -617,7 +617,7 @@
     ]
   },
   "admin/lancamentos/index.js": {
-    "file": "assets/lancamentos-D1cp4qrn.js",
+    "file": "assets/lancamentos-Co9FHUHi.js",
     "name": "lancamentos",
     "src": "admin/lancamentos/index.js",
     "isEntry": true,
@@ -627,7 +627,7 @@
       "_lancamentos-BFIM3VKH.js",
       "_lancamento-meta-B5hCAWE1.js",
       "_finance-CgaDv1sH.js",
-      "_ui-preferences-B8SkNUZA.js",
+      "_ui-preferences-CU21e-N9.js",
       "_ai-qxx2vcf1.js"
     ],
     "css": [
@@ -635,58 +635,58 @@
     ]
   },
   "admin/metas/index.js": {
-    "file": "assets/metas-BOohuXQV.js",
+    "file": "assets/metas-DH67zoh4.js",
     "name": "metas",
     "src": "admin/metas/index.js",
     "isEntry": true,
     "imports": [
       "_api-EIRNFJb7.js",
       "_finance-CgaDv1sH.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/metas-ujZJTxvc.css"
     ]
   },
   "admin/orcamento/index.js": {
-    "file": "assets/orcamento-BfFp6trE.js",
+    "file": "assets/orcamento-wdZDbuoC.js",
     "name": "orcamento",
     "src": "admin/orcamento/index.js",
     "isEntry": true,
     "imports": [
       "_api-EIRNFJb7.js",
       "_finance-CgaDv1sH.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/orcamento-LHHE8Vwm.css"
     ]
   },
   "admin/perfil/index.js": {
-    "file": "assets/perfil-DmDFQLh-.js",
+    "file": "assets/perfil-0nu8phpA.js",
     "name": "perfil",
     "src": "admin/perfil/index.js",
     "isEntry": true,
     "imports": [
-      "_account-page-CcP5kAET.js",
+      "_account-page-CrWAAGwU.js",
       "_api-EIRNFJb7.js",
       "_runtime-config-BDcybaNg.js",
       "_profile-p7alQoN4.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/perfil-CiAYXt8n.css"
     ]
   },
   "admin/relatorios/index.js": {
-    "file": "assets/relatorios-D5_BnCEP.js",
+    "file": "assets/relatorios-CPq1k_Tt.js",
     "name": "relatorios",
     "src": "admin/relatorios/index.js",
     "isEntry": true,
     "imports": [
       "_api-EIRNFJb7.js",
       "_utils-Bj4jxwhy.js",
-      "_ui-preferences-B8SkNUZA.js",
+      "_ui-preferences-CU21e-N9.js",
       "_runtime-config-BDcybaNg.js",
       "_finance-CgaDv1sH.js",
       "_reports-CXrVZnrN.js"
@@ -761,14 +761,14 @@
     ]
   },
   "admin/sysadmin/index.js": {
-    "file": "assets/sysadmin-BB5u-m2D.js",
+    "file": "assets/sysadmin-D_u4Efnv.js",
     "name": "sysadmin",
     "src": "admin/sysadmin/index.js",
     "isEntry": true,
     "imports": [
       "_api-EIRNFJb7.js",
       "_utils-Bj4jxwhy.js",
-      "_ui-preferences-B8SkNUZA.js"
+      "_ui-preferences-CU21e-N9.js"
     ],
     "css": [
       "assets/sysadmin-Cx17bx3K.css"
