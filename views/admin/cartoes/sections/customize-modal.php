@@ -26,11 +26,7 @@
             <div class="cart-customize-group">
                 <p class="cart-customize-group-title">Blocos da tela</p>
                 <label class="cart-customize-toggle">
-                    <span>Visão consolidada</span>
-                    <input type="checkbox" id="toggleCartoesHero" checked>
-                </label>
-                <label class="cart-customize-toggle">
-                    <span>Cards de KPI</span>
+                    <span>Resumo consolidado</span>
                     <input type="checkbox" id="toggleCartoesKpis" checked>
                 </label>
                 <label class="cart-customize-toggle">

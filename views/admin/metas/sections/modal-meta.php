@@ -2,7 +2,15 @@
 <div class="fin-modal-overlay" id="modalMeta">
     <div class="fin-modal">
         <div class="fin-modal-header">
-            <h3 id="modalMetaTitle">Nova Meta</h3>
+            <div class="fin-modal-header__content">
+                <div class="fin-modal-icon" aria-hidden="true">
+                    <i data-lucide="target"></i>
+                </div>
+                <div class="fin-modal-title-group">
+                    <h3 id="modalMetaTitle">Nova Meta</h3>
+                    <p class="fin-modal-subtitle" id="modalMetaSubtitle">Defina o objetivo, prioridade e prazo da meta.</p>
+                </div>
+            </div>
             <button class="fin-modal-close" data-close-modal="modalMeta">
                 <i data-lucide="x"></i>
             </button>

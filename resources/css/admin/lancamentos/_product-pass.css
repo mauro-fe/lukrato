@@ -42,18 +42,19 @@
   margin-inline: auto;
 }
 
+.lan-hero-balance-wrap {
+  width: fit-content;
+  max-width: 100%;
+  margin: 1rem auto 0;
+}
+
+.lan-summary-card--hero {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-card-border));
+}
+
 .lan-hero-subtitle {
   max-width: 48ch;
-}
-
-.lan-hero-dynamic {
-  gap: 0.8rem 1rem;
-  margin-top: 0.95rem;
-  padding-top: 0.85rem;
-}
-
-.lan-hero-stat {
-  font-size: 0.82rem;
 }
 
 .lan-summary-strip {
@@ -243,8 +244,8 @@
   }
 
   .lan-hero-title {
-    font-size: clamp(1.8rem, 2.4vw, 2.25rem);
-    letter-spacing: -0.03em;
+    font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+    letter-spacing: -0.01em;
   }
 
   .lan-hero-subtitle {
@@ -253,19 +254,16 @@
     line-height: 1.45;
   }
 
-  .lan-hero-dynamic {
-    justify-content: flex-start;
-    margin-top: 1rem;
-    padding-top: 0.95rem;
-    gap: 0.6rem;
+  .lan-hero-balance-wrap {
+    margin: 1rem 0 0;
   }
 
-  .lan-hero-stat {
-    padding: 0.38rem 0.72rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-card-border) 84%, transparent);
-    font-size: 0.76rem;
+  .lan-summary-card--hero {
+    padding: 0.8rem 0.95rem;
+    gap: 0.8rem;
+    background:
+      radial-gradient(circle at top right, rgba(230, 126, 34, 0.1), transparent 45%),
+      color-mix(in srgb, var(--color-surface) 94%, transparent);
   }
 
   .lan-summary-strip {
@@ -280,14 +278,8 @@
     padding: 0.95rem 1rem;
   }
 
-  .lan-summary-card.saldo {
+  .lan-summary-card.total {
     order: -1;
-    background: linear-gradient(180deg, rgba(230, 126, 34, 0.08), rgba(230, 126, 34, 0.02));
-    border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-card-border));
-  }
-
-  .lan-summary-card.saldo .lan-summary-icon {
-    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
   }
 
   .lk-filters-section,

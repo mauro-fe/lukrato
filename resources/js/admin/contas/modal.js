@@ -13,13 +13,17 @@ import { getApiPayload, getErrorMessage } from '../shared/api.js';
 
 export const ContasModal = {
     syncScrollLock() {
+        const hasActiveOverlay = document.querySelector(
+            '#modalContaOverlay.active, #modalNovaInstituicaoOverlay.active'
+        );
+
+        document.body.classList.toggle('lk-page-modal-open', Boolean(hasActiveOverlay));
+        document.body.classList.toggle('lk-any-modal-open', Boolean(hasActiveOverlay));
+
         if (window.LK?.modalSystem) {
             return;
         }
 
-        const hasActiveOverlay = document.querySelector(
-            '#modalContaOverlay.active, #modalNovaInstituicaoOverlay.active'
-        );
         const overflowValue = hasActiveOverlay ? 'hidden' : '';
 
         document.body.style.overflow = overflowValue;
@@ -78,19 +82,24 @@ export const ContasModal = {
         const modalOverlay = document.getElementById('modalContaOverlay');
         const modal = document.getElementById('modalConta');
         const titulo = document.getElementById('modalContaTitulo');
+        const subtitle = modal?.querySelector('.modal-subtitle');
 
         if (!modalOverlay || !modal) return;
 
         if (titulo) {
             titulo.textContent = mode === 'edit' ? 'Editar Conta' : 'Nova Conta';
         }
+        if (subtitle) {
+            subtitle.textContent = mode === 'edit'
+                ? 'Revise nome, instituição, tipo e saldo inicial da conta.'
+                : 'Adicione uma nova conta bancária com contexto claro para o saldo.';
+        }
 
-        const modalHeader = modal.querySelector('.modal-header');
         if (mode === 'edit' && data) {
             const cor = data.instituicao_financeira?.cor_primaria || '#667eea';
-            if (modalHeader) modalHeader.style.cssText = `background: ${cor} !important`;
-        } else if (modalHeader) {
-            modalHeader.style.cssText = '';
+            modal.style.setProperty('--surface-modal-accent', cor);
+        } else {
+            modal.style.removeProperty('--surface-modal-accent');
         }
 
         if (mode === 'edit' && data) {
@@ -132,8 +141,7 @@ export const ContasModal = {
         ContasModal.syncScrollLock();
         STATE.isSubmitting = false;
 
-        const modalHeader = document.querySelector('#modalConta .modal-header');
-        if (modalHeader) modalHeader.style.cssText = '';
+        document.getElementById('modalConta')?.style.removeProperty('--surface-modal-accent');
 
         setTimeout(() => {
             document.getElementById('formConta')?.reset();

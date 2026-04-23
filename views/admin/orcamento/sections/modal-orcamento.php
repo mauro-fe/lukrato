@@ -2,7 +2,15 @@
 <div class="fin-modal-overlay" id="modalOrcamento">
     <div class="fin-modal">
         <div class="fin-modal-header">
-            <h3 id="modalOrcamentoTitle">Novo Orcamento</h3>
+            <div class="fin-modal-header__content">
+                <div class="fin-modal-icon" aria-hidden="true">
+                    <i data-lucide="wallet-cards"></i>
+                </div>
+                <div class="fin-modal-title-group">
+                    <h3 id="modalOrcamentoTitle">Novo Orcamento</h3>
+                    <p class="fin-modal-subtitle" id="modalOrcamentoSubtitle">Defina o limite mensal e os alertas da categoria.</p>
+                </div>
+            </div>
             <button class="fin-modal-close" data-close-modal="modalOrcamento">
                 <i data-lucide="x"></i>
             </button>

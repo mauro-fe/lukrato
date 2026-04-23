@@ -130,6 +130,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             let html = '';
             for (let i = 0; i < dotCount; i++) {
                 const stepNum = i + 2;
+                const progressLabel = i + 1;
                 let stateClass = 'pending';
                 if (stepNum < this.currentStep) stateClass = 'completed';
                 else if (stepNum === this.currentStep) stateClass = 'active';
@@ -138,7 +139,14 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
                     const lineClass = stepNum <= this.currentStep ? 'completed' : '';
                     html += `<div class="lk-wizard-line ${lineClass}"></div>`;
                 }
-                html += `<div class="lk-wizard-dot ${stateClass}"></div>`;
+                html += `
+                    <div class="lk-wizard-dot ${stateClass}">
+                        <span class="lk-wizard-dot-number">${progressLabel}</span>
+                        <span class="lk-wizard-dot-check" aria-hidden="true">
+                            <i data-lucide="check"></i>
+                        </span>
+                    </div>
+                `;
             }
             container.innerHTML = html;
         },

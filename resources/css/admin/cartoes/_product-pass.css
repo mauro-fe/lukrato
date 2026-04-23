@@ -1,0 +1,206 @@
+/* ============================================================================
+   CARTOES PRODUCT PASS
+   Promove a hierarquia do topo para 1 KPI principal + 3 cards auxiliares.
+   ============================================================================ */
+
+body[data-lk-menu="cartoes"] .cartoes-page {
+  gap: clamp(0.9rem, 1.2vw, 1.1rem);
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis {
+  gap: 0.85rem;
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--theme-surface-card-bg);
+  border-color: var(--theme-surface-card-border);
+  box-shadow: var(--theme-surface-card-shadow);
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: transparent;
+  pointer-events: none;
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="total"]::before {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-primary) 70%, #ffffff 30%) 0%,
+    color-mix(in srgb, var(--color-primary) 14%, transparent) 100%
+  );
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="disponivel"]::before {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-success) 82%, #ffffff 18%) 0%,
+    color-mix(in srgb, var(--color-success) 16%, transparent) 100%
+  );
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="utilizado"]::before {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-warning) 82%, #ffffff 18%) 0%,
+    color-mix(in srgb, var(--color-warning) 16%, transparent) 100%
+  );
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] {
+  display: grid;
+  gap: 0.82rem;
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--color-primary) 12%, transparent) 0%,
+      transparent 30%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0));
+  border-color: var(--theme-surface-card-border);
+  box-shadow: var(--theme-surface-card-shadow);
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"]::before {
+  height: 3px;
+  background: var(--theme-dashboard-hero-accent);
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"]::after {
+  content: "";
+  position: absolute;
+  inset: auto -10% -24% auto;
+  width: 180px;
+  height: 180px;
+  background: var(--theme-dashboard-hero-orb);
+  pointer-events: none;
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-card__summary {
+  display: grid;
+  gap: 0.35rem;
+  position: relative;
+  z-index: 1;
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-summary__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.28rem 0.62rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--theme-dashboard-hero-label-color);
+  background: var(--theme-dashboard-hero-label-bg);
+  border: 1px solid var(--theme-dashboard-hero-label-border);
+  border-radius: 999px;
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-summary__title {
+  margin: 0;
+  font-size: clamp(1.18rem, 2vw, 1.5rem);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.15;
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-summary__subtitle {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--theme-dashboard-hero-message);
+}
+
+body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-card__metric {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 1180px) {
+  body[data-lk-menu="cartoes"] .cart-kpis {
+    display: grid;
+    grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
+    grid-template-areas:
+      "primary total"
+      "primary available"
+      "primary used";
+    gap: 0.78rem 0.92rem;
+    align-items: stretch;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card {
+    min-height: 0;
+    padding: 0.9rem 1rem;
+    gap: 0.82rem;
+    align-items: center;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="total"] {
+    grid-area: total;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] {
+    grid-area: primary;
+    padding: 1.1rem 1.15rem;
+    gap: 0.95rem;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-card__metric {
+    margin-top: auto;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="disponivel"] {
+    grid-area: available;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="utilizado"] {
+    grid-area: used;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card .stat-content {
+    gap: 0.18rem;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card .stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card .stat-value {
+    font-size: clamp(1rem, 1.3vw, 1.16rem);
+  }
+
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] .stat-value {
+    font-size: clamp(1.45rem, 1.9vw, 1.82rem);
+    line-height: 1.05;
+  }
+}
+
+@media (max-width: 1179px) {
+  body[data-lk-menu="cartoes"] .cart-kpis > .stat-card[data-stat="limite"] {
+    grid-column: 1 / -1;
+  }
+}

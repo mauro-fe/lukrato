@@ -90,9 +90,14 @@
 .lk-currency-symbol {
   position: absolute;
   left: var(--spacing-4);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
   font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--color-success);
+  line-height: 1;
   pointer-events: none;
   z-index: 1;
 }

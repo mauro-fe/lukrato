@@ -1179,6 +1179,345 @@
   }
 }
 
+  /* ================================================
+     MODAL CONTAS - PRODUCT PASS
+     ================================================ */
+
+  #modalConta {
+    --surface-modal-accent: var(--color-primary);
+  }
+
+  #modalContaOverlay .modal-container {
+    width: min(980px, calc(100vw - 48px));
+    max-width: min(980px, calc(100vw - 48px));
+    max-height: min(88vh, 920px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 26px;
+    border: 1px solid var(--surface-modal-border);
+    background: var(--surface-modal-bg);
+    box-shadow: var(--surface-modal-shadow);
+    overflow: hidden;
+  }
+
+  #modalContaOverlay .modal-header {
+    padding: var(--spacing-5) var(--spacing-6);
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--surface-modal-accent) 18%, transparent), transparent 34%),
+      linear-gradient(180deg, color-mix(in srgb, var(--surface-modal-accent) 12%, transparent), transparent 74%),
+      var(--surface-modal-bg);
+    border-bottom: 1px solid var(--surface-modal-border);
+  }
+
+  #modalContaOverlay .modal-header-content {
+    gap: var(--spacing-4);
+  }
+
+  #modalContaOverlay .modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--surface-modal-accent) 14%, var(--theme-control-bg));
+    border: 1px solid color-mix(in srgb, var(--surface-modal-accent) 24%, var(--surface-modal-border));
+    box-shadow: var(--theme-control-shadow);
+    color: var(--surface-modal-accent);
+  }
+
+  #modalContaOverlay .modal-icon i,
+  #modalContaOverlay .modal-icon svg {
+    color: currentColor;
+  }
+
+  #modalContaOverlay .modal-title {
+    font-size: clamp(1.3rem, 1.6vw, 1.6rem);
+  }
+
+  #modalContaOverlay .modal-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    max-width: 52ch;
+  }
+
+  #modalContaOverlay .modal-body {
+    flex: 1;
+    min-height: 0;
+    padding: var(--spacing-5) var(--spacing-6) 0;
+    background: transparent;
+  }
+
+  #modalContaOverlay #formConta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-4) var(--spacing-4);
+  }
+
+  #modalContaOverlay #formConta > .form-group,
+  #modalContaOverlay #formConta > .form-row,
+  #modalContaOverlay #formConta > .modal-footer {
+    min-width: 0;
+  }
+
+  #modalContaOverlay #formConta > .form-group,
+  #modalContaOverlay #formConta > .form-row {
+    margin-bottom: 0;
+  }
+
+  #modalContaOverlay #formConta > .form-group {
+    padding: var(--spacing-4);
+    border: 1px solid var(--theme-surface-card-border);
+    border-radius: calc(var(--radius-xl) - 2px);
+    background: var(--theme-surface-card-bg);
+    box-shadow: var(--theme-surface-card-shadow);
+  }
+
+  #modalContaOverlay #formConta > .form-group:has(#nomeConta),
+  #modalContaOverlay #formConta > .form-group:has(#instituicaoFinanceiraSelect),
+  #modalContaOverlay #formConta > .form-group:has(#saldoInicial) {
+    grid-column: 1 / -1;
+  }
+
+  #modalContaOverlay #formConta > .form-row {
+    grid-column: 1 / -1;
+    gap: var(--spacing-4);
+  }
+
+  #modalContaOverlay #formConta > .form-row > .form-group {
+    margin-bottom: 0;
+    padding: var(--spacing-4);
+    border: 1px solid var(--theme-surface-card-border);
+    border-radius: calc(var(--radius-xl) - 2px);
+    background: var(--theme-surface-card-bg);
+    box-shadow: var(--theme-surface-card-shadow);
+  }
+
+  #modalContaOverlay .input-with-action {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--spacing-3);
+    align-items: stretch;
+  }
+
+  #modalContaOverlay .btn-add-instituicao {
+    width: 52px;
+    min-width: 52px;
+    border-radius: 16px;
+  }
+
+  #modalContaOverlay .input-with-prefix {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  #modalContaOverlay .input-prefix {
+    position: static;
+    inset: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    min-width: 68px;
+    padding: 0 1rem;
+    border: 1px solid var(--theme-control-border);
+    border-right: 0;
+    border-radius: 12px 0 0 12px;
+    background: color-mix(in srgb, var(--surface-modal-accent) 12%, var(--theme-control-bg));
+    color: color-mix(in srgb, var(--surface-modal-accent) 72%, var(--theme-control-text));
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  #modalContaOverlay .input-with-prefix .form-input {
+    border-radius: 0 12px 12px 0;
+  }
+
+  #modalContaOverlay .modal-footer {
+    grid-column: 1 / -1;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 calc(var(--spacing-6) * -1);
+    padding: var(--spacing-4) var(--spacing-6);
+    border-top: 1px solid var(--surface-modal-border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--theme-control-bg) 84%, transparent) 0%, color-mix(in srgb, var(--color-bg) 92%, transparent) 100%);
+    backdrop-filter: blur(14px);
+  }
+
+  @media (max-width: 900px) {
+    #modalContaOverlay .modal-container {
+      width: min(100vw - 24px, 760px);
+      max-width: min(100vw - 24px, 760px);
+    }
+
+    #modalContaOverlay #formConta {
+      grid-template-columns: 1fr;
+    }
+
+    #modalContaOverlay #formConta > .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  #modalNovaInstituicao {
+    --surface-modal-accent: #2563eb;
+  }
+
+  #modalNovaInstituicaoOverlay {
+    z-index: 12020;
+  }
+
+  #modalNovaInstituicaoOverlay .modal-container {
+    width: min(560px, calc(100vw - 48px));
+    max-width: min(560px, calc(100vw - 48px));
+    max-height: min(82vh, 760px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 24px;
+    border: 1px solid var(--surface-modal-border);
+    background: var(--surface-modal-bg);
+    box-shadow: var(--surface-modal-shadow);
+    overflow: hidden;
+  }
+
+  #modalNovaInstituicaoOverlay .modal-header {
+    padding: var(--spacing-5) var(--spacing-5) var(--spacing-4);
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--surface-modal-accent) 18%, transparent), transparent 36%),
+      linear-gradient(180deg, color-mix(in srgb, var(--surface-modal-accent) 12%, transparent), transparent 74%),
+      var(--surface-modal-bg);
+    border-bottom: 1px solid var(--surface-modal-border);
+  }
+
+  #modalNovaInstituicaoOverlay .modal-header-content {
+    gap: var(--spacing-4);
+  }
+
+  #modalNovaInstituicaoOverlay .modal-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--surface-modal-accent) 14%, var(--theme-control-bg));
+    border: 1px solid color-mix(in srgb, var(--surface-modal-accent) 24%, var(--surface-modal-border));
+    box-shadow: var(--theme-control-shadow);
+    color: var(--surface-modal-accent);
+  }
+
+  #modalNovaInstituicaoOverlay .modal-icon i,
+  #modalNovaInstituicaoOverlay .modal-icon svg {
+    color: currentColor;
+  }
+
+  #modalNovaInstituicaoOverlay .modal-title {
+    font-size: clamp(1.18rem, 1.55vw, 1.45rem);
+  }
+
+  #modalNovaInstituicaoOverlay .modal-subtitle {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    max-width: 42ch;
+  }
+
+  #modalNovaInstituicaoOverlay .modal-body {
+    flex: 1;
+    min-height: 0;
+    padding: var(--spacing-5) var(--spacing-5) 0;
+    background: transparent;
+  }
+
+  #modalNovaInstituicaoOverlay #formNovaInstituicao {
+    display: grid;
+    gap: var(--spacing-4);
+  }
+
+  #modalNovaInstituicaoOverlay #formNovaInstituicao > .form-group {
+    margin-bottom: 0;
+    padding: var(--spacing-4);
+    border: 1px solid var(--theme-surface-card-border);
+    border-radius: calc(var(--radius-xl) - 2px);
+    background: var(--theme-surface-card-bg);
+    box-shadow: var(--theme-surface-card-shadow);
+  }
+
+  #modalNovaInstituicaoOverlay .color-picker-row {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: var(--spacing-3);
+    align-items: center;
+  }
+
+  #modalNovaInstituicaoOverlay .form-color {
+    width: 54px;
+    height: 54px;
+    padding: 0;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  #modalNovaInstituicaoOverlay .color-preview {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  #modalNovaInstituicaoOverlay .color-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 0 0.9rem;
+    border-radius: 14px;
+    border: 1px solid var(--theme-control-border);
+    background: var(--theme-control-bg);
+    color: var(--theme-control-text);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  #modalNovaInstituicaoOverlay .modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 calc(var(--spacing-5) * -1);
+    padding: var(--spacing-4) var(--spacing-5);
+    border-top: 1px solid var(--surface-modal-border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--theme-control-bg) 84%, transparent) 0%, color-mix(in srgb, var(--color-bg) 92%, transparent) 100%);
+    backdrop-filter: blur(14px);
+  }
+
+  @media (max-width: 640px) {
+    #modalNovaInstituicaoOverlay .modal-container {
+      width: min(100vw - 20px, 560px);
+      max-width: min(100vw - 20px, 560px);
+    }
+
+    #modalNovaInstituicaoOverlay .modal-body {
+      padding-left: var(--spacing-4);
+      padding-right: var(--spacing-4);
+    }
+
+    #modalNovaInstituicaoOverlay .modal-footer {
+      margin-left: calc(var(--spacing-4) * -1);
+      margin-right: calc(var(--spacing-4) * -1);
+      padding-left: var(--spacing-4);
+      padding-right: var(--spacing-4);
+    }
+
+    #modalNovaInstituicaoOverlay .color-picker-row {
+      grid-template-columns: auto 1fr;
+    }
+
+    #modalNovaInstituicaoOverlay .color-value {
+      grid-column: 1 / -1;
+    }
+  }
+
 @media (max-width: 480px) {
   .lk-modal-header-gradient,
   .modal-header {

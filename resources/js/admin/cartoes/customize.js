@@ -9,13 +9,11 @@ import { Modules } from './state.js';
 
 /** Map: checkbox ID -> section ID */
 const SECTION_MAP = {
-    toggleCartoesHero: 'cartoesHero',
     toggleCartoesKpis: 'cartoesKpis',
     toggleCartoesToolbar: 'cartoesToolbar'
 };
 
 const COMPLETE_DEFAULTS = {
-    toggleCartoesHero: true,
     toggleCartoesKpis: true,
     toggleCartoesToolbar: true
 };

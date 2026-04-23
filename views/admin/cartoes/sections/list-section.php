@@ -16,6 +16,17 @@
                 <button class="btn btn-primary" id="btnNovoCartao" aria-label="Adicionar cartão">
                     <i data-lucide="plus"></i> Novo cartão
                 </button>
+                <a
+                    class="btn btn-secondary"
+                    href="<?= BASE_URL ?>importacoes?import_target=cartao"
+                    data-cartoes-import-ofx-link>
+                    <i data-lucide="upload"></i>
+                    Importar fatura
+                </a>
+                <a class="btn btn-ghost" href="<?= BASE_URL ?>importacoes/historico?import_target=cartao">
+                    <i data-lucide="history"></i>
+                    Histórico de importações
+                </a>
                 <button class="btn btn-ghost" id="btnExportar" title="Exportar relatório"
                     aria-label="Exportar relatório">
                     <i data-lucide="download"></i>

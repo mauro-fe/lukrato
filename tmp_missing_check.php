@@ -21,7 +21,9 @@ foreach ($files as $file) {
     if (preg_match_all("/Router::add\(\s*'([^']+)'\s*,\s*'([^']+)'/", $text, $m, PREG_SET_ORDER)) {
         foreach ($m as $match) {
             $path = $match[2];
-            if (strpos($path, '/api/v1/') === 0) { $allV1[$path] = true; }
+            if (strpos($path, '/api/v1/') === 0) {
+                $allV1[$path] = true;
+            }
         }
     }
 }

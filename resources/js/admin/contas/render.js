@@ -200,28 +200,28 @@ function buildInsight(portfolio) {
         return {
             title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
             description: reserveBalance > 0
-                ? 'Existe concentracao em uma unica conta. Considere distribuir melhor para reduzir dependencia.'
-                : 'Existe concentracao em uma unica conta e ainda nao ha reserva separada. Vale distribuir melhor.',
+                ? 'Existe concentração em uma única conta. Considere distribuir melhor para reduzir dependência.'
+                : 'Existe concentração em uma única conta e ainda não há reserva separada. Vale distribuir melhor.',
         };
     }
 
     if (reserveBalance <= 0) {
         return {
-            title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
-            description: 'Quase todo o saldo esta em contas de uso diario. Considere separar parte do valor em reserva.',
+            title: `Sua maior parte do dinheiro está em ${primaryAccount.nome}.`,
+            description: 'Quase todo o saldo está em contas de uso diário. Considere separar parte do valor em reserva.',
         };
     }
 
     if (reserveShare >= 35) {
         return {
-            title: `${Utils.formatCurrency(reserveBalance)} ja estao guardados.`,
+            title: `${Utils.formatCurrency(reserveBalance)} já estão guardados.`,
             description: `A reserva representa ${formatPercent(reserveShare)} do seu dinheiro total e melhora sua segurança financeira.`,
         };
     }
 
     return {
-        title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
-        description: `${formatPercent(primaryShare)} do valor positivo esta nessa conta. Sua distribuição está equilibrada, mas ainda pode ficar melhor.`,
+        title: `Sua maior parte do dinheiro está em ${primaryAccount.nome}.`,
+        description: `${formatPercent(primaryShare)} do valor positivo está nessa conta. Sua distribuição está equilibrada, mas ainda pode ficar melhor.`,
     };
 }
 
@@ -310,7 +310,7 @@ export const ContasRender = {
             summaryEl.innerHTML = `
                 <div class="contas-filter-summary-text">
                     <i data-lucide="info"></i>
-                    <span>Use busca e filtro para localizar contas rapidamente sem perder a visao consolidada do topo.</span>
+                    <span>Use busca e filtro para localizar contas rapidamente sem perder a visão consolidada do topo.</span>
                 </div>
             `;
             return;
@@ -344,7 +344,7 @@ export const ContasRender = {
                     <i data-lucide="wallet"></i>
                 </div>
                 <h3>Nenhuma conta cadastrada</h3>
-                <p>Cadastre sua primeira conta para enxergar onde o dinheiro esta e quanto você ja separou em reserva.</p>
+                <p>Cadastre sua primeira conta para enxergar onde o dinheiro está e quanto você já separou em reserva.</p>
                 <button class="btn btn-primary btn-lg" data-action="create-first-account">
                     <i data-lucide="plus"></i> Criar primeira conta
                 </button>
@@ -378,7 +378,7 @@ export const ContasRender = {
             listEl.innerHTML = `
                 <div class="contas-distribution-empty">
                     <i data-lucide="wallet"></i>
-                    <span>A distribuicao por tipo volta a aparecer assim que houver saldo positivo.</span>
+                    <span>A distribuição por tipo volta a aparecer assim que houver saldo positivo.</span>
                 </div>
             `;
             refreshIcons();
@@ -388,7 +388,7 @@ export const ContasRender = {
         const topType = portfolio.distribution[0];
         summaryEl.textContent = portfolio.distribution.length === 1
             ? `${topType.label} responde por ${formatPercent(topType.percent)} do saldo positivo hoje.`
-            : `${topType.label} lidera a composicao hoje, com ${formatPercent(topType.percent)} do saldo positivo.`;
+            : `${topType.label} lidera a composição hoje, com ${formatPercent(topType.percent)} do saldo positivo.`;
 
         listEl.innerHTML = portfolio.distribution.map((item) => `
             <article class="contas-distribution-item" style="--distribution-color:${item.color};">
@@ -498,7 +498,7 @@ export const ContasRender = {
                 ? 'Saldo guardado'
                 : typeLabel;
         const featuredBadge = isFeatured
-            ? `<span class="account-chip account-chip--featured" ${buildTooltipAttrs('Conta principal', 'Hoje esta e a conta com maior saldo entre as contas ativas.')}>
+            ? `<span class="account-chip account-chip--featured" ${buildTooltipAttrs('Conta principal', 'Hoje esta é a conta com maior saldo entre as contas ativas.')}>
                     <i data-lucide="sparkles"></i>
                     Conta principal
                </span>`

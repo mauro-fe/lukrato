@@ -115,3 +115,206 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* ─── MODAL PRODUCT PASS ──────────────────────────────────────────────── */
+
+#modalCartaoOverlay {
+  z-index: 12000;
+}
+
+#modalCartao {
+  --surface-modal-accent: var(--color-primary);
+  width: min(1100px, calc(100vw - 48px));
+  max-width: min(1100px, calc(100vw - 48px));
+  max-height: min(88vh, 940px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  border: 1px solid var(--surface-modal-border);
+  background: var(--surface-modal-bg);
+  box-shadow: var(--surface-modal-shadow);
+  overflow: hidden;
+}
+
+#modalCartao .modal-header {
+  padding: var(--spacing-5) var(--spacing-6);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--surface-modal-accent) 18%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-modal-accent) 12%, transparent), transparent 74%),
+    var(--surface-modal-bg);
+  border-bottom: 1px solid var(--surface-modal-border);
+}
+
+#modalCartao .modal-header-content {
+  gap: var(--spacing-4);
+}
+
+#modalCartao .modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface-modal-accent) 14%, var(--theme-control-bg));
+  border: 1px solid color-mix(in srgb, var(--surface-modal-accent) 24%, var(--surface-modal-border));
+  box-shadow: var(--theme-control-shadow);
+  color: var(--surface-modal-accent);
+}
+
+#modalCartao .modal-icon i,
+#modalCartao .modal-icon svg {
+  color: currentColor;
+}
+
+#modalCartao .modal-title {
+  font-size: clamp(1.28rem, 1.6vw, 1.6rem);
+}
+
+#modalCartao .modal-subtitle {
+  max-width: 56ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+#modalCartao .modal-body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--spacing-5) var(--spacing-6) 0;
+  overflow: auto;
+  background: transparent;
+}
+
+#modalCartao #formCartao {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-4);
+}
+
+#modalCartao #formCartao > .form-group,
+#modalCartao #formCartao > .form-row,
+#modalCartao #formCartao > .modal-footer {
+  min-width: 0;
+}
+
+#modalCartao #formCartao > .form-group,
+#modalCartao #formCartao > .form-row {
+  margin-bottom: 0;
+}
+
+#modalCartao #formCartao > .form-group {
+  padding: var(--spacing-4);
+  border: 1px solid var(--theme-surface-card-border);
+  border-radius: calc(var(--radius-xl) - 2px);
+  background: var(--theme-surface-card-bg);
+  box-shadow: var(--theme-surface-card-shadow);
+}
+
+#modalCartao #formCartao > .form-group:has(#nomeCartao),
+#modalCartao #formCartao > .form-group:has(#contaVinculada),
+#modalCartao #formCartao > .form-group:has(#limiteTotal),
+#modalCartao #formCartao > .form-group:has(#cartaoLembreteAviso) {
+  grid-column: 1 / -1;
+}
+
+#modalCartao #formCartao > .form-row {
+  grid-column: 1 / -1;
+  gap: var(--spacing-4);
+}
+
+#modalCartao #formCartao > .form-row > .form-group {
+  margin-bottom: 0;
+  padding: var(--spacing-4);
+  border: 1px solid var(--theme-surface-card-border);
+  border-radius: calc(var(--radius-xl) - 2px);
+  background: var(--theme-surface-card-bg);
+  box-shadow: var(--theme-surface-card-shadow);
+}
+
+#modalCartao .input-with-prefix {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+#modalCartao .input-prefix {
+  position: static;
+  inset: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-width: 68px;
+  padding: 0 1rem;
+  border: 1px solid var(--theme-control-border);
+  border-right: 0;
+  border-radius: 14px 0 0 14px;
+  background: color-mix(in srgb, var(--surface-modal-accent) 12%, var(--theme-control-bg));
+  color: color-mix(in srgb, var(--surface-modal-accent) 72%, var(--theme-control-text));
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+#modalCartao .input-with-prefix .form-input {
+  border-radius: 0 14px 14px 0;
+}
+
+#modalCartao .form-inline-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: var(--spacing-3);
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--theme-control-bg));
+  border: 1px solid color-mix(in srgb, var(--color-warning) 20%, var(--theme-control-border));
+  color: color-mix(in srgb, var(--color-warning) 62%, var(--theme-control-text));
+}
+
+#modalCartao .form-inline-warning a {
+  color: inherit;
+  font-weight: 700;
+}
+
+#modalCartao .reminder-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+#modalCartao .reminder-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--theme-control-border);
+  border-radius: 12px;
+  background: var(--theme-control-bg);
+}
+
+#modalCartao .modal-footer {
+  grid-column: 1 / -1;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 0 calc(var(--spacing-6) * -1);
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--surface-modal-border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--theme-control-bg) 84%, transparent) 0%, color-mix(in srgb, var(--color-bg) 92%, transparent) 100%);
+  backdrop-filter: blur(14px);
+}
+
+@media (max-width: 980px) {
+  #modalCartao {
+    width: min(100vw - 24px, 760px);
+    max-width: min(100vw - 24px, 760px);
+  }
+
+  #modalCartao #formCartao {
+    grid-template-columns: 1fr;
+  }
+
+  #modalCartao #formCartao > .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+

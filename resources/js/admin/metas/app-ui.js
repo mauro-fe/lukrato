@@ -454,6 +454,7 @@ export function createMetasUi({
         const overlay = document.getElementById(id);
         if (overlay) {
             overlay.classList.add('active');
+            document.body.classList.add('lk-page-modal-open', 'lk-any-modal-open');
             if (!window.LK?.modalSystem) {
                 document.body.style.overflow = 'hidden';
             }
@@ -464,6 +465,7 @@ export function createMetasUi({
         const overlay = document.getElementById(id);
         if (overlay) {
             overlay.classList.remove('active');
+            document.body.classList.remove('lk-page-modal-open', 'lk-any-modal-open');
             if (!window.LK?.modalSystem) {
                 document.body.style.overflow = '';
             }

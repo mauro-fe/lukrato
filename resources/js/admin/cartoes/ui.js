@@ -217,6 +217,9 @@ export const CartoesUI = {
     },
 
     setScrollLock(locked) {
+        document.body.classList.toggle('lk-page-modal-open', Boolean(locked));
+        document.body.classList.toggle('lk-any-modal-open', Boolean(locked));
+
         if (window.LK?.modalSystem) {
             return;
         }
@@ -620,8 +623,6 @@ export const CartoesUI = {
         const form = document.getElementById('formCartao');
         const titulo = document.getElementById('modalCartaoTitulo');
         const subtitle = document.getElementById('modalCartaoSubtitle');
-        const modalHeader = modal?.querySelector('.modal-header');
-
         if (!overlay || !modal || !form || !titulo || !subtitle) {
             return;
         }
@@ -662,18 +663,13 @@ export const CartoesUI = {
             document.getElementById('cartaoCanalInapp').checked = cartaoData.fatura_canal_inapp !== false && cartaoData.fatura_canal_inapp !== 0;
             document.getElementById('cartaoCanalEmail').checked = Boolean(cartaoData.fatura_canal_email);
 
-            if (modalHeader) {
-                modalHeader.style.background = getCardColor(cartaoData);
-            }
+            modal.style.setProperty('--surface-modal-accent', getCardColor(cartaoData));
         } else {
             titulo.textContent = 'Novo cartão de crédito';
             subtitle.textContent = contasDisponiveis
                 ? 'Cadastre o cartão e vincule a conta usada para pagar a fatura.'
                 : 'Antes de cadastrar um cartão, você precisa ter ao menos uma conta.';
-
-            if (modalHeader) {
-                modalHeader.style.background = '';
-            }
+            modal.style.removeProperty('--surface-modal-accent');
         }
 
         CartoesUI.syncReminderChannels();
@@ -696,10 +692,7 @@ export const CartoesUI = {
         overlay.classList.remove('active');
         CartoesUI.setScrollLock(false);
 
-        const modalHeader = document.querySelector('#modalCartao .modal-header');
-        if (modalHeader) {
-            modalHeader.style.background = '';
-        }
+        document.getElementById('modalCartao')?.style.removeProperty('--surface-modal-accent');
 
         STATE.isSaving = false;
         CartoesUI.setModalSubmitState(false, false);

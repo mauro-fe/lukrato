@@ -44,6 +44,11 @@
   color: var(--color-primary);
 }
 
+.lan-summary-card.total .lan-summary-icon {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
 .lan-summary-info {
   display: flex;
   flex-direction: column;
@@ -69,3 +74,4 @@
 
 .lan-summary-card.receitas .lan-summary-value { color: var(--color-success); }
 .lan-summary-card.despesas .lan-summary-value { color: var(--color-danger); }
+.lan-summary-card.total .lan-summary-value { color: var(--color-text); }

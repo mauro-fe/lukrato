@@ -414,6 +414,7 @@ export const OrcamentoApp = {
     openOrcamentoModal(orcId = null) {
         STATE.editingOrcamentoId = orcId;
         const title = document.getElementById('modalOrcamentoTitle');
+        const subtitle = document.getElementById('modalOrcamentoSubtitle');
         const form = document.getElementById('formOrcamento');
 
         if (orcId) {
@@ -421,6 +422,7 @@ export const OrcamentoApp = {
             if (!orc) return;
             if (preventDemoAction(orc)) return;
             if (title) title.textContent = 'Editar Orçamento';
+            if (subtitle) subtitle.textContent = 'Ajuste limite, rollover e alertas da categoria selecionada.';
             document.getElementById('orcCategoria').value = orc.categoria_id;
             document.getElementById('orcCategoria').disabled = true;
             document.getElementById('orcValor').value = Utils.formatNumber(orc.valor_limite);
@@ -429,6 +431,7 @@ export const OrcamentoApp = {
             document.getElementById('orcAlerta100').checked = orc.alerta_100 !== false && orc.alerta_100 !== 0;
         } else {
             if (title) title.textContent = 'Novo Orçamento';
+            if (subtitle) subtitle.textContent = 'Defina o limite mensal e os alertas da categoria.';
             form?.reset();
             document.getElementById('orcCategoria').disabled = false;
             document.getElementById('orcAlerta80').checked = true;

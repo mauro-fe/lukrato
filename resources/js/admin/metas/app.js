@@ -346,6 +346,7 @@ export const MetasApp = {
     openMetaModal(metaId = null) {
         STATE.editingMetaId = metaId;
         const title = document.getElementById('modalMetaTitle');
+        const subtitle = document.getElementById('modalMetaSubtitle');
         const form = document.getElementById('formMeta');
 
         // Populate conta select
@@ -366,6 +367,7 @@ export const MetasApp = {
             if (!meta) return;
             if (preventDemoAction(meta)) return;
             if (title) title.textContent = 'Editar Meta';
+            if (subtitle) subtitle.textContent = 'Revise objetivo, prioridade, prazo e cor da meta.';
             document.getElementById('metaTitulo').value = meta.titulo || '';
             document.getElementById('metaValorAlvo').value = Utils.formatNumber(meta.valor_alvo);
             document.getElementById('metaValorAtual').value = Utils.formatNumber(meta.valor_atual || 0);
@@ -381,6 +383,7 @@ export const MetasApp = {
             });
         } else {
             if (title) title.textContent = 'Nova Meta';
+            if (subtitle) subtitle.textContent = 'Defina o objetivo, prioridade e prazo da meta.';
             form?.reset();
             document.getElementById('metaValorAtual').value = '0,00';
             document.getElementById('metaCor').value = '#8b5cf6';

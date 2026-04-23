@@ -1,15 +1,15 @@
 <!-- Modal de Nova Instituição -->
-<div class="lk-modal-overlay" id="modalNovaInstituicaoOverlay" style="z-index: 10001;">
-    <div class="modal-container" id="modalNovaInstituicao" onclick="event.stopPropagation()" style="max-width: 480px;">
+<div class="lk-modal-overlay" id="modalNovaInstituicaoOverlay">
+    <div class="modal-container" id="modalNovaInstituicao" onclick="event.stopPropagation()">
         <!-- Header -->
-        <div class="modal-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
+        <div class="modal-header">
             <div class="modal-header-content">
                 <div class="modal-icon">
                     <i data-lucide="circle-plus" style="color: white"></i>
                 </div>
                 <div>
-                    <h2 class="modal-title">Nova Instituição</h2>
-                    <p class="modal-subtitle">Adicione um banco que não está na lista</p>
+                    <h2 class="modal-title" id="modalNovaInstituicaoTitle">Nova Instituição</h2>
+                    <p class="modal-subtitle" id="modalNovaInstituicaoSubtitle">Cadastre um banco ou fintech que ainda não aparece na lista.</p>
                 </div>
             </div>
             <button class="modal-close modal-close-btn" type="button"
@@ -58,7 +58,7 @@
                         <span class="color-preview" id="colorPreview" style="background: #3498db;"></span>
                         <span class="color-value" id="colorValue">#3498db</span>
                     </div>
-                    <small class="form-help">Cor para identificar esta instituição</small>
+                    <small class="form-help">Essa cor ajuda a reconhecer a instituição na lista de contas.</small>
                 </div>
 
                 <!-- Footer -->

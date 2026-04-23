@@ -35,7 +35,7 @@
         <div class="lk-forma-pagamento-grid" id="globalFormaPagamentoGrid">
             <button type="button" class="lk-forma-btn" data-forma="pix"
                 onclick="lancamentoGlobalManager.selecionarFormaPagamento('pix')">
-                <i class="fa-brands fa-pix lk-forma-icon"></i>
+                <i data-lucide="scan-qr-code" class="lk-forma-icon"></i>
                 <span class="lk-forma-label">PIX</span>
             </button>
             <button type="button" class="lk-forma-btn" data-forma="cartao_credito"
@@ -71,7 +71,7 @@
         <div class="lk-forma-pagamento-grid" id="globalFormaRecebimentoGrid">
             <button type="button" class="lk-forma-btn" data-forma="pix"
                 onclick="lancamentoGlobalManager.selecionarFormaRecebimento('pix')">
-                <i class="fa-brands fa-pix lk-forma-icon"></i>
+                <i data-lucide="scan-qr-code" class="lk-forma-icon"></i>
                 <span class="lk-forma-label">PIX</span>
             </button>
             <button type="button" class="lk-forma-btn" data-forma="deposito"
