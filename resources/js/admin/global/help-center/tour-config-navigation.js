@@ -46,7 +46,7 @@ export const NAVIGATION_TOUR_CONFIG = {
         {
             selector: ['.sidebar-footer .nav-item[href*="perfil"]', '#sidebarSuggestionBtn'],
             title: 'Ações finais',
-            description: 'No rodapé você encontra perfil e feedback.',
+            description: 'No rodape voce encontra perfil e outros atalhos da conta.',
             side: 'right',
             align: 'center',
         },

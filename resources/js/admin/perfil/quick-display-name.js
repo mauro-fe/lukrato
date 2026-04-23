@@ -72,6 +72,23 @@ function readSeedDisplayName(context, refs) {
     );
 }
 
+function getDisplayNameValidationMessage(displayName) {
+    if (displayName === '') {
+        return 'Digite como prefere ser chamado.';
+    }
+
+    const displayNameLength = Array.from(displayName).length;
+    if (displayNameLength < 2) {
+        return 'Use pelo menos 2 caracteres.';
+    }
+
+    if (displayNameLength > 80) {
+        return 'Use no maximo 80 caracteres.';
+    }
+
+    return '';
+}
+
 export function initProfileDisplayName(context, profileReadyPromise = null) {
     const root = document.querySelector('[data-profile-display-name-root]');
     if (!root) {
@@ -102,6 +119,12 @@ export function initProfileDisplayName(context, profileReadyPromise = null) {
 
     const save = async () => {
         const displayName = String(refs.input.value || '').trim();
+        const validationMessage = getDisplayNameValidationMessage(displayName);
+
+        if (validationMessage) {
+            setStatus(refs.status, validationMessage, 'danger');
+            return;
+        }
 
         setBusy(refs, true);
         setStatus(refs.status, 'Salvando nome de exibição...', 'neutral');

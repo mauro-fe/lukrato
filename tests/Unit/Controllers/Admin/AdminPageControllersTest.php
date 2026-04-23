@@ -167,6 +167,34 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('modern-dashboard', $response->getContent());
         }
 
+        public function testDashboardHidesSuggestionEntryForRecentAccounts(): void
+        {
+            $user = new Usuario();
+            $user->created_at = (new \DateTimeImmutable('-2 days'))->format('Y-m-d H:i:s');
+
+            $this->seedAuthenticatedSession(3991, 'Conta Nova', $user);
+
+            $controller = new DashboardController();
+            $response = $controller->dashboard();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringNotContainsString('id="sidebarSuggestionBtn"', $response->getContent());
+        }
+
+        public function testDashboardShowsSuggestionEntryForMatureAccounts(): void
+        {
+            $user = new Usuario();
+            $user->created_at = '2024-03-20 09:00:00';
+
+            $this->seedAuthenticatedSession(3992, 'Conta Antiga', $user);
+
+            $controller = new DashboardController();
+            $response = $controller->dashboard();
+
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertStringContainsString('id="sidebarSuggestionBtn"', $response->getContent());
+        }
+
         public function testFaturaIndexRendersBootstrapShellPage(): void
         {
             $this->seedAuthenticatedSession(3111, 'Fatura User');

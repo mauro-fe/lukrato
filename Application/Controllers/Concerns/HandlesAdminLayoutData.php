@@ -9,6 +9,7 @@ use Application\Models\BlogCategoria;
 use Application\Models\Telefone;
 use Application\Models\Usuario;
 use Application\Support\Admin\AdminModuleRegistry;
+use Application\Support\Engagement\FeedbackVisibility;
 
 trait HandlesAdminLayoutData
 {
@@ -162,7 +163,27 @@ trait HandlesAdminLayoutData
                 ? rtrim(BASE_URL, '/') . '/' . ltrim((string) $currentUser->avatar, '/')
                 : '',
             'userAvatarSettings' => $this->buildAdminAvatarSettings($currentUser),
+            'feedback' => $this->buildAdminFeedbackConfig($currentUser),
             'pageContext' => is_array($data['adminPageContext'] ?? null) ? $data['adminPageContext'] : null,
+        ];
+    }
+
+    /**
+     * @return array{generalFeedbackEnabled:bool,minimumAccountAgeDays:int,generalFeedbackAvailableAt:?string}
+     */
+    private function buildAdminFeedbackConfig(?Usuario $currentUser): array
+    {
+        $minimumAccountAgeDays = FeedbackVisibility::minimumAccountAgeDays();
+        $availableAt = FeedbackVisibility::availableAt($currentUser?->created_at, $minimumAccountAgeDays);
+
+        return [
+            'generalFeedbackEnabled' => FeedbackVisibility::canCollectGeneralFeedback(
+                $currentUser?->created_at,
+                null,
+                $minimumAccountAgeDays
+            ),
+            'minimumAccountAgeDays' => $minimumAccountAgeDays,
+            'generalFeedbackAvailableAt' => $availableAt?->format(DATE_ATOM),
         ];
     }
 

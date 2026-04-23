@@ -9,7 +9,6 @@ import {
   getRuntimeConfig,
   onRuntimeConfigUpdate,
 } from '../global/runtime-config.js';
-import { CONFIG } from './state.js';
 
 function storageKey(name) {
   return `lk_user_${getRuntimeConfig().userId ?? 'anon'}_${name}`;
@@ -17,7 +16,6 @@ function storageKey(name) {
 
 const STORAGE = {
   DISPLAY_NAME_DISMISSED: () => storageKey('display_name_prompt_dismissed_v1'),
-  TOUR_PROMPT_DISMISSED: () => storageKey('dashboard_tour_prompt_dismissed_v1'),
   FIRST_ACTION_TOAST: () => storageKey('dashboard_first_action_toast_v1'),
 };
 
@@ -27,23 +25,23 @@ class DashboardFirstRunExperience {
       accountCount: 0,
       primaryAction: 'create_transaction',
       transactionCount: null,
-      promptScheduled: false,
-      tourPromptVisible: false,
+      isDemo: false,
       awaitingFirstActionFeedback: false,
     };
 
     this.elements = {
+      firstRunStack: document.getElementById('dashboardFirstRunStack'),
       displayNameCard: document.getElementById('dashboardDisplayNamePrompt'),
+      previewNotice: document.getElementById('dashboardPreviewNotice'),
+      previewLearnMore: document.getElementById('dashboardPreviewLearnMore'),
       displayNameForm: document.getElementById('dashboardDisplayNameForm'),
       displayNameInput: document.getElementById('dashboardDisplayNameInput'),
       displayNameSubmit: document.getElementById('dashboardDisplayNameSubmit'),
       displayNameDismiss: document.getElementById('dashboardDisplayNameDismiss'),
       displayNameFeedback: document.getElementById('dashboardDisplayNameFeedback'),
       quickStart: document.getElementById('dashboardQuickStart'),
-      quickStartTitle: document.querySelector('#dashboardQuickStart .dash-quick-start__header h2'),
-      quickStartDescription: document.querySelector('#dashboardQuickStart .dash-quick-start__header p'),
-      quickStartNotes: Array.from(document.querySelectorAll('#dashboardQuickStart .dash-quick-start__notes span')),
-      firstTransactionCta: document.getElementById('dashboardFirstTransactionCta'),
+      journeySteps: Array.from(document.querySelectorAll('[data-journey-step]')),
+      primaryActionCta: document.getElementById('dashboardFirstTransactionCta'),
       openTourPrompt: document.getElementById('dashboardOpenTourPrompt'),
       emptyStateTitle: document.querySelector('#emptyState p'),
       emptyStateDescription: document.querySelector('#emptyState .dash-empty__subtext'),
@@ -53,12 +51,9 @@ class DashboardFirstRunExperience {
   }
 
   init() {
-    if (!window.LKHelpCenter?.isManagingAutoOffers?.()) {
-      this.createTourPrompt();
-    }
-
     this.bindEvents();
     this.syncDisplayNamePrompt();
+    this.syncStackVisibility();
 
     onRuntimeConfigUpdate(() => {
       this.syncDisplayNamePrompt();
@@ -70,18 +65,14 @@ class DashboardFirstRunExperience {
   }
 
   bindEvents() {
-    this.elements.firstTransactionCta?.addEventListener('click', () => this.openPrimaryAction());
+    this.elements.primaryActionCta?.addEventListener('click', () => this.openPrimaryAction());
     this.elements.emptyStateCta?.addEventListener('click', () => this.openPrimaryAction());
     this.elements.openTourPrompt?.addEventListener('click', () => this.startTour());
+    this.elements.previewLearnMore?.addEventListener('click', () => {
+      void this.openPreviewHelp();
+    });
     this.elements.displayNameDismiss?.addEventListener('click', () => this.dismissDisplayNamePrompt());
     this.elements.displayNameForm?.addEventListener('submit', (event) => this.handleDisplayNameSubmit(event));
-
-    this.tourPrompt?.querySelector('[data-tour-action="start"]')?.addEventListener('click', () => this.startTour());
-    this.tourPrompt?.querySelector('[data-tour-action="dismiss"]')?.addEventListener('click', () => {
-      localStorage.setItem(STORAGE.TOUR_PROMPT_DISMISSED(), '1');
-      this.hideTourPrompt();
-      this.focusPrimaryAction();
-    });
 
     document.addEventListener('lukrato:dashboard-overview-rendered', (event) => {
       this.handleOverviewUpdate(event.detail || {});
@@ -92,35 +83,6 @@ class DashboardFirstRunExperience {
         this.state.awaitingFirstActionFeedback = true;
       }
     });
-  }
-
-  createTourPrompt() {
-    const prompt = document.createElement('div');
-    prompt.className = 'dash-tour-offer';
-    prompt.id = 'dashboardTourOffer';
-    prompt.innerHTML = `
-      <div class="dash-tour-offer__inner surface-card">
-        <div class="dash-tour-offer__icon">
-          <i data-lucide="sparkles"></i>
-        </div>
-        <div class="dash-tour-offer__copy">
-          <span class="dash-tour-offer__eyebrow">Tour opcional</span>
-          <strong>Quer um tour rápido de 30 segundos?</strong>
-          <p>Eu te mostro só o essencial para começar sem travar sua navegação.</p>
-        </div>
-        <div class="dash-tour-offer__actions">
-          <button type="button" class="dash-btn dash-btn--primary" data-tour-action="start">Sim</button>
-          <button type="button" class="dash-btn dash-btn--ghost" data-tour-action="dismiss">Agora não</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(prompt);
-    this.tourPrompt = prompt;
-
-    if (typeof window.lucide !== 'undefined') {
-      window.lucide.createIcons();
-    }
   }
 
   handleOverviewUpdate(detail) {
@@ -134,23 +96,16 @@ class DashboardFirstRunExperience {
       ctaUrl: detail.ctaUrl,
     });
 
-    this.state.accountCount = Number(actionCopy.action.accountCount || 0);
+    this.state.accountCount = Math.max(0, Number(detail.accountCount ?? actionCopy.action.accountCount ?? 0) || 0);
     this.state.primaryAction = actionCopy.action.actionType;
     this.state.transactionCount = currentCount;
+    this.state.isDemo = detail.isDemo === true;
 
-    this.toggleQuickStart(currentCount === 0 && !detail.isDemo);
-    this.togglePrimaryActionFocus(currentCount === 0);
+    this.toggleQuickStart(currentCount === 0);
     this.syncPrimaryActionCopy(actionCopy);
+    this.syncJourneySteps();
     this.syncDisplayNamePrompt();
-
-    if (!this.state.promptScheduled && this.shouldOfferTour()) {
-      this.state.promptScheduled = true;
-      window.setTimeout(() => {
-        if (this.shouldOfferTour()) {
-          this.showTourPrompt();
-        }
-      }, 1600);
-    }
+    this.togglePrimaryActionFocus(currentCount === 0);
 
     if (!isFirstPayload && previousCount === 0 && currentCount > 0) {
       this.handleFirstActionCompleted();
@@ -159,40 +114,18 @@ class DashboardFirstRunExperience {
     }
   }
 
-  shouldOfferTour() {
-    const runtimeConfig = getRuntimeConfig();
-
-    return !window.LKHelpCenter?.isManagingAutoOffers?.()
-      && localStorage.getItem(STORAGE.TOUR_PROMPT_DISMISSED()) !== '1'
-      && runtimeConfig.tourCompleted !== true
-      && this.state.primaryAction === 'create_transaction'
-      && Number(this.state.transactionCount ?? 0) === 0;
-  }
-
-  showTourPrompt() {
-    if (!this.tourPrompt || this.state.tourPromptVisible) {
-      return;
-    }
-
-    this.state.tourPromptVisible = true;
-    this.tourPrompt.classList.add('is-visible');
-  }
-
-  hideTourPrompt() {
-    if (!this.tourPrompt) {
-      return;
-    }
-
-    this.state.tourPromptVisible = false;
-    this.tourPrompt.classList.remove('is-visible');
-  }
-
   toggleQuickStart(shouldShow) {
     if (!this.elements.quickStart) {
       return;
     }
 
-    this.elements.quickStart.style.display = shouldShow ? '' : 'none';
+    this.elements.quickStart.hidden = !shouldShow;
+
+    if (shouldShow) {
+      this.suppressHelpCenterOffer();
+    }
+
+    this.syncStackVisibility();
   }
 
   syncPrimaryActionCopy(copy) {
@@ -200,27 +133,9 @@ class DashboardFirstRunExperience {
       return;
     }
 
-    if (this.elements.quickStartTitle) {
-      this.elements.quickStartTitle.textContent = copy.quickStartTitle;
+    if (this.elements.primaryActionCta) {
+      this.elements.primaryActionCta.innerHTML = `<i data-lucide="plus"></i> ${this.getPrimaryCtaLabel(copy)}`;
     }
-
-    if (this.elements.quickStartDescription) {
-      this.elements.quickStartDescription.textContent = copy.quickStartDescription;
-    }
-
-    if (this.elements.firstTransactionCta) {
-      this.elements.firstTransactionCta.innerHTML = `<i data-lucide="plus"></i> ${copy.quickStartButton}`;
-    }
-
-    this.elements.quickStartNotes.forEach((element, index) => {
-      if (!element) {
-        return;
-      }
-
-      const note = copy.quickStartNotes[index] || '';
-      const iconMarkup = element.querySelector('i, svg')?.outerHTML || '';
-      element.innerHTML = `${iconMarkup} ${note}`;
-    });
 
     if (this.elements.emptyStateTitle) {
       this.elements.emptyStateTitle.textContent = copy.emptyStateTitle;
@@ -235,11 +150,11 @@ class DashboardFirstRunExperience {
     }
 
     if (this.elements.openTourPrompt) {
-      this.elements.openTourPrompt.style.display = copy.shouldOfferTour ? '' : 'none';
+      this.elements.openTourPrompt.hidden = !this.hasTourAction(copy);
     }
 
-    if (!copy.shouldOfferTour) {
-      this.hideTourPrompt();
+    if (this.elements.previewLearnMore) {
+      this.elements.previewLearnMore.hidden = !this.hasPreviewHelp();
     }
 
     if (typeof window.lucide !== 'undefined') {
@@ -247,15 +162,120 @@ class DashboardFirstRunExperience {
     }
   }
 
+  getPrimaryCtaLabel(copy) {
+    if (copy?.action?.actionType === 'create_account') {
+      return 'Criar primeira conta';
+    }
+
+    if (copy?.action?.actionType === 'create_transaction') {
+      return 'Registrar primeira transação';
+    }
+
+    return String(copy?.quickStartButton || 'Continuar').trim();
+  }
+
+  hasTourAction(copy = null) {
+    const canTour = Boolean(
+      window.LKHelpCenter?.startCurrentPageTutorial
+      || window.LKHelpCenter?.showCurrentPageTips
+    );
+
+    if (!canTour) {
+      return false;
+    }
+
+    if (copy && copy.shouldOfferTour === false && !this.state.isDemo) {
+      return false;
+    }
+
+    return true;
+  }
+
+  hasPreviewHelp() {
+    return Boolean(
+      window.LKHelpCenter?.showCurrentPageTips
+      || window.LKHelpCenter?.startCurrentPageTutorial
+    );
+  }
+
+  syncJourneySteps() {
+    if (!this.elements.journeySteps.length) {
+      return;
+    }
+
+    const transactionCount = Math.max(0, Number(this.state.transactionCount ?? 0) || 0);
+    const accountCount = Math.max(0, Number(this.state.accountCount ?? 0) || 0);
+    const stepStates = {
+      create_account: 'pending',
+      create_transaction: 'pending',
+      done: 'pending',
+    };
+
+    if (transactionCount > 0) {
+      stepStates.create_account = 'completed';
+      stepStates.create_transaction = 'completed';
+      stepStates.done = 'completed';
+    } else if (accountCount > 0) {
+      stepStates.create_account = 'completed';
+      stepStates.create_transaction = 'active';
+    } else {
+      stepStates.create_account = 'active';
+    }
+
+    this.elements.journeySteps.forEach((element) => {
+      const stepKey = element.dataset.journeyStep;
+      const nextState = stepStates[stepKey] || 'pending';
+
+      element.dataset.state = nextState;
+
+      if (nextState === 'active') {
+        element.setAttribute('aria-current', 'step');
+      } else {
+        element.removeAttribute('aria-current');
+      }
+    });
+  }
+
   syncDisplayNamePrompt() {
     if (!this.elements.displayNameCard) {
       return;
     }
 
-    const shouldShow = Boolean(getRuntimeConfig().needsDisplayNamePrompt)
+    const shouldShowPreview = this.state.isDemo;
+    const shouldShowName = Boolean(getRuntimeConfig().needsDisplayNamePrompt)
       && localStorage.getItem(STORAGE.DISPLAY_NAME_DISMISSED()) !== '1';
 
-    this.elements.displayNameCard.style.display = shouldShow ? '' : 'none';
+    if (this.elements.previewNotice) {
+      this.elements.previewNotice.hidden = !shouldShowPreview;
+    }
+
+    if (this.elements.previewLearnMore) {
+      this.elements.previewLearnMore.hidden = !shouldShowPreview || !this.hasPreviewHelp();
+    }
+
+    if (this.elements.displayNameForm) {
+      this.elements.displayNameForm.hidden = !shouldShowName;
+    }
+
+    const shouldShowBar = shouldShowPreview || shouldShowName;
+
+    this.elements.displayNameCard.hidden = !shouldShowBar;
+    this.elements.displayNameCard.classList.toggle('is-preview-only', shouldShowPreview && !shouldShowName);
+    this.elements.displayNameCard.classList.toggle('is-name-only', shouldShowName && !shouldShowPreview);
+    this.elements.displayNameCard.classList.toggle('is-dual', shouldShowPreview && shouldShowName);
+
+    this.syncStackVisibility();
+  }
+
+  syncStackVisibility() {
+    if (!this.elements.firstRunStack) {
+      return;
+    }
+
+    const hasQuickStart = this.elements.quickStart && !this.elements.quickStart.hidden;
+    const hasDisplayNameBar = this.elements.displayNameCard && !this.elements.displayNameCard.hidden;
+
+    this.elements.firstRunStack.hidden = !(hasQuickStart || hasDisplayNameBar);
   }
 
   dismissDisplayNamePrompt() {
@@ -312,7 +332,7 @@ class DashboardFirstRunExperience {
       this.showDisplayNameFeedback(getErrorMessage(error, 'Não foi possível salvar agora.'), true);
     } finally {
       this.elements.displayNameSubmit.disabled = false;
-      this.elements.displayNameSubmit.textContent = 'Salvar nome';
+      this.elements.displayNameSubmit.textContent = 'Salvar';
     }
   }
 
@@ -353,21 +373,49 @@ class DashboardFirstRunExperience {
     }
   }
 
-  startTour() {
-    if (!window.LKHelpCenter?.startCurrentPageTutorial) {
-      window.LK?.toast?.info('Tutorial indisponível no momento.');
+  async openPreviewHelp() {
+    if (window.LKHelpCenter?.showCurrentPageTips) {
+      await window.LKHelpCenter.showCurrentPageTips();
       return;
     }
 
-    localStorage.setItem(STORAGE.TOUR_PROMPT_DISMISSED(), '1');
-    this.hideTourPrompt();
-    window.LKHelpCenter.startCurrentPageTutorial({ source: 'dashboard-first-run' });
+    this.startTour();
+  }
+
+  startTour() {
+    if (window.LKHelpCenter?.startCurrentPageTutorial) {
+      this.suppressHelpCenterOffer();
+      window.LKHelpCenter.startCurrentPageTutorial({ source: 'dashboard-first-run' });
+      return;
+    }
+
+    if (window.LKHelpCenter?.showCurrentPageTips) {
+      void window.LKHelpCenter.showCurrentPageTips();
+      return;
+    }
+
+    window.LK?.toast?.info('Tutorial indisponível no momento.');
+  }
+
+  suppressHelpCenterOffer() {
+    const helpCenter = window.LKHelpCenter;
+    if (!helpCenter?.getPageTutorialTarget) {
+      return;
+    }
+
+    const target = helpCenter.getPageTutorialTarget();
+    if (!target) {
+      return;
+    }
+
+    helpCenter.markOfferShownThisSession?.(target);
+    helpCenter.hideOffer?.();
   }
 
   togglePrimaryActionFocus(shouldHighlight) {
     const targets = [
       this.elements.fabButton,
-      this.elements.firstTransactionCta,
+      this.elements.primaryActionCta,
       document.getElementById('dashboardEmptyStateCta'),
       document.getElementById('dashboardChartEmptyCta'),
     ];
@@ -403,7 +451,6 @@ class DashboardFirstRunExperience {
       localStorage.setItem(STORAGE.FIRST_ACTION_TOAST(), '1');
     }
 
-    this.hideTourPrompt();
     this.togglePrimaryActionFocus(false);
   }
 

@@ -8,6 +8,7 @@ use Application\Controllers\Api\Feedback\FeedbackController;
 use Application\Core\Exceptions\AuthException;
 use Application\Core\Response;
 use Application\Models\Usuario;
+use Application\Repositories\FeedbackRepository;
 use Application\Services\Feedback\FeedbackService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -87,11 +88,61 @@ class FeedbackControllerTest extends TestCase
         $controller->checkNps();
     }
 
-    private function seedAuthenticatedUserSession(int $userId, string $name): void
+    public function testCheckNpsReturnsFalseForRecentAccounts(): void
+    {
+        $user = new Usuario();
+        $user->created_at = (new \DateTimeImmutable('-2 days'))->format('Y-m-d H:i:s');
+
+        $this->seedAuthenticatedUserSession(9, 'Conta Nova', $user);
+
+        $repo = Mockery::mock(FeedbackRepository::class);
+        $repo->shouldNotReceive('lastNpsFeedbackDate');
+
+        $controller = new FeedbackController(new FeedbackService($repo));
+        $response = $controller->checkNps();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'show_nps' => false,
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testCheckNpsReturnsTrueForMatureAccountsWithoutRecentNps(): void
+    {
+        $user = new Usuario();
+        $user->created_at = '2024-03-20 09:00:00';
+
+        $this->seedAuthenticatedUserSession(10, 'Conta Antiga', $user);
+
+        $repo = Mockery::mock(FeedbackRepository::class);
+        $repo
+            ->shouldReceive('lastNpsFeedbackDate')
+            ->once()
+            ->with(10)
+            ->andReturn(null);
+
+        $controller = new FeedbackController(new FeedbackService($repo));
+        $response = $controller->checkNps();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([
+            'success' => true,
+            'message' => 'Success',
+            'data' => [
+                'show_nps' => true,
+            ],
+        ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    private function seedAuthenticatedUserSession(int $userId, string $name, ?Usuario $user = null): void
     {
         $this->startIsolatedSession('feedback-controller-test');
 
-        $user = new Usuario();
+        $user ??= new Usuario();
         $user->id = $userId;
         $user->nome = $name;
         $user->is_admin = 0;

@@ -197,4 +197,29 @@ describe('admin/shared/api', () => {
         await expect(apiGet('api/v1/user/bootstrap')).rejects.toThrow('Limite do plano atingido.');
         expect(handleApiLimitReached).toHaveBeenCalledWith(payload);
     });
+
+    it('prioriza a mensagem de validacao quando a api responde 422 com envelope generico', async () => {
+        const { getErrorMessage } = await import('./api.js');
+
+        expect(getErrorMessage({
+            status: 422,
+            data: {
+                message: 'Validation failed',
+                errors: {
+                    display_name: 'Digite como prefere ser chamado.',
+                },
+            },
+        }, 'Fallback')).toBe('Digite como prefere ser chamado.');
+    });
+
+    it('mantem a mensagem da api quando nao ha detalhes de validacao', async () => {
+        const { getErrorMessage } = await import('./api.js');
+
+        expect(getErrorMessage({
+            status: 422,
+            data: {
+                message: 'Nome de exibicao invalido.',
+            },
+        }, 'Fallback')).toBe('Nome de exibicao invalido.');
+    });
 });

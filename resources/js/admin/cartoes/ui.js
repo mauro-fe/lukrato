@@ -58,7 +58,7 @@ const getUsageToneMeta = (percentualUso) => {
             className: 'is-danger',
             label: 'Uso elevado',
             summary: 'Perto do limite',
-            tooltip: 'Este cartao ja consumiu boa parte do limite. Vale revisar a fatura antes do fechamento.',
+            tooltip: 'Este cartao já consumiu boa parte do limite. Vale revisar a fatura antes do fechamento.',
         };
     }
 

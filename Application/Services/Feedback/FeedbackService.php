@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Application\Services\Feedback;
 
 use Application\Container\ApplicationContainer;
+use Application\Lib\Auth;
 use Application\Models\Feedback;
 use Application\Repositories\FeedbackRepository;
 use Application\Services\Infrastructure\LogService;
+use Application\Support\Engagement\FeedbackVisibility;
 use Exception;
 
 class FeedbackService
@@ -76,10 +78,18 @@ class FeedbackService
      */
     public function shouldShowNps(int $userId): bool
     {
+        $currentUser = Auth::user();
+        $currentUserId = (int) ($currentUser?->id ?? $currentUser?->id_usuario ?? 0);
+
+        if ($currentUserId === $userId && !FeedbackVisibility::canCollectGeneralFeedback($currentUser?->created_at)) {
+            return false;
+        }
+
         $lastNps = $this->repo->lastNpsFeedbackDate($userId);
         if ($lastNps === null) {
             return true;
         }
+
         return $lastNps->diffInDays(now()) >= 30;
     }
 

@@ -558,6 +558,10 @@ export function getErrorMessage(error, fallback = 'Ocorreu um erro. Tente novame
     const validationMessage = extractValidationMessage(error?.data?.errors);
     const directMessage = typeof error?.message === 'string' ? error.message.trim() : '';
 
+    if (validationMessage && (!apiMessage || status === 422 || isGenericValidationMessage(apiMessage))) {
+        return validationMessage;
+    }
+
     if (apiMessage) {
         return apiMessage;
     }
@@ -737,4 +741,8 @@ function extractValidationMessage(errors) {
     }
 
     return '';
+}
+
+function isGenericValidationMessage(message) {
+    return String(message || '').trim().toLowerCase() === 'validation failed';
 }

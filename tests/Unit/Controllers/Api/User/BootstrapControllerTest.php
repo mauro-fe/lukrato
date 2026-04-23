@@ -64,6 +64,9 @@ class BootstrapControllerTest extends TestCase
             'position_y' => 35,
             'zoom' => 1.25,
         ], $payload['data']['userAvatarSettings']);
+        $this->assertTrue($payload['data']['feedback']['generalFeedbackEnabled']);
+        $this->assertSame(7, $payload['data']['feedback']['minimumAccountAgeDays']);
+        $this->assertNotEmpty($payload['data']['feedback']['generalFeedbackAvailableAt']);
         $this->assertSame([
             'settings' => [
                 'auto_offer' => false,
@@ -83,6 +86,38 @@ class BootstrapControllerTest extends TestCase
         $this->assertArrayHasKey('pageJsViewId', $payload['data']['bundle']);
     }
 
+    public function testShowDisablesGeneralFeedbackForRecentAccounts(): void
+    {
+        $this->startIsolatedSession('bootstrap-controller-test-recent-user');
+
+        $user = new Usuario();
+        $user->id = 88;
+        $user->nome = 'Conta Nova';
+        $user->email = 'nova@example.com';
+        $user->theme_preference = 'dark';
+        $user->is_admin = 0;
+        $user->created_at = (new \DateTimeImmutable('-2 days'))->format('Y-m-d H:i:s');
+
+        $_SESSION['usuario_logged_in'] = true;
+        $_SESSION['user_id'] = 88;
+        $_SESSION['usuario_nome'] = 'Conta Nova';
+        $_SESSION['last_activity'] = time();
+        $_SESSION['usuario_cache'] = [
+            'id' => 88,
+            'data' => $user,
+        ];
+
+        $controller = new BootstrapController();
+
+        $response = $controller->show();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertFalse($payload['data']['feedback']['generalFeedbackEnabled']);
+        $this->assertSame(7, $payload['data']['feedback']['minimumAccountAgeDays']);
+        $this->assertNotEmpty($payload['data']['feedback']['generalFeedbackAvailableAt']);
+    }
+
     private function seedAuthenticatedSession(): void
     {
         $this->startIsolatedSession('bootstrap-controller-test');
@@ -97,6 +132,7 @@ class BootstrapControllerTest extends TestCase
         $user->avatar_focus_x = 65;
         $user->avatar_focus_y = 35;
         $user->avatar_zoom = 1.25;
+        $user->created_at = '2024-03-20 09:00:00';
         $user->tour_completed_at = '2024-04-02 10:30:00';
         $user->dashboard_preferences = [
             'help_center' => [

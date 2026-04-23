@@ -18,12 +18,7 @@ export function createDashboardFoundation({
     apiPost,
     getErrorMessage,
 }) {
-    function syncDemoPreviewBanner(meta) {
-        if (meta?.is_demo) {
-            window.LKDemoPreviewBanner?.show(meta);
-            return;
-        }
-
+    function syncDemoPreviewBanner(_meta) {
         window.LKDemoPreviewBanner?.hide();
     }
 

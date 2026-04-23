@@ -93,7 +93,7 @@ class FinanceOverview {
       alertas.slice(0, 2 - alerts.length).forEach((item) => {
         alerts.push({
           variant: 'warning',
-          title: `${item.categoria_nome} ja consumiu ${Math.round(item.percentual || 0)}% do limite`,
+          title: `${item.categoria_nome} já consumiu ${Math.round(item.percentual || 0)}% do limite`,
           message: `Restam ${this.money(item.disponivel || 0)} nessa categoria.`,
         });
       });

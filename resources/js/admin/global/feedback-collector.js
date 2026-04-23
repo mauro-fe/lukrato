@@ -20,6 +20,22 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
     const userId = () => getRuntimeConfig().userId;
     let npsInitialized = false;
 
+    function getFeedbackRuntimeConfig() {
+        const feedback = getRuntimeConfig().feedback;
+
+        return feedback && typeof feedback === 'object' && !Array.isArray(feedback)
+            ? feedback
+            : null;
+    }
+
+    function isGeneralFeedbackExplicitlyDisabled() {
+        return getFeedbackRuntimeConfig()?.generalFeedbackEnabled === false;
+    }
+
+    function canInitializeGeneralFeedbackPrompts() {
+        return getFeedbackRuntimeConfig()?.generalFeedbackEnabled === true;
+    }
+
     // ========================================================================
     // API HELPERS
     // ========================================================================
@@ -137,7 +153,7 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
     // ========================================================================
 
     function initNps() {
-        if (npsInitialized || !userId()) return;
+        if (npsInitialized || !userId() || !canInitializeGeneralFeedbackPrompts()) return;
         npsInitialized = true;
 
         // Check localStorage first (avoid unnecessary API call)
@@ -235,6 +251,11 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
     // ========================================================================
 
     function initSuggestionButton() {
+        if (isGeneralFeedbackExplicitlyDisabled()) {
+            document.getElementById('sidebarSuggestionBtn')?.remove();
+            return;
+        }
+
         if (document.body?.dataset.lkSuggestionButtonBound === 'true') {
             return;
         }
@@ -253,6 +274,7 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
     }
 
     function showSuggestionModal() {
+        if (isGeneralFeedbackExplicitlyDisabled()) return;
         if (typeof Swal === 'undefined') return;
 
         let selectedRating = 0;
@@ -472,6 +494,7 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
     }
 
     onRuntimeConfigUpdate(() => {
+        initSuggestionButton();
         initNps();
     });
 
