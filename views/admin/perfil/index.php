@@ -1,7 +1,7 @@
 <!-- CSS carregado via loadPageCss() no header -->
 
 <div
-    class="profile-page"
+    class="profile-page profile-page--perfil"
     data-account-root
     data-profile-root>
     <?php include __DIR__ . '/sections/header.php'; ?>

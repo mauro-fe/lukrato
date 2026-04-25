@@ -9,7 +9,6 @@
                     </div>
                 </div>
 
-                <!-- Hidden fields to trick browser autofill -->
                 <input type="text" name="_fake_user" style="display:none" tabindex="-1" aria-hidden="true">
                 <input type="password" name="_fake_pass" style="display:none" tabindex="-1" aria-hidden="true">
 
@@ -20,6 +19,7 @@
                         <input class="form-input" id="senha_atual" name="senha_atual" type="password"
                             placeholder="Digite sua senha atual" autocomplete="off">
                     </div>
+
                     <div class="form-group">
                         <label class="form-label"><i data-lucide="lock" class="icon-label" style="color:#f59e0b"></i>
                             Nova Senha</label>
@@ -47,6 +47,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="form-group">
                         <label class="form-label"><i data-lucide="circle-check" class="icon-label"
                                 style="color:#22c55e"></i> Confirmar
@@ -59,11 +60,11 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-seguranca">
-                    <span><i data-lucide="lock-keyhole"></i> Alterar Senha</span>
-                </button>
+                <div class="form-actions form-actions--inside">
+                    <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-seguranca">
+                        <span><i data-lucide="lock-keyhole"></i> Alterar Senha</span>
+                    </button>
+                </div>
             </div>
         </div><!-- /panel-seguranca -->

@@ -51,15 +51,13 @@
             </div>
         </div>
 
-        <div class="form-row cols-1">
+        <div class="form-row cols-2">
             <div class="form-group">
                 <label class="form-label"><i data-lucide="mail" class="icon-label" style="color:#3b82f6"></i>
                     E-mail *</label>
                 <input class="form-input" id="email" name="email" type="email" placeholder="seu@email.com" required>
             </div>
-        </div>
 
-        <div class="form-row cols-1">
             <div class="form-group">
                 <label class="form-label"><i data-lucide="tag" class="icon-label" style="color:#f97316"></i>
                     Código de Suporte</label>
@@ -78,22 +76,21 @@
             </div>
         </div>
 
-        <div class="form-row cols-1">
+        <div class="form-row cols-3">
             <div class="form-group">
                 <label class="form-label"><i data-lucide="fingerprint" class="icon-label" style="color:#8b5cf6"></i>
                     CPF</label>
                 <input class="form-input" id="cpf" name="cpf" type="text" inputmode="numeric" maxlength="14"
                     placeholder="000.000.000-00">
             </div>
-        </div>
 
-        <div class="form-row cols-2">
             <div class="form-group">
                 <label class="form-label"><i data-lucide="calendar" class="icon-label" style="color:#0ea5e9"></i>
                     Nascimento</label>
                 <input class="form-input" id="data_nascimento" name="data_nascimento" type="date"
                     max="<?= date('Y-m-d') ?>">
             </div>
+
             <div class="form-group">
                 <label class="form-label"><i data-lucide="smartphone" class="icon-label" style="color:#6366f1"></i>
                     Telefone</label>
@@ -116,11 +113,11 @@
                 </select>
             </div>
         </div>
-    </div>
 
-    <div class="form-actions">
-        <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-dados">
-            <span><i data-lucide="save"></i> Salvar Dados Pessoais</span>
-        </button>
+        <div class="form-actions form-actions--inside">
+            <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-dados">
+                <span><i data-lucide="save"></i> Salvar Dados Pessoais</span>
+            </button>
+        </div>
     </div>
 </div>

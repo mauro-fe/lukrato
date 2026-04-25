@@ -387,7 +387,7 @@
     ]
   },
   "admin/configuracoes/index.js": {
-    "file": "assets/configuracoes-B0THiqAB.js",
+    "file": "assets/configuracoes-tm7sxgk4.js",
     "name": "configuracoes",
     "src": "admin/configuracoes/index.js",
     "isEntry": true,
@@ -400,7 +400,7 @@
       "_ui-preferences-CUuIZRMg.js"
     ],
     "css": [
-      "assets/configuracoes-DgX1qNAQ.css"
+      "assets/configuracoes-CcKMX-gS.css"
     ]
   },
   "admin/contas-arquivadas/index.js": {
@@ -663,7 +663,7 @@
     ]
   },
   "admin/perfil/index.js": {
-    "file": "assets/perfil-nUoHuryW.js",
+    "file": "assets/perfil-BvdYzvBb.js",
     "name": "perfil",
     "src": "admin/perfil/index.js",
     "isEntry": true,
@@ -675,7 +675,7 @@
       "_ui-preferences-CUuIZRMg.js"
     ],
     "css": [
-      "assets/perfil-CiAYXt8n.css"
+      "assets/perfil-Bs2uFiL6.css"
     ]
   },
   "admin/relatorios/index.js": {

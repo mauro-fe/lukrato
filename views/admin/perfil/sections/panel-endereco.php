@@ -24,16 +24,13 @@
                     </div>
                 </div>
 
-                <div class="form-row cols-1">
+                <div class="form-row cols-2">
                     <div class="form-group">
                         <label class="form-label"><i data-lucide="building-2" class="icon-label"
                                 style="color:#64748b"></i> Cidade</label>
                         <input class="form-input" id="end_cidade" name="endereco[cidade]" type="text"
                             placeholder="São Paulo">
                     </div>
-                </div>
-
-                <div class="form-row cols-1">
                     <div class="form-group">
                         <label class="form-label"><i data-lucide="home" class="icon-label" style="color:#f97316"></i>
                             Bairro</label>
@@ -64,11 +61,11 @@
                             placeholder="Apto, Bloco (opcional)">
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-endereco">
-                    <span><i data-lucide="save"></i> Salvar Endereço</span>
-                </button>
+                <div class="form-actions form-actions--inside">
+                    <button type="submit" class="btn-save surface-button surface-button--primary" id="btn-save-endereco">
+                        <span><i data-lucide="save"></i> Salvar Endereço</span>
+                    </button>
+                </div>
             </div>
         </div><!-- /panel-endereco -->
