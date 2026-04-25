@@ -35,7 +35,7 @@
             </label>
             <input type="text" id="dashboardDisplayNameInput" class="lk-input" maxlength="80" placeholder="Ex.: Mauro"
                 autocomplete="nickname">
-            <button type="submit" class="dash-btn dash-btn--primary" id="dashboardDisplayNameSubmit">
+            <button type="submit" class="dash-btn dash-btn--ghost dash-first-run-bar__save-btn" id="dashboardDisplayNameSubmit">
                 Salvar
             </button>
             <button type="button" class="dash-btn dash-btn--ghost" id="dashboardDisplayNameDismiss">
