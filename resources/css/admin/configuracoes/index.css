@@ -9,6 +9,7 @@
 @import '../perfil/_sections.css';
 @import '../perfil/_tabs.css';
 @import '../perfil/_customize.css';
+@import './_appearance.css';
 @import './_security.css';
 @import './_plan-referral.css';
 @import './_integrations.css';

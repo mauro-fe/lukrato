@@ -19,32 +19,6 @@ body[data-lk-menu="dashboard"] .lk-main {
   background: var(--theme-shell-main-bg);
 }
 
-body[data-lk-menu="dashboard"] #sidebarSuggestionBtn {
-  margin-top: 0.35rem;
-  background: var(--theme-shell-suggestion-bg);
-  border-color: var(--theme-shell-suggestion-border);
-  box-shadow: var(--theme-shell-suggestion-shadow);
-}
-
-body[data-lk-menu="dashboard"] #sidebarSuggestionBtn .nav-item-title {
-  color: var(--theme-shell-suggestion-title);
-  font-weight: 600;
-}
-
-body[data-lk-menu="dashboard"] #sidebarSuggestionBtn .nav-item-subtitle {
-  color: var(--theme-shell-suggestion-subtitle);
-}
-
-body[data-lk-menu="dashboard"] #sidebarSuggestionBtn i,
-body[data-lk-menu="dashboard"] #sidebarSuggestionBtn svg.lucide,
-body[data-lk-menu="dashboard"] #sidebarSuggestionBtn svg[class*="lucide-"] {
-  color: var(--theme-shell-suggestion-icon) !important;
-}
-
-body[data-lk-menu="dashboard"] #sidebarSuggestionBtn:hover {
-  transform: translateY(-1px);
-}
-
 body[data-lk-menu="dashboard"] .lk-fab-container {
   right: 18px !important;
   bottom: 18px !important;

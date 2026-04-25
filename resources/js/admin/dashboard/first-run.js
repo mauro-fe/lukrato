@@ -40,7 +40,8 @@ class DashboardFirstRunExperience {
       displayNameDismiss: document.getElementById('dashboardDisplayNameDismiss'),
       displayNameFeedback: document.getElementById('dashboardDisplayNameFeedback'),
       quickStart: document.getElementById('dashboardQuickStart'),
-      journeySteps: Array.from(document.querySelectorAll('[data-journey-step]')),
+      quickStartEyebrow: document.getElementById('dashboardQuickStartEyebrow'),
+      quickStartTitle: document.getElementById('dashboardQuickStartTitle'),
       primaryActionCta: document.getElementById('dashboardFirstTransactionCta'),
       openTourPrompt: document.getElementById('dashboardOpenTourPrompt'),
       emptyStateTitle: document.querySelector('#emptyState p'),
@@ -103,7 +104,6 @@ class DashboardFirstRunExperience {
 
     this.toggleQuickStart(currentCount === 0);
     this.syncPrimaryActionCopy(actionCopy);
-    this.syncJourneySteps();
     this.syncDisplayNamePrompt();
     this.togglePrimaryActionFocus(currentCount === 0);
 
@@ -131,6 +131,16 @@ class DashboardFirstRunExperience {
   syncPrimaryActionCopy(copy) {
     if (!copy) {
       return;
+    }
+
+    const onboardingContent = this.buildQuickStartContent(copy);
+
+    if (this.elements.quickStartEyebrow) {
+      this.elements.quickStartEyebrow.textContent = onboardingContent.eyebrow;
+    }
+
+    if (this.elements.quickStartTitle) {
+      this.elements.quickStartTitle.textContent = onboardingContent.title;
     }
 
     if (this.elements.primaryActionCta) {
@@ -174,6 +184,20 @@ class DashboardFirstRunExperience {
     return String(copy?.quickStartButton || 'Continuar').trim();
   }
 
+  buildQuickStartContent(copy) {
+    if (copy?.action?.actionType === 'create_transaction') {
+      return {
+        eyebrow: 'Passo 2',
+        title: 'Adicione sua primeira transação',
+      };
+    }
+
+    return {
+      eyebrow: 'Passo 1',
+      title: 'Crie sua primeira conta',
+    };
+  }
+
   hasTourAction(copy = null) {
     const canTour = Boolean(
       window.LKHelpCenter?.startCurrentPageTutorial
@@ -192,48 +216,7 @@ class DashboardFirstRunExperience {
   }
 
   hasPreviewHelp() {
-    return Boolean(
-      window.LKHelpCenter?.showCurrentPageTips
-      || window.LKHelpCenter?.startCurrentPageTutorial
-    );
-  }
-
-  syncJourneySteps() {
-    if (!this.elements.journeySteps.length) {
-      return;
-    }
-
-    const transactionCount = Math.max(0, Number(this.state.transactionCount ?? 0) || 0);
-    const accountCount = Math.max(0, Number(this.state.accountCount ?? 0) || 0);
-    const stepStates = {
-      create_account: 'pending',
-      create_transaction: 'pending',
-      done: 'pending',
-    };
-
-    if (transactionCount > 0) {
-      stepStates.create_account = 'completed';
-      stepStates.create_transaction = 'completed';
-      stepStates.done = 'completed';
-    } else if (accountCount > 0) {
-      stepStates.create_account = 'completed';
-      stepStates.create_transaction = 'active';
-    } else {
-      stepStates.create_account = 'active';
-    }
-
-    this.elements.journeySteps.forEach((element) => {
-      const stepKey = element.dataset.journeyStep;
-      const nextState = stepStates[stepKey] || 'pending';
-
-      element.dataset.state = nextState;
-
-      if (nextState === 'active') {
-        element.setAttribute('aria-current', 'step');
-      } else {
-        element.removeAttribute('aria-current');
-      }
-    });
+    return true;
   }
 
   syncDisplayNamePrompt() {
@@ -250,7 +233,7 @@ class DashboardFirstRunExperience {
     }
 
     if (this.elements.previewLearnMore) {
-      this.elements.previewLearnMore.hidden = !shouldShowPreview || !this.hasPreviewHelp();
+      this.elements.previewLearnMore.hidden = !shouldShowPreview;
     }
 
     if (this.elements.displayNameForm) {
@@ -374,12 +357,55 @@ class DashboardFirstRunExperience {
   }
 
   async openPreviewHelp() {
-    if (window.LKHelpCenter?.showCurrentPageTips) {
-      await window.LKHelpCenter.showCurrentPageTips();
+    if (window.Swal?.fire) {
+      const actionLabel = this.elements.primaryActionCta?.textContent?.trim() || 'Continuar';
+      const canOfferTour = this.hasTourAction();
+      const result = await window.Swal.fire({
+        title: 'O que é esta prévia?',
+        html: `
+          <div class="dash-preview-modal__content">
+            <p class="dash-preview-modal__intro">
+              Estes números servem só para mostrar como o Lukrato organiza suas finanças antes do primeiro uso real.
+            </p>
+            <ul class="dash-preview-modal__list">
+              <li>Os valores exibidos aqui são apenas de exemplo.</li>
+              <li>Nada dessa prévia entra no seu histórico real.</li>
+              <li>Assim que você criar sua primeira conta e começar a usar, a demonstração some.</li>
+            </ul>
+            <p class="dash-preview-modal__footnote">
+              O próximo passo é só um: começar seu painel com dados seus.
+            </p>
+          </div>
+        `,
+        showConfirmButton: true,
+        confirmButtonText: actionLabel,
+        showDenyButton: canOfferTour,
+        denyButtonText: 'Ver tour',
+        showCancelButton: true,
+        cancelButtonText: 'Fechar',
+        reverseButtons: false,
+        focusConfirm: true,
+        customClass: {
+          popup: 'lk-swal-popup dash-preview-modal',
+          confirmButton: 'dash-preview-modal__confirm',
+          denyButton: 'dash-preview-modal__deny',
+          cancelButton: 'dash-preview-modal__cancel',
+        },
+      });
+
+      if (result.isConfirmed) {
+        this.openPrimaryAction();
+        return;
+      }
+
+      if (result.isDenied) {
+        this.startTour();
+      }
+
       return;
     }
 
-    this.startTour();
+    window.alert('Estes números são apenas de exemplo. Assim que você começar a usar, a prévia some.');
   }
 
   startTour() {

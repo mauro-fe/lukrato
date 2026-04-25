@@ -69,20 +69,12 @@ $currentBreadcrumbs = $currentBreadcrumbs ?? [];
                 </a>
                 <span class="greeting"><a href="<?= BASE_URL ?>perfil" class="greeting-name"
                         title="Ir para o perfil"><strong><?= $topNavFirstName ?: 'usuário' ?></strong></a></span>
-                <a href="<?= BASE_URL ?>billing" class="plan-badge <?= $isPro ? 'pro' : 'free' ?>"
-                    title="Gerenciar assinatura">
+                <span class="plan-badge plan-badge--status <?= $isPro ? 'pro' : 'free' ?>"
+                    title="Plano atual: <?= htmlspecialchars($planLabel, ENT_QUOTES, 'UTF-8') ?>">
                     <i data-lucide="<?= $isPro ? 'crown' : 'leaf' ?>"></i>
                     <?= $planLabel ?>
-                </a>
+                </span>
             </div>
-
-            <!-- Upgrade Button (if not pro) -->
-            <?php if (!$isPro): ?>
-            <a href="<?= BASE_URL ?>billing" class="top-nav-btn upgrade-btn" title="Fazer upgrade para Pro">
-                <i data-lucide="crown"></i>
-                <span class="btn-text">Upgrade</span>
-            </a>
-            <?php endif; ?>
 
             <div class="top-nav-help" id="topNavHelpCenter">
                 <button id="topNavHelpToggle" type="button" class="top-nav-btn help-btn"
@@ -157,23 +149,10 @@ $currentBreadcrumbs = $currentBreadcrumbs ?? [];
                 </div>
             </div>
 
-            <!-- Theme Toggle -->
-            <button id="topNavThemeToggle" type="button" class="top-nav-btn theme-toggle" aria-label="Alternar tema"
-                title="Modo claro/escuro">
-                <i data-lucide="sun"></i>
-                <i data-lucide="moon"></i>
-            </button>
-
             <!-- Notifications -->
             <div class="top-nav-bell-wrapper">
                 <?php include __DIR__ . '/notificacoes/bell.php'; ?>
             </div>
-
-            <!-- Logout Button (Desktop Only) -->
-            <a href="<?= BASE_URL ?>logout" class="top-nav-btn logout-btn desktop-only" title="Sair">
-                <i data-lucide="log-out"></i>
-                <span class="btn-text">Sair</span>
-            </a>
         </div>
     </div>
 </div>

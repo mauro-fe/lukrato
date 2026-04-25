@@ -4,6 +4,7 @@
     class="profile-page"
     data-account-root>
     <?php include __DIR__ . '/sections/header.php'; ?>
+    <?php include __DIR__ . '/sections/panel-aparencia.php'; ?>
 
     <?php include __DIR__ . '/sections/tabs.php'; ?>
 

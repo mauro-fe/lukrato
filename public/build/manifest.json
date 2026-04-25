@@ -1,6 +1,6 @@
 {
   "../css/admin/auth/admin-auth-login.css": {
-    "file": "assets/auth-login-style-CBJMpmwT.css",
+    "file": "assets/auth-login-style-Dr4th61Z.css",
     "src": "../css/admin/auth/admin-auth-login.css",
     "isEntry": true,
     "name": "auth-login-style",
@@ -9,7 +9,7 @@
     ]
   },
   "../css/admin/auth/auth-shared.css": {
-    "file": "assets/auth-shared-style-C-uIk2b-.css",
+    "file": "assets/auth-shared-style-eR4YRahk.css",
     "src": "../css/admin/auth/auth-shared.css",
     "isEntry": true,
     "name": "auth-shared-style",
@@ -18,7 +18,7 @@
     ]
   },
   "../css/admin/auth/auth-verify-email.css": {
-    "file": "assets/auth-verify-email-style-C2wBSBrp.css",
+    "file": "assets/auth-verify-email-style-QqfyhNPP.css",
     "src": "../css/admin/auth/auth-verify-email.css",
     "isEntry": true,
     "name": "auth-verify-email-style",
@@ -27,7 +27,7 @@
     ]
   },
   "../css/admin/base.css": {
-    "file": "assets/admin-base-Bpey8PNN.css",
+    "file": "assets/admin-base-Crb2_6e4.css",
     "src": "../css/admin/base.css",
     "isEntry": true,
     "name": "admin-base",
@@ -36,7 +36,7 @@
     ]
   },
   "../css/errors/page.css": {
-    "file": "assets/error-page-BNAV9CkN.css",
+    "file": "assets/error-page-DjzXgJbZ.css",
     "src": "../css/errors/page.css",
     "isEntry": true,
     "name": "error-page",
@@ -63,7 +63,7 @@
     ]
   },
   "../css/site/auth/google-confirm.css": {
-    "file": "assets/site-google-confirm-DDnDZMkY.css",
+    "file": "assets/site-google-confirm-BjqTbOH5.css",
     "src": "../css/site/auth/google-confirm.css",
     "isEntry": true,
     "name": "site-google-confirm",
@@ -72,7 +72,7 @@
     ]
   },
   "../css/site/base.css": {
-    "file": "assets/site-base-BDh7UfKb.css",
+    "file": "assets/site-base-8IeYEZAZ.css",
     "src": "../css/site/base.css",
     "isEntry": true,
     "name": "site-base",
@@ -81,7 +81,7 @@
     ]
   },
   "../css/site/card.css": {
-    "file": "assets/site-card-style-Bj4floQG.css",
+    "file": "assets/site-card-style-Cstymhhm.css",
     "src": "../css/site/card.css",
     "isEntry": true,
     "name": "site-card-style",
@@ -387,7 +387,7 @@
     ]
   },
   "admin/configuracoes/index.js": {
-    "file": "assets/configuracoes-BDQTTKxo.js",
+    "file": "assets/configuracoes-B0THiqAB.js",
     "name": "configuracoes",
     "src": "admin/configuracoes/index.js",
     "isEntry": true,
@@ -400,7 +400,7 @@
       "_ui-preferences-CUuIZRMg.js"
     ],
     "css": [
-      "assets/configuracoes-BOfIeQwf.css"
+      "assets/configuracoes-DgX1qNAQ.css"
     ]
   },
   "admin/contas-arquivadas/index.js": {
@@ -433,7 +433,7 @@
     ]
   },
   "admin/dashboard/index.js": {
-    "file": "assets/dashboard-DX5PenKN.js",
+    "file": "assets/dashboard-BEiH-B45.js",
     "name": "dashboard",
     "src": "admin/dashboard/index.js",
     "isEntry": true,
@@ -447,7 +447,7 @@
       "_ui-preferences-CUuIZRMg.js"
     ],
     "css": [
-      "assets/dashboard-Bc7LnbkJ.css"
+      "assets/dashboard-CRsC1Hb3.css"
     ]
   },
   "admin/faturas/index.js": {
@@ -524,7 +524,7 @@
     ]
   },
   "admin/global/index.js": {
-    "file": "assets/global-BVSGOXgf.js",
+    "file": "assets/global-D88mdkKS.js",
     "name": "global",
     "src": "admin/global/index.js",
     "isEntry": true,

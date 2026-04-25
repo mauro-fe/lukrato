@@ -361,11 +361,22 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
   transition: color var(--transition-fast);
 }
 
+.sidebar .nav-item .nav-item-subtitle {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
 
 
 /* Hover state for subtitle */
 .sidebar .nav-item:hover .nav-item-title {
   color: var(--theme-shell-nav-hover-text);
+}
+
+.sidebar .nav-item:hover .nav-item-subtitle {
+  color: color-mix(in srgb, var(--theme-shell-nav-hover-text) 70%, var(--color-text-muted));
 }
 
 
@@ -375,6 +386,13 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 .sidebar-footer .nav-item.active .nav-item-title,
 .sidebar-footer .nav-item[aria-current="page"] .nav-item-title {
   color: var(--theme-shell-nav-active-text);
+}
+
+.sidebar-nav .nav-item.active .nav-item-subtitle,
+.sidebar-nav .nav-item[aria-current="page"] .nav-item-subtitle,
+.sidebar-footer .nav-item.active .nav-item-subtitle,
+.sidebar-footer .nav-item[aria-current="page"] .nav-item-subtitle {
+  color: color-mix(in srgb, var(--theme-shell-nav-active-text) 72%, var(--color-text-muted));
 }
 
 
@@ -404,18 +422,15 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
   font-weight: 600;
 }
 
-/* Active indicator bar */
-.sidebar-nav .nav-item.active::before,
-.sidebar-nav .nav-item[aria-current="page"]::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  background: var(--theme-shell-nav-active-rail);
-  border-radius: 0 2px 2px 0;
+.sidebar-nav .nav-item.active:hover,
+.sidebar-nav .nav-item[aria-current="page"]:hover,
+.sidebar-footer .nav-item.active:hover,
+.sidebar-footer .nav-item[aria-current="page"]:hover {
+  transform: none;
+  background: var(--theme-shell-nav-active-bg);
+  border-color: var(--theme-shell-nav-active-border);
+  color: var(--theme-shell-nav-active-text);
+  box-shadow: var(--theme-shell-nav-active-shadow);
 }
 
 .sidebar-nav .nav-item.active i,
@@ -430,7 +445,7 @@ body:not(.sidebar-collapsed) .sidebar .nav-item .nav-item-content {
 .sidebar-footer .nav-item[aria-current="page"] i,
 .sidebar-footer .nav-item[aria-current="page"] svg.lucide,
 .sidebar-footer .nav-item[aria-current="page"] svg[class*="lucide-"] {
-  color: var(--theme-shell-nav-active-text) !important;
+  color: var(--theme-shell-nav-active-icon, var(--theme-shell-nav-active-text)) !important;
   opacity: 1;
 }
 

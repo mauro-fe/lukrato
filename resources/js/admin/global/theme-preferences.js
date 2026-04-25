@@ -25,17 +25,21 @@ export function readStoredThemePreference(storage = globalThis.localStorage) {
     }
 }
 
-export function storeAppliedTheme(theme, storage = globalThis.localStorage) {
-    const appliedTheme = APPLIED_THEME_VALUES.includes(theme) ? theme : null;
-    if (!appliedTheme) {
+export function storeThemePreference(themePreference, storage = globalThis.localStorage) {
+    const normalizedPreference = normalizeThemePreference(themePreference, null);
+    if (!normalizedPreference) {
         return;
     }
 
     try {
-        storage?.setItem?.(STORAGE_KEY, appliedTheme);
+        storage?.setItem?.(STORAGE_KEY, normalizedPreference);
     } catch {
         // ignore storage failures during bootstrap
     }
+}
+
+export function storeAppliedTheme(theme, storage = globalThis.localStorage) {
+    storeThemePreference(theme, storage);
 }
 
 export function readHtmlTheme(root = globalThis.document?.documentElement ?? null) {

@@ -1,0 +1,103 @@
+.config-appearance-card {
+  display: grid;
+  gap: var(--spacing-5);
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-5) var(--spacing-6);
+}
+
+.config-appearance-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.config-appearance-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 22%, transparent),
+    color-mix(in srgb, var(--color-primary) 10%, transparent)
+  );
+  color: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 26%, transparent);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.config-appearance-card__icon i,
+.config-appearance-card__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.config-appearance-card__copy h2 {
+  margin: 0 0 4px;
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+}
+
+.config-appearance-card__copy p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.config-theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.config-theme-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.config-theme-option i,
+.config-theme-option svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
+.config-theme-option:hover,
+.config-theme-option:focus-visible {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg-secondary));
+  color: var(--color-text);
+}
+
+.config-theme-option.is-active {
+  border-color: color-mix(in srgb, var(--color-primary) 54%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-text);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent),
+    0 14px 28px color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+@media (max-width: 768px) {
+  .config-appearance-card {
+    padding: var(--spacing-4);
+  }
+
+  .config-theme-options {
+    grid-template-columns: 1fr;
+  }
+}

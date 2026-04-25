@@ -249,10 +249,20 @@ body.sidebar-open-mobile .top-navbar-menu-btn svg {
   transition: all 0.2s ease;
 }
 
+.plan-badge--status {
+  cursor: default;
+}
+
 .plan-badge:hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
   box-shadow: var(--theme-control-shadow);
+}
+
+.plan-badge--status:hover {
+  transform: none;
+  filter: none;
+  box-shadow: none;
 }
 
 .plan-badge.pro {

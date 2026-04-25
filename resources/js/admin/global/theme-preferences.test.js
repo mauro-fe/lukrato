@@ -44,6 +44,17 @@ describe('admin/global/theme-preferences', () => {
         expect(getInitialAppliedTheme({ storage, root })).toBe('light');
     });
 
+    it('preserva a preferencia system no armazenamento local', async () => {
+        const { STORAGE_KEY, storeThemePreference } = await import('./theme-preferences.js');
+        const storage = {
+            setItem: vi.fn(),
+        };
+
+        storeThemePreference('system', storage);
+
+        expect(storage.setItem).toHaveBeenCalledWith(STORAGE_KEY, 'system');
+    });
+
     it('carrega a preferencia de tema pelo endpoint v1', async () => {
         apiGetMock.mockResolvedValue({
             success: true,

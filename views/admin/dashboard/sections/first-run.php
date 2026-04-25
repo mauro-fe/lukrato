@@ -1,29 +1,8 @@
 <section class="dash-first-run-stack" id="dashboardFirstRunStack" hidden>
     <section class="dash-quick-start surface-card surface-card--interactive" id="dashboardQuickStart" hidden>
-        <div class="dash-quick-start__journey" aria-label="Primeiros passos para configurar o dashboard">
-            <article class="dash-journey-step" data-journey-step="create_account" data-state="active">
-                <span class="dash-journey-step__index">1</span>
-                <div class="dash-journey-step__copy">
-                    <strong>Criar conta</strong>
-                    <p>Adicione sua primeira conta bancária.</p>
-                </div>
-            </article>
-
-            <article class="dash-journey-step" data-journey-step="create_transaction" data-state="pending">
-                <span class="dash-journey-step__index">2</span>
-                <div class="dash-journey-step__copy">
-                    <strong>Importar ou registrar</strong>
-                    <p>Traga seus dados para o Lukrato.</p>
-                </div>
-            </article>
-
-            <article class="dash-journey-step" data-journey-step="done" data-state="pending">
-                <span class="dash-journey-step__index">3</span>
-                <div class="dash-journey-step__copy">
-                    <strong>Pronto!</strong>
-                    <p>Seu dashboard estará com seus dados reais.</p>
-                </div>
-            </article>
+        <div class="dash-quick-start__main">
+            <span class="dash-first-run__eyebrow" id="dashboardQuickStartEyebrow">Passo 1</span>
+            <h2 id="dashboardQuickStartTitle">Crie sua primeira conta</h2>
         </div>
 
         <div class="dash-quick-start__cta-panel">
@@ -32,7 +11,7 @@
             </button>
             <button class="dash-btn dash-btn--ghost dash-quick-start__tour-btn" id="dashboardOpenTourPrompt"
                 type="button">
-                Ver tour de 30s
+                Ver tour
             </button>
         </div>
     </section>

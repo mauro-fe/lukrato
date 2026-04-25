@@ -4,19 +4,44 @@
 
 /* --- Botao Sugestao (sidebar footer item) --- */
 #sidebarSuggestionBtn {
+    margin-top: 0.35rem;
+    background: var(--theme-shell-suggestion-bg);
+    border-color: var(--theme-shell-suggestion-border);
+    box-shadow: var(--theme-shell-suggestion-shadow);
     color: var(--color-text-muted, #94a3b8);
     transition: color var(--transition-fast, 0.15s) ease;
 }
 
+#sidebarSuggestionBtn .nav-item-title {
+    color: var(--theme-shell-suggestion-title);
+    font-weight: 600;
+}
+
+#sidebarSuggestionBtn .nav-item-subtitle {
+    color: var(--theme-shell-suggestion-subtitle);
+}
+
 #sidebarSuggestionBtn:hover {
-    color: var(--color-primary, #e67e22);
+    color: var(--theme-shell-suggestion-title);
+    transform: translateY(-1px);
+    background: var(--theme-shell-suggestion-bg);
+    border-color: var(--theme-shell-suggestion-border);
+    box-shadow: var(--theme-shell-suggestion-shadow);
 }
 
 #sidebarSuggestionBtn svg,
 #sidebarSuggestionBtn i {
-    color: var(--color-primary, #e67e22);
+    color: var(--theme-shell-suggestion-icon, var(--color-primary, #e67e22));
     opacity: 0.7;
     transition: opacity var(--transition-fast, 0.15s) ease;
+}
+
+#sidebarSuggestionBtn:hover .nav-item-title {
+    color: var(--theme-shell-suggestion-title);
+}
+
+#sidebarSuggestionBtn:hover .nav-item-subtitle {
+    color: var(--theme-shell-suggestion-subtitle);
 }
 
 #sidebarSuggestionBtn:hover svg,
