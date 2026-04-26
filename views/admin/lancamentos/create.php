@@ -12,27 +12,26 @@ $lancamentoWizardReturnLabel = $backLabel;
 $lancamentoWizardSource = $wizardSource;
 $lancamentoWizardPresetAccountId = $wizardPresetAccountId;
 $lancamentoWizardTipo = $wizardTipo;
+$wizardInitialStep = $wizardTipo !== '' ? '2' : '1';
 ?>
 
-<section class="lancamento-create-page" data-wizard-step="1">
+<section class="lancamento-create-page"
+    data-wizard-step="<?= htmlspecialchars($wizardInitialStep, ENT_QUOTES, 'UTF-8') ?>"
+    <?php if ($wizardTipo !== ''): ?>
+        data-wizard-tipo="<?= htmlspecialchars($wizardTipo, ENT_QUOTES, 'UTF-8') ?>"
+        data-wizard-booting="true"
+    <?php endif; ?>>
     <div class="lancamento-create-page__toolbar">
         <a class="lancamento-create-page__back" href="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>"
             data-no-transition="true">
             <i data-lucide="arrow-left"></i>
             <span><?= htmlspecialchars($backLabel, ENT_QUOTES, 'UTF-8') ?></span>
         </a>
-
-        <span class="lancamento-create-page__pill">
-            <i data-lucide="plus-circle"></i>
-            <span>Nova transação</span>
-        </span>
     </div>
 
     <div class="lancamento-create-page__heading">
-        <h2 class="lancamento-create-page__title">Registre uma nova transação</h2>
-        <p class="lancamento-create-page__subtitle">
-            Escolha a conta, veja o contexto e siga o fluxo completo.
-        </p>
+        <span class="lancamento-create-page__eyebrow">Novo lançamento</span>
+        <h2 class="lancamento-create-page__title">Nova transação</h2>
     </div>
 
     <?php include __DIR__ . '/../partials/modals/modal-lancamento-global.php'; ?>

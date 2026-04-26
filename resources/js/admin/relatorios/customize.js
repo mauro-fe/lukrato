@@ -8,20 +8,17 @@ import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-p
 
 /** Map: checkbox ID -> section ID */
 const SECTION_MAP = {
-    toggleRelQuickStats: 'relQuickStats',
     toggleRelOverviewCharts: 'relOverviewChartsRow',
     toggleRelControls: 'relControlsRow'
 };
 
 const COMPLETE_DEFAULTS = {
-    toggleRelQuickStats: true,
     toggleRelOverviewCharts: true,
     toggleRelControls: true
 };
 
 const ESSENTIAL_DEFAULTS = {
     ...COMPLETE_DEFAULTS,
-    toggleRelQuickStats: false,
     toggleRelControls: false
 };
 
@@ -53,4 +50,3 @@ const relatoriosCustomizer = createPageCustomizer({
 export function initCustomize() {
     relatoriosCustomizer.init();
 }
-

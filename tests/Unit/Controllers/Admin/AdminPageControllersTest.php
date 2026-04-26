@@ -268,9 +268,9 @@ namespace Tests\Unit\Controllers\Admin {
             $this->assertStringContainsString('data-imp-advanced-account-name', $index->getContent());
             $this->assertStringContainsString('data-imp-profile-account-name', $index->getContent());
             $this->assertStringContainsString('data-imp-config-link', $index->getContent());
-            $this->assertStringContainsString('data-imp-guide-path-card', $index->getContent());
-            $this->assertStringContainsString('data-imp-guide-context-card', $index->getContent());
-            $this->assertStringContainsString('data-imp-guide-readiness-card', $index->getContent());
+            $this->assertStringContainsString('data-imp-flow-title', $index->getContent());
+            $this->assertStringContainsString('data-imp-context-blocker', $index->getContent());
+            $this->assertStringContainsString('data-imp-side-panel', $index->getContent());
             $this->assertStringContainsString('data-imp-file-note', $index->getContent());
             $this->assertTrue(
                 str_contains($index->getContent(), 'data-imp-account-select-main')

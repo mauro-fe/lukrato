@@ -60,7 +60,7 @@ function getConfig(select) {
         sortMode: String(select.dataset.lkSelectSort || '').trim().toLowerCase(),
         searchPlaceholder: select.dataset.lkSelectSearchPlaceholder || 'Pesquisar...',
         emptyText: select.dataset.lkSelectEmptyText || 'Nenhum resultado encontrado.',
-        searchAriaLabel: select.dataset.lkSelectSearchLabel || 'Pesquisar opcoes'
+        searchAriaLabel: select.dataset.lkSelectSearchLabel || 'Pesquisar opções'
     };
 }
 

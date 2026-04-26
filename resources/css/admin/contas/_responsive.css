@@ -19,7 +19,6 @@
     gap: var(--spacing-3);
   }
 
-  .cont-distribution,
   .cont-list-section {
     padding: var(--spacing-4);
   }
@@ -107,12 +106,6 @@
 @media (max-width: 480px) {
   .cont-hero__balance {
     font-size: 1.8rem;
-  }
-
-  .cont-hero__insight {
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
   }
 
   .account-balance {

@@ -4,6 +4,8 @@
 .footer {
   --footer-height: clamp(64px, 10vw, 110px);
   position: relative;
+  z-index: 0;
+  flex-shrink: 0;
   overflow: hidden;
   font-family: var(--font-primary);
   color: var(--color-text-muted);
@@ -15,6 +17,24 @@
   min-height: var(--footer-height);
   display: flex;
   align-items: center;
+}
+
+/* O conteudo da pagina deve ter prioridade visual sobre o rodape.
+   Menus absolutos, selects customizados e popovers podem ultrapassar o fluxo;
+   essa zona segura impede que o footer pinte por cima deles no fim da pagina. */
+.lk-main {
+  position: relative;
+  z-index: 1;
+  padding-bottom: max(2rem, clamp(4rem, 8vh, 7rem));
+}
+
+.lk-main:has(.lk-custom-select.is-open),
+.lk-main:has(.lk-dropdown.is-open),
+.lk-main:has(.dropdown-menu.show),
+.lk-main:has(.choices.is-open),
+.lk-main:has(.select2-container--open),
+.lk-main:has(.flatpickr-calendar.open) {
+  padding-bottom: max(14rem, 32vh);
 }
 
 /* Linha de destaque fina no topo do footer */

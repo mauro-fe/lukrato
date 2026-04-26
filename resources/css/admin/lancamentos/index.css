@@ -9,8 +9,6 @@
    ============================================================================ */
 
 @import './_layout.css';
-@import './_hero.css';
-@import './_summary.css';
 @import '../shared/_planning-alerts.css';
 @import './_export.css';
 @import './_filters.css';

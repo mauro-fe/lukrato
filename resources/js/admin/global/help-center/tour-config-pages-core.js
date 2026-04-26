@@ -79,13 +79,6 @@ export const TOUR_CONFIGS_CORE = {
         primarySelector: ['#btnNovoLancamento', '#fabButton'],
         steps: [
             {
-                selector: '.lan-summary-strip',
-                title: 'Resumo do período',
-                description: 'Receitas, despesas e saldo do mês em leitura imediata.',
-                side: 'bottom',
-                align: 'start',
-            },
-            {
                 selector: ['#btnNovoLancamento', '#fabButton'],
                 title: 'Novo lançamento',
                 description: 'Use este atalho para entrada, despesa ou transferência.',
@@ -122,13 +115,6 @@ export const TOUR_CONFIGS_CORE = {
             },
         ],
         mobileSteps: [
-            {
-                selector: '.lan-summary-strip',
-                title: 'Resumo do período',
-                description: 'Resumo do mês antes de entrar nos detalhes.',
-                side: 'bottom',
-                align: 'center',
-            },
             {
                 selector: ['#btnNovoLancamento', '#fabButton'],
                 title: 'Novo lançamento',
@@ -169,13 +155,6 @@ export const TOUR_CONFIGS_CORE = {
                 title: 'Indicadores de contas',
                 description: 'Conta principal e reserva acumulada em um bloco.',
                 side: 'bottom',
-                align: 'start',
-            },
-            {
-                selector: '#contasDistributionCard',
-                title: 'Distribuição',
-                description: 'Entenda em quais contas o saldo esta distribuido.',
-                side: 'top',
                 align: 'start',
             },
             {
@@ -460,13 +439,6 @@ export const TOUR_CONFIGS_CORE = {
         primarySelector: ['.rel-section-tabs .rel-section-tab[data-section="relatorios"]', '.tabs-card .tab-btn[data-view="category"]'],
         steps: [
             {
-                selector: '.quick-stats-grid',
-                title: 'Resumo do período',
-                description: 'As métricas principais mostram contexto antes do detalhe.',
-                side: 'bottom',
-                align: 'start',
-            },
-            {
                 selector: '.rel-section-tabs',
                 title: 'Seções do módulo',
                 description: 'Navegue entre visão geral, relatórios e comparativos.',
@@ -489,13 +461,6 @@ export const TOUR_CONFIGS_CORE = {
             },
         ],
         mobileSteps: [
-            {
-                selector: '.quick-stats-grid',
-                title: 'Resumo do mês',
-                description: 'Comece pelas metricas principais.',
-                side: 'bottom',
-                align: 'center',
-            },
             {
                 selector: '.rel-section-tabs',
                 title: 'Trocar visualização',

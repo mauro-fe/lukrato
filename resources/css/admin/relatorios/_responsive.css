@@ -62,10 +62,6 @@
     min-width: 44px;
   }
 
-  .stat-card {
-    min-height: 80px;
-  }
-
   .btn-upgrade,
   .btn-export,
   .form-select {
@@ -222,30 +218,6 @@
     padding: var(--spacing-4);
   }
 
-  .quick-stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-4);
-  }
-
-  .stat-card {
-    padding: var(--spacing-4);
-    min-height: 100px;
-  }
-
-  .stat-icon {
-    width: 44px !important;
-    height: 44px !important;
-    font-size: 20px !important;
-  }
-
-  .stat-content .stat-label {
-    font-size: var(--font-size-sm);
-  }
-
-  .stat-content .stat-value {
-    font-size: var(--font-size-xl);
-  }
-
   .chart-container {
     min-height: 450px;
   }
@@ -324,10 +296,6 @@
     min-width: 200px;
   }
 
-  .quick-stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
   .chart-container {
     min-height: 500px;
     padding: var(--spacing-5);
@@ -371,14 +339,6 @@
 /* ========== Telas Grandes (min-width: 1440px) ========== */
 @media (min-width: 1440px) {
   .rel-page {
-    padding: var(--spacing-7);
-  }
-
-  .quick-stats-grid {
-    gap: var(--spacing-6);
-  }
-
-  .stat-card {
     padding: var(--spacing-7);
   }
 

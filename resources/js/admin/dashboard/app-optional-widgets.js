@@ -270,12 +270,12 @@ export function createOptionalWidgets({
                             <span>Maior saldo em ${principalNome}</span>
                             <strong>${principalSaldo}</strong>
                         </div>
-                        <a href="${CONFIG.BASE_URL}contas" class="dash-widget-link">Abrir contas</a>
+                        <a href="${CONFIG.BASE_URL}contas" class="dash-widget-link">Criar contas +</a>
                     </div>
                 `;
             } catch (error) {
                 logClientError('Erro ao carregar widget de contas', error, 'Falha ao carregar contas');
-                OptionalWidgets.renderEmpty(container, 'Não foi possível carregar suas contas agora.', `${CONFIG.BASE_URL}contas`, 'Abrir contas');
+                OptionalWidgets.renderEmpty(container, 'Não foi possível carregar suas contas agora.', `${CONFIG.BASE_URL}contas`, 'Criar contas +');
             }
         },
 
@@ -349,7 +349,7 @@ export function createOptionalWidgets({
                         container,
                         'Você não tem cartões com faturas abertas.',
                         `${CONFIG.BASE_URL}faturas`,
-                        'Ver faturas'
+                        'Criar faturas +'
                     );
                     return;
                 }

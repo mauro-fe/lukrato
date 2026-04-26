@@ -11,12 +11,8 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
         const step = this.currentStep;
 
         if (step === 2) {
-            const descricao = document.getElementById('globalLancamentoDescricao')?.value.trim() || '';
+            this.preencherDescricaoPadraoSeVazia?.();
             const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
-            if (!descricao) {
-                Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
-                return false;
-            }
             if (!valor || valor <= 0) {
                 Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
                 return false;
@@ -95,6 +91,23 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
         }
 
         return true;
+    },
+
+    resolveDescricaoPadrao() {
+        if (this.tipoAtual === 'receita') return 'Receita';
+        if (this.tipoAtual === 'despesa') return 'Despesa';
+        if (this.tipoAtual === 'transferencia') return 'Transferência';
+
+        return 'Lançamento';
+    },
+
+    preencherDescricaoPadraoSeVazia() {
+        const descricaoInput = document.getElementById('globalLancamentoDescricao');
+        if (!descricaoInput) return;
+
+        if (descricaoInput.value.trim() === '') {
+            descricaoInput.value = this.resolveDescricaoPadrao();
+        }
     },
 
     resetarFormulario() {
@@ -186,7 +199,7 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
     },
 
     async mostrarFormulario(tipo) {
-        if (this.contas.length === 0) {
+        if (this.contas.length === 0 && !this.isPageMode?.()) {
             const result = await Swal.fire({
                 icon: 'info',
                 title: 'Nenhuma conta cadastrada',
@@ -209,13 +222,13 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
             return;
         }
 
-        if (!this.contaSelecionada) {
+        if (!this.contaSelecionada && !this.isPageMode?.()) {
             Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione uma conta primeiro!', customClass: { container: 'swal-above-modal' } });
             return;
         }
 
         // Guard: transferência requer pelo menos 2 contas
-        if (tipo === 'transferencia' && this.contas.length < 2) {
+        if (tipo === 'transferencia' && this.contas.length < 2 && !this.isPageMode?.()) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Não é possível transferir',
@@ -251,16 +264,18 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
         const tipoInput = document.getElementById('globalLancamentoTipo');
         if (tipoInput) tipoInput.value = tipo;
         const contaIdInput = document.getElementById('globalLancamentoContaId');
-        if (contaIdInput) contaIdInput.value = this.contaSelecionada.id;
+        if (contaIdInput) contaIdInput.value = this.contaSelecionada?.id ?? '';
 
         // Set total steps based on type
-        this.totalSteps = tipo === 'transferencia' ? 4 : 5;
+        this.totalSteps = this.isPageMode?.() ? 2 : (tipo === 'transferencia' ? 4 : 5);
 
         this.configurarCamposPorTipo(tipo);
 
         const titulos = { receita: 'Nova Receita', despesa: 'Nova Despesa', transferencia: 'Nova Transferência' };
         const tituloEl = document.getElementById('modalLancamentoGlobalTitulo');
         if (tituloEl) tituloEl.textContent = titulos[tipo] || 'Nova Movimentação';
+        this.syncQuickTypeHeading?.(tipo);
+        this.resetQuickOptions?.();
 
         // Update step 2 question text
         const step2Title = document.getElementById('globalStep2Title');
@@ -329,12 +344,18 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
         const headerGradient = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-header-gradient');
         if (headerGradient) {
             headerGradient.classList.remove('receita', 'despesa', 'transferencia');
-            const colors = {
-                receita: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                despesa: 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)',
-                transferencia: 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
-            };
-            if (colors[tipo]) headerGradient.style.setProperty('background', colors[tipo], 'important');
+            headerGradient.classList.add(tipo);
+
+            if (this.isPageMode?.()) {
+                headerGradient.style.removeProperty('background');
+            } else {
+                const colors = {
+                    receita: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                    despesa: 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)',
+                    transferencia: 'linear-gradient(135deg, #3498db, #2980b9)',
+                };
+                if (colors[tipo]) headerGradient.style.setProperty('background', colors[tipo], 'important');
+            }
         }
 
         // Step 3 visibility per type

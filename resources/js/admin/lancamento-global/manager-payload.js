@@ -10,6 +10,8 @@ export function attachLancamentoGlobalPayloadMethods(ManagerClass, dependencies)
         const contaId = this.contaSelecionada?.id;
         if (!contaId) throw new Error('Conta não selecionada');
 
+        this.preencherDescricaoPadraoSeVazia?.();
+
         const dados = {
             conta_id: parseInt(contaId),
             tipo: document.getElementById('globalLancamentoTipo').value,

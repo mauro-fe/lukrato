@@ -64,15 +64,17 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             this.goToStep(1);
             this.restaurarCabecalhoPadrao();
             this.resetarFormulario();
+            this.resetQuickOptions?.();
             this.syncPageModeState();
         },
 
         initWizard() {
             this.currentStep = 1;
             this.tipoAtual = null;
-            this.totalSteps = 5;
             this.resetarFormulario();
+            this.totalSteps = this.isPageMode?.() ? 2 : 5;
             this.restaurarCabecalhoPadrao();
+            this.resetQuickOptions?.();
 
             const contaInfo = document.getElementById('globalContaInfo');
             if (contaInfo) {
@@ -95,7 +97,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             if (!this.contaSelecionada) {
                 const historicoContainer = document.getElementById('globalLancamentoHistorico');
                 if (historicoContainer) {
-                    renderLancamentoHistoryPlaceholder(historicoContainer, 'Selecione uma conta para ver as ultimas movimentacoes.');
+                    renderLancamentoHistoryPlaceholder(historicoContainer, 'Escolha uma conta para ver o histórico.');
                 }
             }
             const progress = document.getElementById('globalWizardProgress');
@@ -120,7 +122,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             const container = document.getElementById('globalWizardProgress');
             if (!container) return;
 
-            if (this.currentStep <= 1) {
+            if (this.isPageMode?.() || this.currentStep <= 1) {
                 container.style.display = 'none';
                 return;
             }
@@ -154,13 +156,13 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
         goToStep(n) {
             if (n < 1 || n > this.totalSteps) return;
 
-            const prev = this.currentStep;
             this.currentStep = n;
 
             for (let i = 1; i <= 5; i++) {
                 const step = document.getElementById(`globalStep${i}`);
                 if (!step) continue;
-                if (i === prev && i !== n) {
+
+                if (i !== n) {
                     step.classList.remove('active');
                     step.style.display = 'none';
                 }
@@ -181,7 +183,11 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             }
             const contaSelectGroup = document.getElementById('globalContaSelect')?.closest('.lk-form-group');
             if (contaSelectGroup) {
-                contaSelectGroup.classList.toggle('lk-conta-select--hidden', n > 1);
+                if (this.isPageMode?.()) {
+                    contaSelectGroup.classList.remove('lk-conta-select--hidden');
+                } else {
+                    contaSelectGroup.classList.toggle('lk-conta-select--hidden', n > 1);
+                }
             }
 
             const body = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-body-modern');
@@ -245,6 +251,104 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             }
 
             this.salvarLancamento();
+        },
+
+        resetQuickOptions() {
+            const panel = document.getElementById('globalQuickOptions');
+            const button = document.getElementById('globalQuickMoreOptionsBtn');
+
+            if (panel) {
+                panel.hidden = true;
+            }
+
+            if (button) {
+                button.setAttribute('aria-expanded', 'false');
+                button.classList.remove('is-open');
+                button.innerHTML = '<i data-lucide="sliders-horizontal"></i> Mais opções';
+            }
+
+            this.resetQuickHistory?.();
+            refreshIcons();
+        },
+
+        toggleQuickOptions(force = null) {
+            const panel = document.getElementById('globalQuickOptions');
+            const button = document.getElementById('globalQuickMoreOptionsBtn');
+            if (!panel) return;
+
+            const shouldOpen = force === null ? panel.hidden : Boolean(force);
+            panel.hidden = !shouldOpen;
+
+            if (button) {
+                button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+                button.classList.toggle('is-open', shouldOpen);
+                button.innerHTML = shouldOpen
+                    ? '<i data-lucide="chevron-up"></i> Menos opções'
+                    : '<i data-lucide="sliders-horizontal"></i> Mais opções';
+            }
+
+            refreshIcons();
+        },
+
+        resetQuickHistory() {
+            this.toggleQuickHistory(false);
+        },
+
+        toggleQuickHistory(force = null) {
+            const panel = document.getElementById('globalQuickHistoryPanel');
+            const button = document.getElementById('globalQuickHistoryBtn');
+            if (!panel) return;
+
+            const shouldOpen = force === null ? panel.hidden : Boolean(force);
+            panel.hidden = !shouldOpen;
+
+            if (button) {
+                button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+                button.classList.toggle('is-open', shouldOpen);
+            }
+
+            refreshIcons();
+        },
+
+        syncQuickTypeHeading(tipo = this.tipoAtual) {
+            const labels = {
+                receita: {
+                    title: 'Nova receita',
+                    submit: 'Salvar receita'
+                },
+                despesa: {
+                    title: 'Nova despesa',
+                    submit: 'Salvar despesa'
+                },
+                transferencia: {
+                    title: 'Nova transferência',
+                    submit: 'Salvar transferência'
+                }
+            };
+            const copy = labels[tipo] || {
+                title: 'Nova transação',
+                submit: 'Salvar transação'
+            };
+
+            const kicker = document.getElementById('globalQuickTypeKicker');
+            const title = document.getElementById('modalLancamentoGlobalTituloInline');
+            const button = document.getElementById('globalBtnSalvar');
+            const submitLabels = document.querySelectorAll('.lk-page-submit-label');
+
+            if (kicker) kicker.hidden = true;
+            if (title) title.textContent = copy.title;
+            if (button) {
+                button.innerHTML = `<i data-lucide="check"></i> <span class="lk-page-submit-label">${copy.submit}</span>`;
+            }
+            submitLabels.forEach((label) => {
+                label.textContent = copy.submit;
+            });
+
+            document.querySelectorAll('.lk-page-submit-btn:not(#globalBtnSalvar)').forEach((submitButton) => {
+                submitButton.innerHTML = `<i data-lucide="check"></i> <span class="lk-page-submit-label">${copy.submit}</span>`;
+            });
+
+            refreshIcons();
         },
     });
 }

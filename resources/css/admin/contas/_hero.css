@@ -1,8 +1,16 @@
-/* ─── HERO — Saldo Consolidado ────────────────────────────────────────────── */
+/* Visão consolidada */
 
 .cont-hero {
-  text-align: center;
-  padding: var(--spacing-8) var(--spacing-5);
+  display: grid;
+  align-content: center;
+  gap: var(--spacing-4);
+  text-align: left;
+  padding: var(--spacing-6) var(--spacing-5);
+}
+
+.cont-hero__main {
+  display: grid;
+  gap: var(--spacing-2);
 }
 
 .cont-hero__eyebrow {
@@ -12,33 +20,42 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--color-primary);
-  margin-bottom: var(--spacing-2);
 }
 
 .cont-hero__title {
-  margin: 0 0 var(--spacing-2);
+  margin: 0;
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-muted);
 }
 
 .cont-hero__balance {
+  margin: 0;
   font-size: 2rem;
   font-weight: 800;
   color: var(--color-text);
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  margin-bottom: var(--spacing-4);
 }
 
 .cont-hero__meta {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
+  justify-content: flex-start;
+  gap: var(--spacing-2);
   flex-wrap: wrap;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+.cont-hero__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.34rem 0.68rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card-border) 82%, transparent);
 }
 
 .cont-hero__meta strong {
@@ -47,42 +64,12 @@
 }
 
 .cont-hero__meta-divider {
-  opacity: 0.4;
+  display: none;
 }
 
-.cont-hero__insight {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-3);
-  text-align: left;
-  margin: var(--spacing-5) auto 0;
-  max-width: 520px;
-  padding: var(--spacing-4);
-  border-radius: var(--radius-md);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
-}
-
-.cont-hero__insight > i,
-.cont-hero__insight > svg {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+.cont-hero__meta-item--insight {
   color: var(--color-primary);
-  margin-top: 2px;
+  font-weight: 700;
+  border-color: color-mix(in srgb, var(--color-primary) 32%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
 }
-
-.cont-hero__insight-title {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-text);
-  line-height: 1.4;
-}
-
-.cont-hero__insight-desc {
-  margin: var(--spacing-1) 0 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  line-height: 1.5;
-}
-

@@ -14,8 +14,7 @@
   gap: clamp(0.85rem, 1vw, 1rem);
 }
 
-.cont-overview-top,
-.cont-overview-bottom {
+.cont-overview-top {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -27,7 +26,6 @@ body[data-lk-menu="contas"] .fab-container {
 
 .cont-hero,
 .cont-kpi,
-.cont-distribution,
 .cont-list-section {
   border-radius: 18px;
 }
@@ -38,6 +36,10 @@ body[data-lk-menu="contas"] .fab-container {
   padding: clamp(1.35rem, 2vw, 1.75rem) clamp(1rem, 1.7vw, 1.3rem);
 }
 
+.cont-hero__main {
+  width: 100%;
+}
+
 .cont-hero__meta-item {
   display: inline-flex;
   align-items: center;
@@ -46,10 +48,6 @@ body[data-lk-menu="contas"] .fab-container {
   border-radius: 999px;
   background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-card-border) 82%, transparent);
-}
-
-.cont-hero__insight {
-  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
 }
 
 .cont-kpi {
@@ -68,25 +66,8 @@ body[data-lk-menu="contas"] .fab-container {
   font-size: clamp(1.05rem, 1.75vw, 1.22rem);
 }
 
-.cont-distribution {
-  padding: 1.05rem 1.1rem;
-}
-
 .cont-section-header {
   margin-bottom: 0.9rem;
-}
-
-.contas-distribution-list {
-  gap: 0.75rem;
-}
-
-.contas-distribution-item {
-  padding: 0.85rem 0.95rem;
-  border-radius: 16px;
-}
-
-.contas-distribution-item-head {
-  margin-bottom: 0.45rem;
 }
 
 .cont-list-section {
@@ -286,12 +267,6 @@ body[data-lk-menu="contas"] .fab-container {
     padding: 0.28rem 0.58rem;
   }
 
-  .cont-hero__insight {
-    margin: 0.8rem 0 0;
-    max-width: 372px;
-    padding: 0.78rem 0.84rem;
-  }
-
   .cont-kpis {
     grid-template-columns: 1fr;
     grid-template-rows: repeat(2, minmax(0, 1fr));
@@ -322,10 +297,6 @@ body[data-lk-menu="contas"] .fab-container {
 
   .cont-kpi__detail {
     margin-top: 0.14rem;
-  }
-
-  .cont-overview-bottom {
-    gap: 0;
   }
 
   .cont-list-header {
@@ -360,8 +331,7 @@ body[data-lk-menu="contas"] .fab-container {
   }
 
   .cont-stage,
-  .cont-overview-top,
-  .cont-overview-bottom {
+  .cont-overview-top {
     gap: 0.82rem;
   }
 
@@ -402,14 +372,12 @@ body[data-lk-menu="contas"] .fab-container {
   }
 
   .cont-stage,
-  .cont-overview-top,
-  .cont-overview-bottom {
+  .cont-overview-top {
     gap: 0.75rem;
   }
 
   .cont-hero,
   .cont-kpi,
-  .cont-distribution,
   .cont-list-section {
     border-radius: 16px;
   }
@@ -422,12 +390,6 @@ body[data-lk-menu="contas"] .fab-container {
     padding: 0.28rem 0.58rem;
   }
 
-  .cont-hero__insight {
-    margin-top: 0.75rem;
-    padding: 0.8rem;
-  }
-
-  .cont-distribution,
   .cont-list-section {
     padding: 0.95rem;
   }
@@ -498,7 +460,6 @@ body[data-lk-menu="contas"] .fab-container {
 
   .cont-hero,
   .cont-kpi,
-  .cont-distribution,
   .cont-list-section {
     border-radius: 15px;
   }
@@ -511,7 +472,6 @@ body[data-lk-menu="contas"] .fab-container {
     font-size: 1.72rem;
   }
 
-  .cont-distribution,
   .cont-list-section {
     padding: 0.82rem;
   }
@@ -541,18 +501,6 @@ body[data-lk-menu="contas"] .fab-container {
   .view-toggle {
     width: 100%;
     justify-content: center;
-  }
-
-  .contas-distribution-item {
-    padding: 0.72rem 0.78rem;
-  }
-
-  .contas-distribution-item-values strong {
-    font-size: 0.82rem;
-  }
-
-  .contas-distribution-item-values span {
-    font-size: 0.7rem;
   }
 
   .account-card {

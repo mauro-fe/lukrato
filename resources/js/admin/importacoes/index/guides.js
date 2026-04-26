@@ -53,22 +53,22 @@ function buildUploadPrompt(importTarget, sourceType) {
         return importTarget === 'cartao'
             ? {
                 title: 'Envie o CSV da fatura',
-                copy: 'Mantenha data, descrição e valor legíveis. Sem coluna de tipo, valor positivo vira despesa e negativo vira estorno.',
+                copy: 'Use data, descrição e valor.',
             }
             : {
-                title: 'Envie o CSV no padrão de conta',
-                copy: 'Use tipo;data;descricao;valor com ;, datas dd/mm/yyyy e vírgula decimal.',
+                title: 'Envie o CSV da conta',
+                copy: 'Use tipo, data, descrição e valor.',
             };
     }
 
     return importTarget === 'cartao'
         ? {
             title: 'Envie o OFX da fatura',
-            copy: 'Compras e parcelas do MEMO entram automáticas.',
+            copy: 'O sistema lê a fatura automaticamente.',
         }
         : {
             title: 'Envie o OFX do extrato',
-            copy: 'Pix, depósito e histórico entram automáticos.',
+            copy: 'O sistema lê o extrato automaticamente.',
         };
 }
 
@@ -76,48 +76,48 @@ function buildPreviewReadyCopy(importTarget, sourceType, autoAdjusted = false) {
     if (sourceType === 'csv') {
         if (importTarget === 'cartao') {
             return autoAdjusted
-                ? 'Formato sincronizado para CSV. Agora valide data, descrição e valor da fatura no preview.'
-                : 'CSV pronto. Clique em "Preparar preview" para validar a fatura antes da confirmação.';
+                ? 'CSV detectado. Revise data, descrição e valor.'
+                : 'CSV pronto. Clique em "Preparar preview".';
         }
 
         return autoAdjusted
-            ? 'Formato sincronizado para CSV. Agora valide cabeçalho, datas e valores no padrão tipo;data;descricao;valor.'
-            : 'CSV pronto. Clique em "Preparar preview" para validar cabeçalho, datas e valores.';
+            ? 'CSV detectado. Revise datas e valores.'
+            : 'CSV pronto. Clique em "Preparar preview".';
     }
 
     if (importTarget === 'cartao') {
         return autoAdjusted
-            ? 'Formato sincronizado para OFX. Agora clique em "Preparar preview" para ler compras e parcelas da fatura.'
-            : 'OFX pronto. Clique em "Preparar preview" para ler compras e parcelas da fatura automaticamente.';
+            ? 'OFX detectado. Clique em "Preparar preview".'
+            : 'OFX pronto. Clique em "Preparar preview".';
     }
 
     return autoAdjusted
-        ? 'Formato sincronizado para OFX. Agora clique em "Preparar preview" para ler o extrato automaticamente.'
-        : 'OFX pronto. Clique em "Preparar preview" para ler data, valor e histórico do extrato.';
+        ? 'OFX detectado. Clique em "Preparar preview".'
+        : 'OFX pronto. Clique em "Preparar preview".';
 }
 
 function buildDetectedFileNoteText(importTarget, sourceType, autoAdjusted = false) {
     if (sourceType === 'csv') {
         if (importTarget === 'cartao') {
             return autoAdjusted
-                ? 'Detectamos um CSV e alinhamos o formato. Se vier sem coluna de tipo, valor positivo entra como despesa e negativo como estorno.'
-                : 'CSV detectado. Se vier sem coluna de tipo, valor positivo entra como despesa e negativo como estorno.';
+                ? 'CSV detectado e alinhado.'
+                : 'CSV detectado.';
         }
 
         return autoAdjusted
-            ? 'Detectamos um CSV e alinhamos o formato. O melhor encaixe aqui é tipo;data;descricao;valor com ;, dd/mm/yyyy, vírgula decimal e sem linhas incompletas no final.'
-            : 'CSV detectado. O melhor encaixe aqui é tipo;data;descricao;valor com ;, dd/mm/yyyy, vírgula decimal e sem linhas incompletas no final.';
+            ? 'CSV detectado e alinhado.'
+            : 'CSV detectado.';
     }
 
     if (importTarget === 'cartao') {
         return autoAdjusted
-            ? 'Detectamos um OFX e alinhamos o formato. Compras e parcelas da fatura podem vir no MEMO sem exigir mapeamento manual.'
-            : 'OFX detectado. Compras e parcelas da fatura podem vir no MEMO sem exigir mapeamento manual.';
+            ? 'OFX detectado e alinhado.'
+            : 'OFX detectado.';
     }
 
     return autoAdjusted
-        ? 'Detectamos um OFX e alinhamos o formato. O Lukrato usa data, valor e histórico mesmo quando o banco usa TRNTYPE genérico.'
-        : 'OFX detectado. O Lukrato usa data, valor e histórico mesmo quando o banco usa TRNTYPE genérico.';
+        ? 'OFX detectado e alinhado.'
+        : 'OFX detectado.';
 }
 
 function buildDetectedImportTargetNoteText(detectedImportTarget, autoAdjusted = false) {
@@ -128,38 +128,38 @@ function buildDetectedImportTargetNoteText(detectedImportTarget, autoAdjusted = 
 
     if (normalizedTarget === 'cartao') {
         return autoAdjusted
-            ? 'O conteúdo do OFX foi reconhecido como cartão/fatura e o alvo foi ajustado automaticamente. Revise apenas o cartão antes do preview.'
-            : 'O conteúdo do OFX foi reconhecido como cartão/fatura. Revise apenas o cartão antes do preview.';
+            ? 'OFX reconhecido como cartão. O alvo foi ajustado.'
+            : 'OFX reconhecido como cartão.';
     }
 
     return autoAdjusted
-        ? 'O conteúdo do OFX foi reconhecido como conta bancária e o alvo foi ajustado automaticamente para Conta.'
-        : 'O conteúdo do OFX foi reconhecido como conta bancária.';
+        ? 'OFX reconhecido como conta. O alvo foi ajustado.'
+        : 'OFX reconhecido como conta.';
 }
 
 export function buildAdvancedDescription(importTarget, sourceType) {
     if (sourceType === 'csv') {
         return importTarget === 'cartao'
-            ? 'Use data, descrição e valor. Abra o avançado só se cabeçalho, delimitador ou data fugirem do padrão.'
-            : 'Use tipo;data;descricao;valor com ;, datas em dd/mm/yyyy e vírgula decimal. Abra o avançado só se o arquivo fugir disso.';
+            ? 'Use data, descrição e valor. Abra o avançado só se precisar ajustar.'
+            : 'Use tipo, data, descrição e valor. Abra o avançado só se precisar ajustar.';
     }
 
     return importTarget === 'cartao'
-        ? 'OFX de fatura entra automático. Parcelas podem vir no MEMO sem ajuste manual.'
-        : 'OFX bancário entra automático. O Lukrato usa data, valor e histórico do extrato.';
+        ? 'OFX de fatura entra automático.'
+        : 'OFX bancário entra automático.';
 }
 
 export function buildTemplateMeta(importTarget) {
     if (importTarget === 'cartao') {
         return {
             chip: 'Modelo de fatura',
-            title: 'Modelo recomendado para CSV de cartão/fatura',
-            copy: 'O modelo automático cobre data, descrição e valor. Use o manual se a operadora exportar observação, ID externo ou colunas extras fora do padrão esperado.',
-            autoLabel: 'Baixar modelo rápido de fatura',
-            manualLabel: 'Baixar modelo completo de fatura',
+            title: 'Modelo recomendado para cartão',
+            copy: 'O modelo rápido cobre data, descrição e valor. Use o completo só se vierem colunas extras.',
+            autoLabel: 'Modelo rápido',
+            manualLabel: 'Modelo completo',
             autoHref: buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'auto', target: 'cartao' })),
             manualHref: buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'manual', target: 'cartao' })),
-            contextNote: 'A configuração CSV usa a conta vinculada ao cartão selecionado.',
+            contextNote: 'Usa a conta vinculada ao cartão.',
             summaryContext: 'Conta vinculada ao cartão selecionado',
             badge: 'Conta vinculada',
         };
@@ -167,13 +167,13 @@ export function buildTemplateMeta(importTarget) {
 
     return {
         chip: 'Modelo de conta',
-        title: 'Modelo recomendado para CSV de conta',
-        copy: 'O modelo rápido segue o padrão tipo;data;descricao;valor com ;, dd/mm/yyyy e valores como 149,90. O manual adiciona categoria, subcategoria, observação e ID externo.',
-        autoLabel: 'Baixar modelo rápido de conta',
-        manualLabel: 'Baixar modelo completo de conta',
+        title: 'Modelo recomendado para conta',
+        copy: 'O modelo rápido cobre tipo, data, descrição e valor. Use o completo se precisar de mais colunas.',
+        autoLabel: 'Modelo rápido',
+        manualLabel: 'Modelo completo',
         autoHref: buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'auto', target: 'conta' })),
         manualHref: buildUrl(resolveImportacoesCsvTemplateEndpoint({ mode: 'manual', target: 'conta' })),
-        contextNote: 'A configuração CSV usa a conta selecionada neste fluxo.',
+        contextNote: 'Usa a conta selecionada.',
         summaryContext: 'Conta selecionada',
         badge: 'Conta ativa',
     };
@@ -247,7 +247,7 @@ export function buildPathGuide(state) {
         return {
             state: 'warning',
             title,
-            copy: `Arquivo ${formatSourceTypeLabel(detectedSourceType)} detectado, mas o formato ativo está em ${formatSourceTypeLabel(sourceType)}. Alinhe antes do preview para evitar erro de leitura.`,
+            copy: `O arquivo parece ${formatSourceTypeLabel(detectedSourceType)}, mas o formato ativo está em ${formatSourceTypeLabel(sourceType)}.`,
         };
     }
 
@@ -260,7 +260,7 @@ export function buildPathGuide(state) {
         return {
             state: 'warning',
             title,
-            copy: `O conteúdo do OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo ativo está em ${formatImportTargetLabel(importTarget)}.`,
+            copy: `O OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo ativo está em ${formatImportTargetLabel(importTarget)}.`,
         };
     }
 
@@ -281,7 +281,7 @@ export function buildPathGuide(state) {
         return {
             state: 'ready',
             title,
-            copy: `Arquivo ${formatSourceTypeLabel(detectedSourceType)} detectado e o formato foi sincronizado automaticamente. ${buildAdvancedDescription(importTarget, sourceType)}`,
+            copy: `Arquivo ${formatSourceTypeLabel(detectedSourceType)} detectado. ${buildAdvancedDescription(importTarget, sourceType)}`,
         };
     }
 
@@ -298,7 +298,7 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
             return {
                 state: 'warning',
                 title: 'Selecione um cartão',
-                copy: 'Escolha o cartão/fatura antes de preparar o preview.',
+                copy: 'Escolha o cartão antes de continuar.',
             };
         }
 
@@ -306,7 +306,7 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
             return {
                 state: 'warning',
                 title: currentCardLabel(),
-                copy: 'Sem conta vinculada para herdar o perfil CSV. OFX segue normal; CSV pode exigir ajuste manual.',
+                copy: 'Sem conta vinculada para herdar o perfil CSV.',
             };
         }
 
@@ -314,8 +314,8 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
             state: 'ready',
             title: currentCardLabel(),
             copy: state.targetAutoAdjustedToDetectedFile
-                ? `${buildDetectedImportTargetNoteText('cartao', true)} Perfil CSV herdado de ${profileDisplay.accountLabel}.`
-                : `Perfil CSV herdado de ${profileDisplay.accountLabel}.`,
+                ? `${buildDetectedImportTargetNoteText('cartao', true)} Perfil CSV de ${profileDisplay.accountLabel}.`
+                : `Perfil CSV de ${profileDisplay.accountLabel}.`,
         };
     }
 
@@ -323,7 +323,7 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
         return {
             state: 'warning',
             title: 'Selecione uma conta',
-            copy: 'Escolha a conta antes de preparar o preview.',
+            copy: 'Escolha a conta antes de continuar.',
         };
     }
 
@@ -331,8 +331,8 @@ export function buildContextGuide(state, { activeConfigAccountId, profileDisplay
         state: 'ready',
         title: currentAccountLabel(),
         copy: state.targetAutoAdjustedToDetectedFile
-            ? `${buildDetectedImportTargetNoteText('conta', true)} Esta conta define o preview e o perfil CSV aplicado.`
-            : 'Esta conta define o preview e o perfil CSV aplicado.',
+            ? `${buildDetectedImportTargetNoteText('conta', true)} Esta conta define o preview.`
+            : 'Esta conta define o preview.',
     };
 }
 
@@ -347,19 +347,19 @@ export function buildReadinessGuide(state, quota, {
     const hasContext = isContextSelected(state.selectedImportTarget);
 
     if (!quota.allowed) {
-        return {
-            state: 'warning',
-            title: 'Limite do plano atingido',
-            copy: quota.message || 'Faça upgrade para continuar usando este fluxo de importação.',
-        };
+            return {
+                state: 'warning',
+                title: 'Limite do plano atingido',
+                copy: quota.message || 'Faça upgrade para continuar.',
+            };
     }
 
     if (state.previewStatus === 'loading_preview') {
-        return {
-            state: 'info',
-            title: 'Montando preview',
-            copy: 'Validando o arquivo e preparando a revisão final.',
-        };
+            return {
+                state: 'info',
+                title: 'Montando preview',
+                copy: 'Lendo o arquivo.',
+            };
     }
 
     if (state.previewStatus === 'confirming') {
@@ -371,19 +371,19 @@ export function buildReadinessGuide(state, quota, {
     }
 
     if (state.previewStatus === 'confirmed') {
-        return {
-            state: 'ready',
-            title: 'Importação concluída',
-            copy: getCompletedMessage(),
+            return {
+                state: 'ready',
+                title: 'Importação concluída',
+                copy: getCompletedMessage(),
         };
     }
 
     if (state.previewStatus === 'preview_error') {
-        return {
-            state: 'warning',
-            title: 'Ajuste antes de reenviar',
-            copy: state.previewErrors[0] || 'Revise o contexto, o formato e o arquivo antes de tentar novamente.',
-        };
+            return {
+                state: 'warning',
+                title: 'Ajuste antes de reenviar',
+                copy: state.previewErrors[0] || 'Revise o contexto e o arquivo.',
+            };
     }
 
     if (state.previewStatus === 'preview_ready') {
@@ -391,7 +391,7 @@ export function buildReadinessGuide(state, quota, {
             return {
                 state: 'warning',
                 title: 'Preview com bloqueios',
-                copy: state.previewErrors[0] || 'O preview retornou bloqueios que precisam ser corrigidos antes da confirmação.',
+                copy: state.previewErrors[0] || 'Corrija antes de confirmar.',
             };
         }
 
@@ -399,24 +399,24 @@ export function buildReadinessGuide(state, quota, {
             && (state.previewSummary.uncategorizedRows || 0) > 0) {
             return {
                 state: 'ready',
-                title: 'Preview pronto para revisar',
-                copy: `${state.previewSummary.uncategorizedRows} linha(s) sem categoria. Você pode revisar agora ou confirmar assim mesmo.`,
+                title: 'Preview pronto',
+                copy: `${state.previewSummary.uncategorizedRows} linha(s) sem categoria.`,
             };
         }
 
         return {
             state: 'ready',
-            title: 'Preview pronto para confirmar',
-            copy: 'Revise as linhas e confirme a importação quando estiver tudo certo.',
+            title: 'Preview pronto',
+            copy: 'Revise e confirme.',
         };
     }
 
     if (!hasContext) {
-        return {
-            state: 'warning',
-            title: state.selectedImportTarget === 'cartao' ? 'Falta escolher o cartão' : 'Falta escolher a conta',
-            copy: 'Defina o contexto antes de enviar o arquivo.',
-        };
+            return {
+                state: 'warning',
+                title: state.selectedImportTarget === 'cartao' ? 'Falta escolher o cartão' : 'Falta escolher a conta',
+                copy: 'Escolha o contexto primeiro.',
+            };
     }
 
     if (!state.selectedFile) {
@@ -432,7 +432,7 @@ export function buildReadinessGuide(state, quota, {
         return {
             state: 'warning',
             title: 'Revise o tipo do arquivo',
-            copy: 'Não foi possível identificar automaticamente se o arquivo é OFX ou CSV. Confira a extensão antes do preview.',
+            copy: 'Não foi possível identificar se o arquivo é OFX ou CSV.',
         };
     }
 
@@ -444,7 +444,7 @@ export function buildReadinessGuide(state, quota, {
         return {
             state: 'warning',
             title: 'OFX e alvo divergem',
-            copy: `O conteúdo do OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo ativo está em ${formatImportTargetLabel(state.selectedImportTarget)}.`,
+            copy: `O OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo ativo está em ${formatImportTargetLabel(state.selectedImportTarget)}.`,
         };
     }
 
@@ -459,11 +459,7 @@ export function buildReadinessGuide(state, quota, {
     return {
         state: 'ready',
         title: 'Pronto para gerar preview',
-        copy: buildPreviewReadyCopy(
-            state.selectedImportTarget,
-            detectedSourceType,
-            state.sourceAutoAdjustedToDetectedFile,
-        ),
+        copy: buildPreviewReadyCopy(state.selectedImportTarget, detectedSourceType, state.sourceAutoAdjustedToDetectedFile),
     };
 }
 
@@ -477,7 +473,7 @@ export function buildFileNote(state) {
     if (!detectedSourceType) {
         return {
             state: 'warning',
-            text: 'Não foi possível detectar automaticamente se o arquivo é OFX ou CSV. Revise a extensão antes do preview.',
+            text: 'Não foi possível detectar se o arquivo é OFX ou CSV.',
         };
     }
 
@@ -488,7 +484,7 @@ export function buildFileNote(state) {
     ) {
         return {
             state: 'warning',
-            text: `O conteúdo do OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo selecionado está em ${formatImportTargetLabel(state.selectedImportTarget)}.`,
+            text: `O OFX parece ser de ${formatImportTargetLabel(detectedImportTarget)}, mas o alvo selecionado está em ${formatImportTargetLabel(state.selectedImportTarget)}.`,
         };
     }
 

@@ -50,7 +50,7 @@ class MetricsController extends ApiController
                 successStatus: $result->httpCode
             );
         } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao carregar metricas.');
+            return $this->internalErrorResponse($e, 'Erro ao carregar métricas.');
         }
     }
 
@@ -75,7 +75,7 @@ class MetricsController extends ApiController
                 successStatus: $result->httpCode
             );
         } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao carregar transacoes.');
+            return $this->internalErrorResponse($e, 'Erro ao carregar transações.');
         }
     }
 
@@ -93,7 +93,7 @@ class MetricsController extends ApiController
                 successStatus: $result->httpCode
             );
         } catch (Throwable $e) {
-            return $this->internalErrorResponse($e, 'Erro ao carregar opcoes.');
+            return $this->internalErrorResponse($e, 'Erro ao carregar opções.');
         }
     }
 }

@@ -65,9 +65,10 @@ export function attachLancamentoGlobalPaymentMethods(ManagerClass, dependencies)
             if (metaSelect) metaSelect.value = '';
             this.syncMetaLinkFields({ preserveAmount: false });
         } else {
+            const hasFormaPagamento = Boolean(forma);
             if (cartaoGroup) { cartaoGroup.classList.remove('active'); cartaoGroup.style.display = 'none'; }
             if (parcelamentoGroup) {
-                parcelamentoGroup.style.display = 'block';
+                parcelamentoGroup.style.display = hasFormaPagamento ? 'block' : 'none';
             }
             const numParcelasGroup = document.getElementById('globalNumeroParcelasGroup');
             if (numParcelasGroup) numParcelasGroup.style.display = 'none';
@@ -137,6 +138,7 @@ export function attachLancamentoGlobalPaymentMethods(ManagerClass, dependencies)
             if (pagoGroup) pagoGroup.style.display = 'none';
             this.clearReminderFields();
         } else {
+            const hasFormaRecebimento = Boolean(forma);
             if (cartaoGroup) { cartaoGroup.classList.remove('active'); cartaoGroup.style.display = 'none'; }
             const cartaoSelect = document.getElementById('globalLancamentoCartaoCredito');
             if (cartaoSelect) cartaoSelect.value = '';
@@ -145,7 +147,7 @@ export function attachLancamentoGlobalPaymentMethods(ManagerClass, dependencies)
             }
             this.syncMetaLinkFields({ preserveAmount: true });
             const parcelamentoGroup = document.getElementById('globalParcelamentoGroup');
-            if (parcelamentoGroup) parcelamentoGroup.style.display = 'block';
+            if (parcelamentoGroup) parcelamentoGroup.style.display = hasFormaRecebimento ? 'block' : 'none';
             const recorrenciaGroup = document.getElementById('globalRecorrenciaGroup');
             if (recorrenciaGroup) recorrenciaGroup.style.display = 'block';
             const pagoGroup = document.getElementById('globalPagoGroup');
@@ -172,14 +174,10 @@ export function attachLancamentoGlobalPaymentMethods(ManagerClass, dependencies)
             return false;
         }
 
-        const descricao = document.getElementById('globalLancamentoDescricao')?.value.trim() || '';
+        this.preencherDescricaoPadraoSeVazia?.();
         const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
         const data = document.getElementById('globalLancamentoData')?.value || '';
 
-        if (!descricao) {
-            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a descrição', customClass: { container: 'swal-above-modal' } });
-            return false;
-        }
         if (!valor || valor <= 0) {
             Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
             return false;

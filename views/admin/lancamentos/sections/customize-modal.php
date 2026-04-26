@@ -1,7 +1,7 @@
 <?php
 $customizeModal = [
     'title' => 'Personalizar lançamentos',
-    'description' => 'Comece no modo essencial e ative blocos quando fizer sentido.',
+    'description' => 'Ative apenas os blocos operacionais que você usa.',
     'trigger' => [
         'render' => true,
         'id' => 'btnCustomizeLancamentos',
@@ -21,10 +21,8 @@ $customizeModal = [
         [
             'title' => 'Blocos da página',
             'items' => [
-                ['id' => 'toggleLanHero', 'label' => 'Fluxo financeiro'],
-                ['id' => 'toggleLanSummary', 'label' => 'Resumo do período'],
-                ['id' => 'toggleLanExport', 'label' => 'Exportação'],
                 ['id' => 'toggleLanFilters', 'label' => 'Filtros'],
+                ['id' => 'toggleLanExport', 'label' => 'Exportação'],
             ],
         ],
     ],

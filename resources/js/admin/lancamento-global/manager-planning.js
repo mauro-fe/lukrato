@@ -224,15 +224,19 @@ export function attachLancamentoGlobalPlanningMethods(ManagerClass, dependencies
                 select.innerHTML = '<option value="">Nenhuma conta disponível</option>';
                 select.disabled = true;
                 const aviso = document.createElement('div');
-                aviso.className = 'no-accounts-warning';
+                aviso.className = 'no-accounts-warning lk-account-empty-state';
                 aviso.innerHTML = `
-                    <div class="alert alert-info d-flex align-items-center gap-2 mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem; border-radius: 8px;">
-                        <i data-lucide="info"></i>
-                        <span>Você não possui contas cadastradas.</span>
-                        <a href="${getBaseUrl()}contas" class="btn btn-sm btn-primary ms-auto" style="font-size: 0.75rem;">
-                            <i data-lucide="plus" style="width:14px;height:14px;"></i>Criar Conta
-                        </a>
+                    <div class="lk-account-empty-state__icon">
+                        <i data-lucide="wallet"></i>
                     </div>
+                    <div class="lk-account-empty-state__copy">
+                        <strong>Crie sua primeira conta</strong>
+                        <span>Depois disso o lançamento fica liberado.</span>
+                    </div>
+                    <a href="${getBaseUrl()}contas" class="lk-account-empty-state__cta">
+                        <i data-lucide="plus"></i>
+                        Criar conta
+                    </a>
                 `;
                 selectContainer?.appendChild(aviso);
                 this.syncEnhancedSelects();
@@ -263,8 +267,9 @@ export function attachLancamentoGlobalPlanningMethods(ManagerClass, dependencies
             const select = document.getElementById('globalLancamentoContaDestino');
             if (!select) return;
             select.innerHTML = '<option value="">Selecione a conta de destino</option>';
+            const origemId = this.contaSelecionada?.id ? String(this.contaSelecionada.id) : null;
             this.contas.forEach((conta) => {
-                if (conta.id != this.contaSelecionada.id) {
+                if (!origemId || String(conta.id) !== origemId) {
                     const option = document.createElement('option');
                     option.value = conta.id;
                     const saldo = conta.saldo !== undefined ? conta.saldo : (conta.saldoAtual !== undefined ? conta.saldoAtual : conta.saldo_inicial || 0);

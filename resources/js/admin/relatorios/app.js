@@ -21,7 +21,6 @@ import {
     resolveReportsEndpoint,
     resolveReportsInsightsEndpoint,
     resolveReportsInsightsTeaserEndpoint,
-    resolveReportsSummaryEndpoint,
 } from '../api/endpoints/reports.js';
 import {
     renderChartInsight,
@@ -239,34 +238,6 @@ export const API = {
             }
             console.error('Error fetching accounts:', error);
             return [];
-        }
-    },
-
-    async fetchSummaryStats() {
-        const [year, month] = STATE.currentMonth.split('-');
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT);
-        try {
-            const json = await apiGet(resolveReportsSummaryEndpoint(), { year, month });
-            clearTimeout(timeoutId);
-            return json.data || json;
-        } catch (error) {
-            clearTimeout(timeoutId);
-            if (await handleRestrictedAccess(error)) {
-                return {
-                    totalReceitas: 0,
-                    totalDespesas: 0,
-                    saldo: 0,
-                    totalCartoes: 0
-                };
-            }
-            console.error('Error fetching summary stats:', error);
-            return {
-                totalReceitas: 0,
-                totalDespesas: 0,
-                saldo: 0,
-                totalCartoes: 0
-            };
         }
     },
 
@@ -626,7 +597,7 @@ export async function renderReport() {
     updateReportFilterSummary();
     showLoading();
 
-    // Atualizar cards de resumo
+    // Atualizar a seção ativa sem repetir métricas do dashboard
     updateSummaryCards();
 
     const data = await fetchReportData();

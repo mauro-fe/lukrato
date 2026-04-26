@@ -1,8 +1,7 @@
-<!-- Seleção de Conta (sempre visível) -->
 <div class="lk-form-group">
     <label for="globalContaSelect" class="lk-label required">
         <i data-lucide="wallet"></i>
-        <span id="globalContaSelectLabelText">Selecione a Conta</span>
+        <span id="globalContaSelectLabelText">Conta</span>
     </label>
     <div class="lk-select-wrapper">
         <select id="globalContaSelect" class="lk-select surface-card" required data-lk-custom-select="modal"
@@ -12,12 +11,8 @@
         </select>
         <i data-lucide="chevron-down" class="lk-select-icon"></i>
     </div>
-    <small class="lk-helper-text" id="globalContaContextHint">
-        Escolha a conta para ver saldo e ultimas movimentações.
-    </small>
 </div>
 
-<!-- Saldo da Conta Selecionada -->
 <div class="lk-conta-info surface-card" id="globalContaInfo" style="display: none;">
     <div class="lk-conta-badge">
         <i data-lucide="wallet"></i>
@@ -30,7 +25,5 @@
 
 <div class="lk-planning-alerts" id="globalContaPlanningAlerts" hidden></div>
 
-<!-- Wizard Progress (dots) -->
 <div class="lk-wizard-progress" id="globalWizardProgress" style="display: none;">
-    <!-- Renderizado via JS -->
 </div>

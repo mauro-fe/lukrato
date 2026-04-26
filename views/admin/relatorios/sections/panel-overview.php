@@ -1,26 +1,5 @@
-    <!-- ==================== SEÇÃO: VISÃO GERAL (padrão) ==================== -->
     <div class="rel-section-panel active" id="section-overview" role="tabpanel">
         <div class="overview-grid">
-            <!-- Pulso Mensal -->
-            <div class="modern-card overview-pulse-card surface-card surface-card--interactive surface-card--clip">
-                <div class="card-header">
-                    <div class="header-left">
-                        <i data-lucide="activity"></i>
-                        <div class="header-text">
-                            <h3>Pulso Mensal</h3>
-                            <p>Resumo do seu mês financeiro</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body" id="overviewPulse">
-                    <div class="lk-loading-state">
-                        <i data-lucide="loader-2"></i>
-                        <p>Analisando...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top Insights -->
             <div class="modern-card overview-insights-card surface-card surface-card--interactive surface-card--clip">
                 <div class="card-header">
                     <div class="header-left">
@@ -39,7 +18,6 @@
                 </div>
             </div>
 
-            <!-- Mini Charts Row -->
             <div class="overview-charts-row" id="relOverviewChartsRow">
                 <div class="modern-card overview-mini-chart surface-card surface-card--interactive surface-card--clip">
                     <h4><i data-lucide="pie-chart"></i> Despesas por Categoria</h4>
@@ -59,7 +37,6 @@
                 </div>
             </div>
 
-            <!-- PRO CTA para usuários free -->
             <?php if (!$isPro): ?>
                 <div class="overview-pro-cta">
                     <i data-lucide="crown"></i>

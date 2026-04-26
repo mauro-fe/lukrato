@@ -48,14 +48,14 @@ function resolveMovementMeta(lancamento, contaId) {
     };
 }
 
-export function renderLancamentoHistoryPlaceholder(containerEl, message = 'Selecione uma conta para ver as ultimas movimentações.') {
+export function renderLancamentoHistoryPlaceholder(containerEl, message = 'Escolha uma conta para ver o histórico.') {
     if (!containerEl) return;
 
     containerEl.innerHTML = buildHistoryState('history', message);
     refreshIcons();
 }
 
-export function renderLancamentoHistory(containerEl, lancamentos, contaId, emptyMessage = 'Nenhuma movimentacao recente') {
+export function renderLancamentoHistory(containerEl, lancamentos, contaId, emptyMessage = 'Nenhuma movimentação recente') {
     if (!containerEl) return;
 
     if (!Array.isArray(lancamentos) || lancamentos.length === 0) {
@@ -75,7 +75,7 @@ export function renderLancamentoHistory(containerEl, lancamentos, contaId, empty
                     <i data-lucide="${tipoIcon}"></i>
                 </div>
                 <div class="lk-historico-info">
-                    <div class="lk-historico-desc">${escapeHtml(lancamento?.descricao || 'Sem descricao')}</div>
+                <div class="lk-historico-desc">${escapeHtml(lancamento?.descricao || 'Sem descrição')}</div>
                     <div class="lk-historico-cat">${escapeHtml(lancamento?.categoria || 'Sem categoria')}</div>
                 </div>
                 <div class="lk-historico-right">
@@ -94,8 +94,8 @@ export async function loadLancamentoRecentHistory({
     containerEl,
     limit = 5,
     lookbackDays = 120,
-    emptyMessage = 'Nenhuma movimentacao recente',
-    errorMessage = 'Erro ao carregar historico'
+    emptyMessage = 'Nenhuma movimentação recente',
+    errorMessage = 'Erro ao carregar histórico'
 }) {
     if (!containerEl) return [];
 
@@ -104,7 +104,7 @@ export async function loadLancamentoRecentHistory({
         return [];
     }
 
-    containerEl.innerHTML = buildHistoryState('loader-2', 'Carregando ultimas movimentações...');
+    containerEl.innerHTML = buildHistoryState('loader-2', 'Carregando últimas movimentações...');
     refreshIcons();
 
     const endDate = new Date();
@@ -123,7 +123,7 @@ export async function loadLancamentoRecentHistory({
         renderLancamentoHistory(containerEl, lancamentos, contaId, emptyMessage);
         return lancamentos;
     } catch (error) {
-        console.error('Erro ao carregar historico recente:', error);
+        console.error('Erro ao carregar histórico recente:', error);
         containerEl.innerHTML = buildHistoryState('circle-alert', getErrorMessage(error, errorMessage));
         refreshIcons();
         return [];

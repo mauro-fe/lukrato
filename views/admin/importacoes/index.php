@@ -114,6 +114,7 @@ foreach ($latestHistoryItems as $historyItem) {
 $activeContextLabel = $importTarget === 'cartao'
     ? (string) ($activeCard['nome'] ?? 'Cartão não selecionado')
     : (string) ($activeAccount['nome'] ?? 'Conta não selecionada');
+$hasInitialContextOptions = $importTarget === 'cartao' ? $cards !== [] : $accounts !== [];
 $activeAccountLabel = (string) ($activeAccount['nome'] ?? ($selectedAccountId > 0 ? 'Conta #' . $selectedAccountId : 'Conta não selecionada'));
 $advancedBadgeLabel = $initialSourceType === 'csv' ? 'CSV ativo' : 'OFX automático';
 $advancedDescription = $initialSourceType === 'csv'
@@ -139,92 +140,37 @@ $guidePathTitle = $initialSourceType === 'csv'
 ?>
 
 <section class="imp-page" data-importacoes-page="index" data-lk-help-page="importacoes"
-    data-imp-config-page-base-url="<?= escape($configPageBaseUrl) ?>" data-imp-active-account-id="<?= $selectedAccountId ?>"
-    data-imp-active-card-id="<?= $selectedCardId ?>" data-imp-import-target="<?= escape($importTarget) ?>"
-    data-imp-source-type="<?= escape($initialSourceType) ?>"
+    data-imp-config-page-base-url="<?= escape($configPageBaseUrl) ?>"
+    data-imp-active-account-id="<?= $selectedAccountId ?>" data-imp-active-card-id="<?= $selectedCardId ?>"
+    data-imp-import-target="<?= escape($importTarget) ?>" data-imp-source-type="<?= escape($initialSourceType) ?>"
     data-imp-confirm-async-default="<?= $confirmAsyncDefault ? '1' : '0' ?>">
-    <header id="impHeroSection"
-        class="imp-page-hero imp-page-hero--compact imp-surface surface-card surface-card--interactive surface-card--clip">
-        <div class="imp-page-hero__content">
-            <p class="imp-page-hero__eyebrow">Importações</p>
-            <h1 class="imp-page-hero__title">
-                Importar arquivo com preview real antes da confirmação
-            </h1>
-            <p class="imp-page-hero__lead">
-                Fluxo direto: escolha o contexto, envie OFX ou CSV e confirme só depois da revisão.
-            </p>
-            <div class="imp-hero-stepper" aria-label="Etapas do fluxo">
-                <article class="imp-hero-step" data-imp-flow-step="setup" data-state="active">
-                    <span class="imp-hero-step__index">1</span>
-                    <div class="imp-hero-step__body">
-                        <strong class="imp-hero-step__title">Contexto</strong>
-                        <span class="imp-hero-step__copy" data-imp-flow-step-copy="setup">
-                            Escolha alvo, conta ou cartão e formato.
-                        </span>
-                    </div>
-                </article>
-                <article class="imp-hero-step" data-imp-flow-step="file" data-state="idle">
-                    <span class="imp-hero-step__index">2</span>
-                    <div class="imp-hero-step__body">
-                        <strong class="imp-hero-step__title">Arquivo</strong>
-                        <span class="imp-hero-step__copy" data-imp-flow-step-copy="file">
-                            Envie o OFX ou CSV para montar o preview.
-                        </span>
-                    </div>
-                </article>
-                <article class="imp-hero-step" data-imp-flow-step="preview" data-state="idle">
-                    <span class="imp-hero-step__index">3</span>
-                    <div class="imp-hero-step__body">
-                        <strong class="imp-hero-step__title">Revisão e confirmação</strong>
-                        <span class="imp-hero-step__copy" data-imp-flow-step-copy="preview">
-                            O preview aparece abaixo para validar antes de persistir.
-                        </span>
-                    </div>
-                </article>
-            </div>
-        </div>
-
-        <aside class="imp-page-hero__aside imp-page-hero__aside--compact">
-            <div class="imp-hero-snapshot surface-card">
-                <span class="imp-hero-snapshot__eyebrow">Agora</span>
-                <div class="imp-hero-snapshot__grid">
-                    <div class="imp-hero-snapshot__item">
-                        <span>Contexto</span>
-                        <strong data-imp-hero-context-label><?= escape($activeContextLabel) ?></strong>
-                    </div>
-                    <div class="imp-hero-snapshot__item">
-                        <span>Formato</span>
-                        <strong data-imp-hero-source-label><?= strtoupper(escape((string) $initialSourceType)) ?></strong>
-                    </div>
-                    <div class="imp-hero-snapshot__item">
-                        <span>Lotes recentes</span>
-                        <strong data-imp-hero-batch-count><?= $heroBatchCount ?></strong>
-                    </div>
-                    <div class="imp-hero-snapshot__item">
-                        <span>Pendentes</span>
-                        <strong data-imp-hero-pending-count><?= $heroPendingCount ?></strong>
-                    </div>
-                </div>
-                <div class="imp-page-hero__actions">
-                    <a class="btn btn-secondary" href="<?= escape($configUrl) ?>" data-imp-config-link>Perfil CSV</a>
-                    <a class="btn btn-ghost" href="<?= BASE_URL ?>importacoes/historico">Histórico</a>
-                </div>
-            </div>
-        </aside>
-    </header>
-
-    <div class="imp-index-layout">
+    <div class="imp-index-layout <?= $hasInitialContextOptions ? '' : 'imp-index-layout--single-column' ?>">
         <div class="imp-index-main">
             <article class="imp-flow-card imp-surface surface-card surface-card--interactive" id="impFlowSection">
                 <header class="imp-card-head imp-card-head--split">
                     <div>
-                        <p class="imp-card-eyebrow">Preparar importação</p>
-                        <h2 class="imp-card-title">Escolha o contexto e monte o preview</h2>
-                        <p class="imp-card-text">
-                            Defina o contexto e o formato para liberar o preview sem retrabalho.
+                        <p class="imp-card-eyebrow" data-imp-flow-eyebrow>
+                            <?= $hasInitialContextOptions ? 'Passo 1' : 'Antes de importar' ?>
+                        </p>
+                        <h2 class="imp-card-title" data-imp-flow-title>
+                            <?= $hasInitialContextOptions ? 'Envie seu arquivo' : ($importTarget === 'cartao' ? 'Cadastre um cartão' : 'Crie sua primeira conta') ?>
+                        </h2>
+                        <p class="imp-card-text" data-imp-flow-copy>
+                            <?= $hasInitialContextOptions ? 'Escolha o contexto, o formato e o arquivo.' : ($importTarget === 'cartao' ? 'Depois você envia a fatura.' : 'Depois você envia o arquivo.') ?>
                         </p>
                     </div>
-                    <span class="imp-status-badge" data-status="idle">Etapa 1 de 3</span>
+                    <div class="imp-flow-actions">
+                        <span class="imp-status-badge" data-status="idle" data-imp-flow-badge>
+                            <?= $hasInitialContextOptions ? 'Preparar' : 'Contexto' ?>
+                        </span>
+                        <button class="btn btn-primary imp-flow-submit-compact" type="submit" form="imp-upload-form"
+                            data-imp-compact-submit hidden>
+                            Preparar preview
+                        </button>
+                        <button class="btn btn-ghost imp-flow-edit" type="button" data-imp-edit-setup hidden>
+                            Alterar
+                        </button>
+                    </div>
                 </header>
 
                 <form class="imp-flow-form" id="imp-upload-form" novalidate>
@@ -252,13 +198,15 @@ $guidePathTitle = $initialSourceType === 'csv'
                         </fieldset>
 
                         <div class="imp-flow-grid">
-                            <div class="imp-field" data-imp-account-field <?= $importTarget === 'cartao' ? 'hidden' : '' ?>>
-                                <label class="imp-field__label" for="imp-account-select">Conta vinculada</label>
-                                <p class="imp-inline-warning" data-imp-account-warning <?= $accounts !== [] ? 'hidden' : '' ?>>
+                            <div class="imp-field" data-imp-account-field
+                                <?= $importTarget === 'cartao' || $accounts === [] ? 'hidden' : '' ?>>
+                                <label class="imp-field__label" for="imp-account-select">Conta</label>
+                                <p class="imp-inline-warning" data-imp-account-warning
+                                    <?= $accounts !== [] ? 'hidden' : '' ?>>
                                     Nenhuma conta ativa encontrada. Configure uma conta para liberar o preview.
                                 </p>
                                 <a class="imp-link" href="<?= BASE_URL ?>contas" data-imp-account-link
-                                    <?= $accounts !== [] ? 'hidden' : '' ?>>Abrir contas</a>
+                                    <?= $accounts !== [] ? 'hidden' : '' ?>>Criar contas +</a>
                                 <select id="imp-account-select" class="imp-field__control" name="conta_id"
                                     data-imp-account-select-main <?= $accounts === [] ? 'hidden' : '' ?>>
                                     <?php foreach ($accounts as $account) : ?>
@@ -271,10 +219,13 @@ $guidePathTitle = $initialSourceType === 'csv'
                                 </select>
                             </div>
 
-                            <div class="imp-field" data-imp-card-field <?= $importTarget === 'conta' ? 'hidden' : '' ?>>
-                                <label class="imp-field__label" for="imp-card-select">Cartão vinculado</label>
-                                <p class="imp-inline-warning" data-imp-card-warning <?= $cards !== [] ? 'hidden' : '' ?>>
-                                    Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar a fatura.
+                            <div class="imp-field" data-imp-card-field
+                                <?= $importTarget === 'conta' || $cards === [] ? 'hidden' : '' ?>>
+                                <label class="imp-field__label" for="imp-card-select">Cartão</label>
+                                <p class="imp-inline-warning" data-imp-card-warning
+                                    <?= $cards !== [] ? 'hidden' : '' ?>>
+                                    Nenhum cartão ativo encontrado. Cadastre ou restaure um cartão para importar a
+                                    fatura.
                                 </p>
                                 <a class="imp-link" href="<?= BASE_URL ?>cartoes" data-imp-card-link
                                     <?= $cards !== [] ? 'hidden' : '' ?>>Abrir cartões</a>
@@ -291,7 +242,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                                 </select>
                             </div>
 
-                            <fieldset class="imp-format-switch" aria-label="Formato da importação">
+                            <fieldset class="imp-format-switch" aria-label="Formato da importação" data-imp-format-field
+                                <?= $hasInitialContextOptions ? '' : 'hidden' ?>>
                                 <legend class="imp-field__label">Formato</legend>
                                 <?php foreach ($supportedFormats as $format) : ?>
                                     <?php
@@ -313,14 +265,30 @@ $guidePathTitle = $initialSourceType === 'csv'
                         </div>
                     </div>
 
-                    <div class="imp-flow-workspace">
+                    <section class="imp-flow-blocker surface-card" data-imp-context-blocker
+                        <?= $hasInitialContextOptions ? 'hidden' : '' ?>>
+                        <p class="imp-card-eyebrow">Antes de importar</p>
+                        <h3 class="imp-card-title" data-imp-context-blocker-title>
+                            <?= $importTarget === 'cartao' ? 'Cadastre um cartão' : 'Crie sua primeira conta' ?>
+                        </h3>
+                        <p class="imp-card-text" data-imp-context-blocker-copy>
+                            <?= $importTarget === 'cartao' ? 'Depois você envia a fatura.' : 'Depois você envia o arquivo.' ?>
+                        </p>
+                        <a class="btn btn-primary"
+                            href="<?= BASE_URL . ($importTarget === 'cartao' ? 'cartoes' : 'contas') ?>"
+                            data-imp-context-blocker-link>
+                            <?= $importTarget === 'cartao' ? 'Criar cartões +' : 'Criar contas +' ?>
+                        </a>
+                    </section>
+
+                    <div class="imp-flow-workspace" <?= $hasInitialContextOptions ? '' : 'hidden' ?>>
                         <section class="imp-upload-stage surface-card">
                             <header class="imp-upload-stage__head">
                                 <div>
-                                    <p class="imp-card-eyebrow">Etapa 1</p>
-                                    <h3 class="imp-card-title">Envie o arquivo que será validado</h3>
+                                    <p class="imp-card-eyebrow">Arquivo</p>
+                                    <h3 class="imp-card-title">Selecione o arquivo</h3>
                                     <p class="imp-card-text">
-                                        O preview lê o arquivo agora, mas só persiste dados depois da confirmação final.
+                                        OFX ou CSV.
                                     </p>
                                 </div>
                                 <span class="imp-status-badge" data-status="idle" data-imp-file-stage-badge>
@@ -336,8 +304,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                                     <span class="imp-file-drop__icon" aria-hidden="true">
                                         <i data-lucide="upload-cloud"></i>
                                     </span>
-                                    <span class="imp-file-drop__title">Arraste ou selecione o arquivo OFX ou CSV</span>
-                                    <span class="imp-file-drop__hint">Nada é persistido até você revisar o preview e confirmar.</span>
+                                    <span class="imp-file-drop__title">Arraste ou selecione o arquivo</span>
+                                    <span class="imp-file-drop__hint">OFX ou CSV</span>
                                 </label>
                                 <p class="imp-file-selected" data-imp-selected-file>Nenhum arquivo selecionado.</p>
                                 <p class="imp-file-note" data-imp-file-note hidden></p>
@@ -349,67 +317,25 @@ $guidePathTitle = $initialSourceType === 'csv'
                                     Preparar preview
                                 </button>
                                 <p class="imp-flow-status" data-imp-preview-state>
-                                    Selecione alvo, formato e arquivo para montar o preview.
+                                    Escolha o contexto e envie o arquivo.
                                 </p>
-                            </div>
-                        </section>
-
-                        <aside class="imp-flow-support" aria-label="Apoio ao preparo do arquivo">
-                            <section class="imp-guide-strip" aria-label="Guia rápido do fluxo">
-                                <article class="imp-guide-card surface-card" data-state="info" data-imp-guide-path-card>
-                                    <span class="imp-guide-card__eyebrow">Caminho recomendado</span>
-                                    <strong class="imp-guide-card__title" data-imp-guide-path-title>
-                                        <?= escape($guidePathTitle) ?>
-                                    </strong>
-                                    <p class="imp-guide-card__copy" data-imp-guide-path-copy>
-                                        <?= $advancedDescription ?>
-                                    </p>
-                                </article>
-
-                                <article class="imp-guide-card surface-card" data-state="ready" data-imp-guide-context-card>
-                                    <span class="imp-guide-card__eyebrow">Contexto ativo</span>
-                                    <strong class="imp-guide-card__title" data-imp-guide-context-title>
-                                        <?= escape($activeContextLabel) ?>
-                                    </strong>
-                                    <p class="imp-guide-card__copy" data-imp-guide-context-copy>
-                                        <?= escape($advancedContextNote) ?>
-                                    </p>
-                                </article>
-
-                                <article class="imp-guide-card surface-card" data-state="info" data-imp-guide-readiness-card>
-                                    <span class="imp-guide-card__eyebrow">Antes do preview</span>
-                                    <strong class="imp-guide-card__title" data-imp-guide-readiness-title>
-                                        Falta só o arquivo
-                                    </strong>
-                                    <p class="imp-guide-card__copy" data-imp-guide-readiness-copy>
-                                        Selecione o arquivo certo para liberar o preview sem retrabalho.
-                                    </p>
-                                </article>
-                            </section>
-
-                            <div class="imp-flow-support__foot">
                                 <p class="imp-inline-warning imp-inline-warning--quota" data-imp-quota-warning
                                     <?= (bool) ($importQuota['allowed'] ?? true) ? 'hidden' : '' ?>>
                                     <?= escape((string) ($importQuota['message'] ?? 'Limite de importação atingido para o plano atual.')) ?>
                                     <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
                                 </p>
-                                <p class="imp-muted imp-target-source-hint imp-target-source-hint--card" data-imp-target-source-hint
-                                    <?= $importTarget === 'cartao' ? '' : 'hidden' ?>>
-                                    Cartão/fatura aceita OFX e CSV. Sem coluna de tipo, valor positivo vira despesa e negativo vira estorno.
-                                </p>
                             </div>
-                        </aside>
+                        </section>
                     </div>
 
-                    <details class="imp-advanced-panel surface-card" data-imp-advanced-panel
-                        <?= $initialSourceType === 'csv' ? 'open' : '' ?>>
+                    <details class="imp-advanced-panel surface-card" data-imp-advanced-panel>
                         <summary class="imp-advanced-panel__summary">
                             <div class="imp-advanced-panel__summary-head">
                                 <div>
                                     <p class="imp-card-eyebrow">Opcional</p>
-                                    <h3 class="imp-card-title">Suporte para CSV e ajuste fino</h3>
+                                    <h3 class="imp-card-title">CSV avançado</h3>
                                     <p class="imp-card-text" data-imp-advanced-summary-copy>
-                                        Abra só se precisar de modelo CSV ou ajuste fino.
+                                        Abra só se precisar.
                                     </p>
                                 </div>
                                 <div class="imp-advanced-panel__summary-meta">
@@ -443,12 +369,12 @@ $guidePathTitle = $initialSourceType === 'csv'
                                 </div>
 
                                 <div class="imp-advanced-actions">
-                                    <a class="btn btn-ghost" href="#"
-                                        data-imp-advanced-template-auto data-no-transition="true" download>
+                                    <a class="btn btn-ghost" href="#" data-imp-advanced-template-auto
+                                        data-no-transition="true" download>
                                         <?= $importTarget === 'cartao' ? 'Baixar modelo rápido de fatura' : 'Baixar modelo rápido de conta' ?>
                                     </a>
-                                    <a class="btn btn-ghost" href="#"
-                                        data-imp-advanced-template-manual data-no-transition="true" download>
+                                    <a class="btn btn-ghost" href="#" data-imp-advanced-template-manual
+                                        data-no-transition="true" download>
                                         <?= $importTarget === 'cartao' ? 'Baixar modelo completo de fatura' : 'Baixar modelo completo de conta' ?>
                                     </a>
                                     <a class="btn btn-secondary" href="<?= escape($configUrl) ?>" data-imp-config-link>
@@ -513,13 +439,13 @@ $guidePathTitle = $initialSourceType === 'csv'
             </article>
 
             <article class="imp-preview-card imp-surface surface-card surface-card--interactive" id="impPreviewSection"
-                data-imp-preview-region>
+                data-imp-preview-region hidden>
                 <header class="imp-card-head imp-card-head--split">
                     <div>
-                        <p class="imp-card-eyebrow">Revisão final</p>
-                        <h2 class="imp-card-title">Preview e confirmação</h2>
+                        <p class="imp-card-eyebrow">Passo 2</p>
+                        <h2 class="imp-card-title">Revise</h2>
                         <p class="imp-card-text">
-                            Valide o preview antes de persistir os dados.
+                            Confira antes de confirmar.
                         </p>
                     </div>
                     <span class="imp-status-badge" data-status="idle" data-imp-preview-badge>Aguardando arquivo</span>
@@ -528,7 +454,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                 <div class="imp-preview-overview" data-imp-preview-overview>
                     <article class="imp-preview-readiness surface-card" data-imp-preview-readiness-card>
                         <div class="imp-preview-readiness__head">
-                            <span class="imp-preview-readiness__eyebrow">Pronto para confirmar?</span>
+                            <span class="imp-preview-readiness__eyebrow">Status</span>
                             <span class="imp-status-badge" data-status="idle" data-imp-preview-readiness-badge>
                                 Aguardando preview
                             </span>
@@ -540,16 +466,20 @@ $guidePathTitle = $initialSourceType === 'csv'
                             O preview vai dizer se o lote já pode ser confirmado ou se ainda precisa de revisão.
                         </p>
                         <div class="imp-preview-readiness__chips" aria-label="Resumo rápido do preview">
-                            <span class="imp-preview-chip" data-tone="neutral" data-imp-preview-warning-chip>0 avisos</span>
-                            <span class="imp-preview-chip" data-tone="neutral" data-imp-preview-error-chip>0 erros</span>
-                            <span class="imp-preview-chip" data-tone="neutral" data-imp-preview-pending-chip>0 sem categoria</span>
+                            <span class="imp-preview-chip" data-tone="neutral" data-imp-preview-warning-chip>0
+                                avisos</span>
+                            <span class="imp-preview-chip" data-tone="neutral" data-imp-preview-error-chip>0
+                                erros</span>
+                            <span class="imp-preview-chip" data-tone="neutral" data-imp-preview-pending-chip>0 sem
+                                categoria</span>
                         </div>
                     </article>
 
                     <dl class="imp-preview-summary">
                         <div class="surface-card">
                             <dt>Alvo</dt>
-                            <dd data-imp-preview-target><?= escape($historyTargetLabelMap[$importTarget] ?? 'Conta') ?></dd>
+                            <dd data-imp-preview-target><?= escape($historyTargetLabelMap[$importTarget] ?? 'Conta') ?>
+                            </dd>
                         </div>
                         <div class="surface-card">
                             <dt>Contexto ativo</dt>
@@ -585,9 +515,10 @@ $guidePathTitle = $initialSourceType === 'csv'
                     <span class="imp-preview-empty__icon" aria-hidden="true">
                         <i data-lucide="scan-search"></i>
                     </span>
-                    <strong class="imp-preview-empty__title" data-imp-preview-empty-title>Envie um arquivo para abrir a revisão</strong>
+                    <strong class="imp-preview-empty__title" data-imp-preview-empty-title>Envie um arquivo para
+                        revisar</strong>
                     <p class="imp-preview-empty__copy" data-imp-preview-empty-copy>
-                        Escolha o contexto e envie OFX ou CSV para montar o preview.
+                        O preview aparece aqui.
                     </p>
                 </div>
 
@@ -597,8 +528,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                             Categorizar linhas
                         </button>
                         <p class="imp-muted" data-imp-categorize-helper>
-                            Opcional: aplica sugestões automáticas por regra do usuário e regra global sem bloquear a
-                            confirmação.
+                            Opcional.
                         </p>
                     </div>
                     <div class="imp-preview-tools__secondary">
@@ -639,28 +569,28 @@ $guidePathTitle = $initialSourceType === 'csv'
 
                 <div class="imp-confirm-strip surface-card" data-imp-confirm-strip>
                     <div class="imp-confirm-strip__head">
-                        <span class="imp-confirm-strip__eyebrow">Checklist de confirmação</span>
+                        <span class="imp-confirm-strip__eyebrow">Antes de confirmar</span>
                         <strong class="imp-confirm-strip__title" data-imp-confirm-title>
-                            Revise o lote antes de confirmar
+                            Confira o lote
                         </strong>
                     </div>
                     <div class="imp-confirm-strip__grid">
                         <article class="imp-confirm-check" data-state="idle" data-imp-confirm-check="context">
-                            <strong class="imp-confirm-check__title">Contexto e arquivo</strong>
+                            <strong class="imp-confirm-check__title">Contexto</strong>
                             <span class="imp-confirm-check__copy" data-imp-confirm-copy="context">
-                                Selecione o contexto e envie um arquivo válido.
+                                Escolha o destino e o arquivo.
                             </span>
                         </article>
                         <article class="imp-confirm-check" data-state="idle" data-imp-confirm-check="review">
-                            <strong class="imp-confirm-check__title">Leitura e revisão</strong>
+                            <strong class="imp-confirm-check__title">Revisão</strong>
                             <span class="imp-confirm-check__copy" data-imp-confirm-copy="review">
-                                O preview mostrará linhas, avisos e eventuais ajustes necessários.
+                                Veja se está tudo certo.
                             </span>
                         </article>
                         <article class="imp-confirm-check" data-state="idle" data-imp-confirm-check="confirm">
                             <strong class="imp-confirm-check__title">Confirmação</strong>
                             <span class="imp-confirm-check__copy" data-imp-confirm-copy="confirm">
-                                A confirmação só será liberada quando o lote estiver pronto.
+                                Confirme quando liberar.
                             </span>
                         </article>
                     </div>
@@ -668,9 +598,9 @@ $guidePathTitle = $initialSourceType === 'csv'
 
                 <footer class="imp-preview-card__footer" data-imp-preview-footer>
                     <div class="imp-preview-card__next">
-                        <span class="imp-preview-card__next-eyebrow">Próximo passo</span>
+                        <span class="imp-preview-card__next-eyebrow">Agora</span>
                         <p class="imp-muted" data-imp-preview-next-step>
-                            Revise o preview e confirme para persistir os dados no sistema.
+                            Revise e confirme.
                         </p>
                     </div>
                     <button class="btn btn-primary" type="button" data-imp-confirm disabled>
@@ -680,18 +610,19 @@ $guidePathTitle = $initialSourceType === 'csv'
             </article>
         </div>
 
-        <aside class="imp-index-side" id="impIndexSideSection">
+        <aside class="imp-index-side" id="impIndexSideSection" data-imp-side-panel
+            <?= $hasInitialContextOptions ? '' : 'hidden' ?>>
             <article class="imp-side-card imp-side-card--support imp-surface surface-card surface-card--interactive">
                 <header class="imp-card-head imp-card-head--split">
                     <div>
-                        <p class="imp-card-eyebrow">Painel de apoio</p>
-                        <h3 class="imp-card-title">Plano e perfil ativo</h3>
+                        <p class="imp-card-eyebrow">Resumo</p>
+                        <h3 class="imp-card-title">Apoio</h3>
                     </div>
                     <span class="imp-status-badge" data-status="preview_ready">Apoio</span>
                 </header>
                 <section class="imp-side-section">
                     <div class="imp-side-section__head">
-                        <span class="imp-side-section__title">Plano e quota</span>
+                        <span class="imp-side-section__title">Plano</span>
                         <span class="imp-status-badge" data-imp-plan-badge
                             data-status="<?= $currentPlan === 'free' ? 'idle' : 'preview_ready' ?>">
                             <?= strtoupper(escape($currentPlan)) ?>
@@ -706,7 +637,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                                     <?php $bucket = is_array($importLimitBuckets[$bucketKey] ?? null) ? $importLimitBuckets[$bucketKey] : []; ?>
                                     <?php $bucketRemaining = $bucket['remaining'] ?? null; ?>
                                     <dt><?= escape($bucketLabel) ?></dt>
-                                    <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?></dd>
+                                    <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?>
+                                    </dd>
                                 <?php endforeach; ?>
                             </dl>
                             <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
@@ -716,17 +648,17 @@ $guidePathTitle = $initialSourceType === 'csv'
 
                 <section class="imp-side-section">
                     <div class="imp-side-section__head">
-                        <span class="imp-side-section__title">Perfil CSV ativo</span>
+                        <span class="imp-side-section__title">Perfil CSV</span>
                         <span class="imp-status-badge" data-status="preview_ready"
                             data-imp-profile-badge><?= escape($profileCardBadgeLabel) ?></span>
                     </div>
                     <dl class="imp-definition-list imp-definition-list--stack imp-side-definition-list">
                         <div>
-                            <dt>Conta base</dt>
+                            <dt>Conta</dt>
                             <dd data-imp-profile-account-name><?= escape($activeAccountLabel) ?></dd>
                         </div>
                         <div>
-                            <dt>Origem padrão</dt>
+                            <dt>Formato</dt>
                             <dd data-imp-profile-source-type>
                                 <?= strtoupper(escape((string) ($profileConfig['source_type'] ?? 'ofx'))) ?></dd>
                         </div>
@@ -762,7 +694,8 @@ $guidePathTitle = $initialSourceType === 'csv'
                         <p class="imp-card-eyebrow">Últimos lotes</p>
                         <h3 class="imp-card-title">Histórico</h3>
                     </div>
-                    <span class="imp-status-badge" data-status="processed" data-imp-history-badge><?= $heroProcessedCount ?> processados</span>
+                    <span class="imp-status-badge" data-status="processed"
+                        data-imp-history-badge><?= $heroProcessedCount ?> processados</span>
                 </header>
                 <div data-imp-history-content>
                     <?php if ($latestHistoryItems !== []) : ?>
@@ -785,7 +718,7 @@ $guidePathTitle = $initialSourceType === 'csv'
                         </ul>
                     <?php else : ?>
                         <p class="imp-card-text">
-                            Sem lotes confirmados ainda. O primeiro aparece aqui.
+                            Ainda não há lotes.
                         </p>
                     <?php endif; ?>
                 </div>

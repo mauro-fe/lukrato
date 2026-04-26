@@ -4,11 +4,6 @@
 
 <section class="lan-page">
     <div class="lan-stage lan-stage--overview">
-        <div class="lan-overview-top">
-            <?php include __DIR__ . '/sections/hero.php'; ?>
-            <?php include __DIR__ . '/sections/summary-strip.php'; ?>
-        </div>
-
         <div class="lan-overview-bottom">
             <?php include __DIR__ . '/sections/filters.php'; ?>
             <?php include __DIR__ . '/sections/export-card.php'; ?>

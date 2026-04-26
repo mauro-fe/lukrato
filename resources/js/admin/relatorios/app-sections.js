@@ -8,7 +8,6 @@
 
 import { CONFIG, Utils, escapeHtml } from './state.js';
 import {
-    updateTrendBadge,
     renderCategoryComparison,
     renderEvolucao,
     renderEvolucaoChart,
@@ -73,25 +72,6 @@ function destroyOverviewCharts() {
         }
     });
     overviewCharts = [];
-}
-
-function renderOverviewPulse(pulseEl, stats) {
-    if (!pulseEl) return;
-
-    const saldo = stats.saldo || 0;
-    const saldoColor = saldo >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
-    const saldoStatus = saldo >= 0 ? 'positivo' : 'negativo';
-    let pulseHTML = `
-        <p class="pulse-text">
-            Neste mês você recebeu <strong>${formatCurrency(stats.totalReceitas)}</strong>
-            e gastou <strong>${formatCurrency(stats.totalDespesas)}</strong>.
-            Seu saldo é <strong style="color:${saldoColor}">${saldoStatus} em ${formatCurrency(Math.abs(saldo))}</strong>.
-    `;
-    if (stats.totalCartoes > 0) {
-        pulseHTML += ` Faturas de cartões somam <strong>${formatCurrency(stats.totalCartoes)}</strong>.`;
-    }
-    pulseHTML += '</p>';
-    pulseEl.innerHTML = pulseHTML;
 }
 
 function renderOverviewInsights(insightsEl, insightsData) {
@@ -211,21 +191,18 @@ function renderOverviewComparisonChart(compChartEl, comparisonData) {
 
 export function createSectionHandlers({ API }) {
     async function updateOverviewSection() {
-        const pulseEl = document.getElementById('overviewPulse');
         const insightsEl = document.getElementById('overviewInsights');
         const catChartEl = document.getElementById('overviewCategoryChart');
         const compChartEl = document.getElementById('overviewComparisonChart');
 
         destroyOverviewCharts();
 
-        const [stats, insightsData, categoryData, comparisonData] = await Promise.all([
-            API.fetchSummaryStats(),
+        const [insightsData, categoryData, comparisonData] = await Promise.all([
             API.fetchInsightsTeaser(),
             API.fetchReportDataForType('despesas_por_categoria', { accountId: null }),
             API.fetchReportDataForType('receitas_despesas_diario', { accountId: null }),
         ]);
 
-        renderOverviewPulse(pulseEl, stats);
         renderOverviewInsights(insightsEl, insightsData);
         renderOverviewCategoryChart(catChartEl, categoryData);
         renderOverviewComparisonChart(compChartEl, comparisonData);
@@ -335,33 +312,6 @@ export function createSectionHandlers({ API }) {
     }
 
     async function updateSummaryCards() {
-        const stats = await API.fetchSummaryStats();
-
-        const totalReceitasEl = document.getElementById('totalReceitas');
-        const totalDespesasEl = document.getElementById('totalDespesas');
-        const saldoMesEl = document.getElementById('saldoMes');
-        const totalCartoesEl = document.getElementById('totalCartoes');
-
-        if (totalReceitasEl) {
-            totalReceitasEl.textContent = formatCurrency(stats.totalReceitas || 0);
-        }
-        if (totalDespesasEl) {
-            totalDespesasEl.textContent = formatCurrency(stats.totalDespesas || 0);
-        }
-        if (saldoMesEl) {
-            const saldo = stats.saldo || 0;
-            saldoMesEl.textContent = formatCurrency(saldo);
-            saldoMesEl.style.color = saldo >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
-        }
-        if (totalCartoesEl) {
-            totalCartoesEl.textContent = formatCurrency(stats.totalCartoes || 0);
-        }
-
-        updateTrendBadge('trendReceitas', stats.totalReceitas, stats.prevReceitas, false);
-        updateTrendBadge('trendDespesas', stats.totalDespesas, stats.prevDespesas, true);
-        updateTrendBadge('trendSaldo', stats.saldo, stats.prevSaldo, false);
-        updateTrendBadge('trendCartoes', stats.totalCartoes, stats.prevCartoes, true);
-
         const overviewPanel = document.getElementById('section-overview');
         if (overviewPanel && overviewPanel.classList.contains('active')) {
             await updateOverviewSection();

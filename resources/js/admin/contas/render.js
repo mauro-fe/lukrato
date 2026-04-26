@@ -2,7 +2,7 @@
  * ============================================================================
  * LUKRATO - Contas / Render
  * ============================================================================
- * Rendering helpers: portfolio summary, distribution, account cards and states.
+ * Rendering helpers: portfolio summary, account cards and states.
  * ============================================================================
  */
 
@@ -118,29 +118,6 @@ function calculatePortfolio(contas = STATE.contas) {
         .slice()
         .sort((a, b) => b.saldoAtualNormalizado - a.saldoAtualNormalizado)[0] || null;
 
-    const distribution = Object.values(normalized.reduce((acc, conta) => {
-        if (conta.positiveBalance <= 0) return acc;
-
-        const key = conta.tipoContaNormalizado;
-        if (!acc[key]) {
-            acc[key] = {
-                tipo: key,
-                label: conta.typeMeta.label,
-                icon: conta.typeMeta.icon,
-                color: conta.typeMeta.color,
-                total: 0,
-                count: 0,
-            };
-        }
-
-        acc[key].total += conta.positiveBalance;
-        acc[key].count += 1;
-        return acc;
-    }, {})).map((item) => ({
-        ...item,
-        percent: positiveAllocationTotal > 0 ? (item.total / positiveAllocationTotal) * 100 : 0,
-    })).sort((a, b) => b.total - a.total);
-
     const primaryShare = primaryAccount && positiveAllocationTotal > 0 && primaryAccount.positiveBalance > 0
         ? (primaryAccount.positiveBalance / positiveAllocationTotal) * 100
         : 0;
@@ -148,8 +125,6 @@ function calculatePortfolio(contas = STATE.contas) {
     const reserveShare = positiveAllocationTotal > 0
         ? (reserveBalance / positiveAllocationTotal) * 100
         : 0;
-
-    const topType = distribution[0] || null;
 
     return {
         contas: normalized,
@@ -160,8 +135,6 @@ function calculatePortfolio(contas = STATE.contas) {
         reserveShare,
         primaryAccount,
         primaryShare,
-        distribution,
-        topType,
     };
 }
 
@@ -177,51 +150,49 @@ function buildInsight(portfolio) {
 
     if (totalAccounts === 0) {
         return {
-            title: 'Seu dinheiro aparece aqui assim que a primeira conta for criada.',
-            description: 'Cadastre uma conta para ver onde o saldo esta concentrado e quanto você ja separou em reserva.',
+            title: 'Crie sua primeira conta',
+            description: '',
         };
     }
 
     if (totalBalance <= 0) {
         return {
-            title: 'Seu saldo total merece atencao.',
-            description: 'Hoje o valor consolidado nao esta positivo. Vale revisar as contas com saldo menor e reforcar sua reserva.',
+            title: 'Revise saldos negativos',
+            description: '',
         };
     }
 
     if (!primaryAccount) {
         return {
-            title: 'Seu dinheiro total ja esta consolidado.',
-            description: 'Assim que houver saldo positivo, mostramos qual conta concentra a maior parte dele.',
+            title: 'Saldo consolidado',
+            description: '',
         };
     }
 
     if (primaryShare >= 70 && totalAccounts > 1) {
         return {
-            title: `Sua maior parte do dinheiro esta em ${primaryAccount.nome}.`,
-            description: reserveBalance > 0
-                ? 'Existe concentração em uma única conta. Considere distribuir melhor para reduzir dependência.'
-                : 'Existe concentração em uma única conta e ainda não há reserva separada. Vale distribuir melhor.',
+            title: `${formatPercent(primaryShare)} em ${primaryAccount.nome}`,
+            description: '',
         };
     }
 
     if (reserveBalance <= 0) {
         return {
-            title: `Sua maior parte do dinheiro está em ${primaryAccount.nome}.`,
-            description: 'Quase todo o saldo está em contas de uso diário. Considere separar parte do valor em reserva.',
+            title: `Principal: ${primaryAccount.nome}`,
+            description: '',
         };
     }
 
     if (reserveShare >= 35) {
         return {
-            title: `${Utils.formatCurrency(reserveBalance)} já estão guardados.`,
-            description: `A reserva representa ${formatPercent(reserveShare)} do seu dinheiro total e melhora sua segurança financeira.`,
+            title: `${Utils.formatCurrency(reserveBalance)} em reserva`,
+            description: '',
         };
     }
 
     return {
-        title: `Sua maior parte do dinheiro está em ${primaryAccount.nome}.`,
-        description: `${formatPercent(primaryShare)} do valor positivo está nessa conta. Sua distribuição está equilibrada, mas ainda pode ficar melhor.`,
+        title: `Principal: ${primaryAccount.nome}`,
+        description: '',
     };
 }
 
@@ -365,55 +336,6 @@ export const ContasRender = {
                 </button>
             </div>
         `;
-    },
-
-    renderDistribution(portfolio) {
-        const listEl = document.getElementById('contasDistributionList');
-        const summaryEl = document.getElementById('contasDistributionSummary');
-
-        if (!listEl || !summaryEl) return;
-
-        if (!portfolio.distribution.length) {
-            summaryEl.textContent = 'Quando houver saldo positivo, mostramos aqui a leitura por tipo de conta.';
-            listEl.innerHTML = `
-                <div class="contas-distribution-empty">
-                    <i data-lucide="wallet"></i>
-                    <span>A distribuição por tipo volta a aparecer assim que houver saldo positivo.</span>
-                </div>
-            `;
-            refreshIcons();
-            return;
-        }
-
-        const topType = portfolio.distribution[0];
-        summaryEl.textContent = portfolio.distribution.length === 1
-            ? `${topType.label} responde por ${formatPercent(topType.percent)} do saldo positivo hoje.`
-            : `${topType.label} lidera a composição hoje, com ${formatPercent(topType.percent)} do saldo positivo.`;
-
-        listEl.innerHTML = portfolio.distribution.map((item) => `
-            <article class="contas-distribution-item" style="--distribution-color:${item.color};">
-                <div class="contas-distribution-item-head">
-                    <div class="contas-distribution-item-label">
-                        <span class="contas-distribution-item-icon">
-                            <i data-lucide="${item.icon}"></i>
-                        </span>
-                        <div>
-                            <strong>${escapeHtml(item.label)}</strong>
-                            <span>${pluralizeContas(item.count)} neste tipo</span>
-                        </div>
-                    </div>
-                    <div class="contas-distribution-item-values">
-                        <strong>${Utils.formatCurrency(item.total)}</strong>
-                        <span>${formatPercent(item.percent)} do saldo</span>
-                    </div>
-                </div>
-                <div class="contas-distribution-bar">
-                    <span style="width:${Math.max(item.percent, 4)}%;"></span>
-                </div>
-            </article>
-        `).join('');
-
-        refreshIcons();
     },
 
     renderContas() {
@@ -653,7 +575,6 @@ export const ContasRender = {
                 : 'Nenhum valor guardado em reserva';
         }
 
-        ContasRender.renderDistribution(portfolio);
     },
 
     showLoading(show) {

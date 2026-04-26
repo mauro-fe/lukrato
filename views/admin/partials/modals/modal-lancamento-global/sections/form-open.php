@@ -1,4 +1,4 @@
-<!-- Form wrapper (steps 2-5 share one form) -->
+<!-- Form wrapper do fluxo rápido de lançamento -->
 <form id="globalFormLancamento" autocomplete="off">
     <input type="hidden" id="globalLancamentoContaId" name="conta_id">
     <input type="hidden" id="globalLancamentoTipo" name="tipo">

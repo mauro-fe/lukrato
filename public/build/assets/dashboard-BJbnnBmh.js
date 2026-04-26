@@ -410,9 +410,9 @@ ${a}`)}showCelebrationModal(e,t){typeof Swal>"u"||Swal.fire({title:e,text:t,icon
                             <span>Maior saldo em ${f}</span>
                             <strong>${g}</strong>
                         </div>
-                        <a href="${e.BASE_URL}contas" class="dash-widget-link">Abrir contas</a>
+                        <a href="${e.BASE_URL}contas" class="dash-widget-link">Criar contas +</a>
                     </div>
-                `}catch(c){i("Erro ao carregar widget de contas",c,"Falha ao carregar contas"),n.renderEmpty(s,"Não foi possível carregar suas contas agora.",`${e.BASE_URL}contas`,"Abrir contas")}}},renderOrcamentos:async o=>{const s=n.getContainer("sectionOrcamentos","sectionOrcamentosBody");if(s){n.renderLoading(s);try{const d=(await r.getFinanceSummary(o))?.orcamento??null;if(!d||Number(d.total_categorias||0)===0){n.renderEmpty(s,"Você ainda não definiu limites para categorias.",`${e.BASE_URL}financas#orcamentos`,"Definir limite");return}const m=Math.round(Number(d.percentual_geral||0)),l=n.getUsageColor(m),f=(d.orcamentos||[]).slice().sort((g,h)=>Number(h.percentual||0)-Number(g.percentual||0)).slice(0,3).map(g=>{const h=n.getUsageColor(g.percentual);return`
+                `}catch(c){i("Erro ao carregar widget de contas",c,"Falha ao carregar contas"),n.renderEmpty(s,"Não foi possível carregar suas contas agora.",`${e.BASE_URL}contas`,"Criar contas +")}}},renderOrcamentos:async o=>{const s=n.getContainer("sectionOrcamentos","sectionOrcamentosBody");if(s){n.renderLoading(s);try{const d=(await r.getFinanceSummary(o))?.orcamento??null;if(!d||Number(d.total_categorias||0)===0){n.renderEmpty(s,"Você ainda não definiu limites para categorias.",`${e.BASE_URL}financas#orcamentos`,"Definir limite");return}const m=Math.round(Number(d.percentual_geral||0)),l=n.getUsageColor(m),f=(d.orcamentos||[]).slice().sort((g,h)=>Number(h.percentual||0)-Number(g.percentual||0)).slice(0,3).map(g=>{const h=n.getUsageColor(g.percentual);return`
                         <div class="dash-widget-list-item">
                             <span>${a(g.categoria_nome||"Categoria")}</span>
                             <strong style="color:${h};">${Math.round(g.percentual||0)}%</strong>
@@ -428,7 +428,7 @@ ${a}`)}showCelebrationModal(e,t){typeof Swal>"u"||Swal.fire({title:e,text:t,icon
                         ${f?`<div class="dash-widget-list">${f}</div>`:""}
                         <a href="${e.BASE_URL}financas#orcamentos" class="dash-widget-link">Ver orçamentos</a>
                     </div>
-                `}catch(c){i("Erro ao carregar widget de orçamentos",c,"Falha ao carregar orçamentos"),n.renderEmpty(s,"Não foi possível carregar seus orçamentos.",`${e.BASE_URL}financas#orcamentos`,"Abrir orçamentos")}}},renderFaturas:async()=>{const o=n.getContainer("sectionFaturas","sectionFaturasBody");if(o){n.renderLoading(o);try{const s=await r.getCardsSummary(),c=Number(s?.total_cartoes||0);if(!s||c===0){n.renderEmpty(o,"Você não tem cartões com faturas abertas.",`${e.BASE_URL}faturas`,"Ver faturas");return}const d=Number(s.fatura_aberta??s.limite_utilizado??0),m=Number(s.limite_total||0),l=m>0?Math.round(d/m*100):Number(s.percentual_uso||0),u=n.getUsageColor(l);o.innerHTML=`
+                `}catch(c){i("Erro ao carregar widget de orçamentos",c,"Falha ao carregar orçamentos"),n.renderEmpty(s,"Não foi possível carregar seus orçamentos.",`${e.BASE_URL}financas#orcamentos`,"Abrir orçamentos")}}},renderFaturas:async()=>{const o=n.getContainer("sectionFaturas","sectionFaturasBody");if(o){n.renderLoading(o);try{const s=await r.getCardsSummary(),c=Number(s?.total_cartoes||0);if(!s||c===0){n.renderEmpty(o,"Você não tem cartões com faturas abertas.",`${e.BASE_URL}faturas`,"Criar faturas +");return}const d=Number(s.fatura_aberta??s.limite_utilizado??0),m=Number(s.limite_total||0),l=m>0?Math.round(d/m*100):Number(s.percentual_uso||0),u=n.getUsageColor(l);o.innerHTML=`
                     <div class="dash-widget">
                         <span class="dash-widget-label">Fatura atual</span>
                         <strong class="dash-widget-value">${t.money(d)}</strong>

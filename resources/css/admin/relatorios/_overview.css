@@ -1,10 +1,6 @@
 /* ============================================================================
-   OVERVIEW SECTION — Financial Intelligence Dashboard
+   OVERVIEW SECTION - Financial Intelligence Dashboard
    ============================================================================ */
-
-.overview-pulse-card {
-  padding: var(--spacing-3);
-}
 
 .overview-grid {
   display: flex;
@@ -12,23 +8,11 @@
   gap: var(--spacing-5);
 }
 
-/* Monthly Pulse */
- .card-body {
+.overview-grid .card-body {
   padding: var(--spacing-4) var(--spacing-5);
 }
 
-.pulse-text {
-  font-size: var(--font-size-base);
-  line-height: 1.8;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.pulse-text strong {
-  font-weight: 700;
-}
-
-.overview-insights-card  {
+.overview-insights-card {
   padding: var(--spacing-3);
 }
 

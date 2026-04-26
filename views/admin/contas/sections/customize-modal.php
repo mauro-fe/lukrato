@@ -15,9 +15,8 @@ $customizeModal = [
         [
             'title' => 'Blocos da tela',
             'items' => [
-                ['id' => 'toggleContasHero', 'label' => 'Hero consolidado'],
+                ['id' => 'toggleContasHero', 'label' => 'Visão consolidada'],
                 ['id' => 'toggleContasKpis', 'label' => 'Cards de KPI'],
-                ['id' => 'toggleContasDistribution', 'label' => 'Distribuição de saldo'],
             ],
         ],
     ],

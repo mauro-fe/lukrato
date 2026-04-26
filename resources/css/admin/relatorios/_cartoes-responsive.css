@@ -3,11 +3,6 @@
    ============================================================================ */
 
 @media (max-width: 768px) {
-  .quick-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-3);
-  }
-
   .reports-context-card {
     padding: var(--spacing-4);
   }
@@ -173,18 +168,6 @@
 
   .page-title {
     font-size: var(--font-size-xl);
-  }
-
-  /* Stats cards */
-  .quick-stats-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-3);
-  }
-
-  .stat-card {
-    flex-direction: row;
-    text-align: left;
-    padding: var(--spacing-4);
   }
 
   .stat-icon {
@@ -618,11 +601,6 @@
     font-size: 0.85em;
   }
 
-  /* Stats */
-  .stat-card {
-    padding: var(--spacing-3);
-  }
-
   .stat-icon {
     width: 36px;
     height: 36px;
@@ -739,10 +717,6 @@
     font-size: var(--font-size-sm);
     margin-bottom: var(--spacing-1);
     padding-bottom: var(--spacing-1);
-  }
-
-  .stat-card {
-    padding: var(--spacing-2);
   }
 
   .card-balance,

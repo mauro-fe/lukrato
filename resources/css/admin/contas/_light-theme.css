@@ -2,15 +2,13 @@
 
 [data-theme="light"] .cont-hero,
 [data-theme="light"] .cont-kpi,
-[data-theme="light"] .cont-distribution,
 [data-theme="light"] .cont-list-section {
   border-color: var(--glass-border);
   box-shadow: var(--shadow-lg);
 }
 
 [data-theme="light"] .cont-hero:hover,
-[data-theme="light"] .cont-kpi:hover,
-[data-theme="light"] .cont-distribution:hover {
+[data-theme="light"] .cont-kpi:hover {
   box-shadow: var(--shadow-xl);
 }
 
@@ -33,10 +31,6 @@
 }
 
 [data-theme="light"] .account-progress {
-  border-color: var(--glass-border);
-}
-
-[data-theme="light"] .contas-distribution-item {
   border-color: var(--glass-border);
 }
 

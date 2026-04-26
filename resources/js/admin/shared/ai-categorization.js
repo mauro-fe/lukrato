@@ -13,7 +13,7 @@ export async function sugerirCategoriaIA(opts) {
 
     const descricao = document.getElementById(descricaoInputId)?.value.trim() || '';
     if (descricao.length < 2) {
-        notify('Digite uma descricao primeiro', 'warning');
+        notify('Digite uma descrição primeiro', 'warning');
         return;
     }
 
@@ -62,19 +62,19 @@ export async function sugerirCategoriaIA(opts) {
                     applySubcategoria(subcategoriaSelectId, subcategoriaGroupId, subcategoriaId);
                 }
             } else {
-                notify(`IA sugeriu "${categoryName}", mas nao encontrei essa categoria nas suas opcoes.`, 'warning');
+                notify(`IA sugeriu "${categoryName}", mas não encontrei essa categoria nas suas opções.`, 'warning');
             }
         } else {
-            notify('Nao foi possivel sugerir uma categoria', 'warning');
+            notify('Não foi possível sugerir uma categoria', 'warning');
         }
     } catch (error) {
         if (error?.status === 403) {
-            notify('Faca upgrade do plano para usar sugestoes de IA', 'warning');
+            notify('Faça upgrade do plano para usar sugestões de IA', 'warning');
             return;
         }
 
         if (error?.status === 429) {
-            notify('você usou suas sugestoes gratuitas de categoria neste mes. Faca upgrade para continuar.', 'warning');
+            notify('Você usou suas sugestões gratuitas de categoria neste mês. Faça upgrade para continuar.', 'warning');
             return;
         }
 

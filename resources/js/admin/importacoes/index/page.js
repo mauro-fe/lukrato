@@ -19,23 +19,20 @@ import {
 } from './helpers.js';
 import {
     buildAdvancedDescription,
-    buildContextGuide,
     buildFileNote,
-    buildPathGuide,
-    buildReadinessGuide,
     buildTemplateMeta,
     renderProfileDisplay,
 } from './guides.js';
 import { createImportacoesPreviewManager } from './preview.js';
 
 const STATUS_MESSAGES = {
-    idle: 'Selecione alvo, formato e arquivo para montar o preview.',
-    file_selected: 'Arquivo selecionado. Clique em "Preparar preview".',
-    loading_preview: 'Preparando preview e validando o conteudo do arquivo.',
-    preview_ready: 'Preview pronto. Revise as linhas, categorize se quiser e confirme.',
-    preview_error: 'Nao foi possivel preparar o preview. Revise os dados e tente novamente.',
-    confirming: 'Seu arquivo esta sendo importado...',
-    confirmed: 'Concluido.',
+    idle: 'Escolha o contexto e envie o arquivo.',
+    file_selected: 'Arquivo pronto. Clique em "Preparar preview".',
+    loading_preview: 'Preparando preview.',
+    preview_ready: 'Preview pronto. Revise e confirme.',
+    preview_error: 'Não foi possível preparar o preview.',
+    confirming: 'Importando...',
+    confirmed: 'Concluído.',
 };
 
 const STATUS_BADGES = {
@@ -76,6 +73,15 @@ export function initImportacoesIndexPage() {
 
         const sourceInputs = Array.from(context.root.querySelectorAll('[data-imp-source-type]'));
         const targetInputs = Array.from(context.root.querySelectorAll('[data-imp-target-type]'));
+        const flowEyebrow = context.root.querySelector('[data-imp-flow-eyebrow]');
+        const flowTitle = context.root.querySelector('[data-imp-flow-title]');
+        const flowCopy = context.root.querySelector('[data-imp-flow-copy]');
+        const flowBadge = context.root.querySelector('[data-imp-flow-badge]');
+        const flowCard = context.root.querySelector('#impFlowSection');
+        const flowTopline = context.root.querySelector('.imp-flow-topline');
+        const editSetupButton = context.root.querySelector('[data-imp-edit-setup]');
+        const compactSubmitButton = context.root.querySelector('[data-imp-compact-submit]');
+        const formatField = context.root.querySelector('[data-imp-format-field]');
         const accountField = context.root.querySelector('[data-imp-account-field]');
         const accountSelect = context.root.querySelector('[data-imp-account-select-main]');
         const accountWarning = context.root.querySelector('[data-imp-account-warning]');
@@ -84,7 +90,10 @@ export function initImportacoesIndexPage() {
         const cardSelect = context.root.querySelector('[data-imp-card-select-main]');
         const cardWarning = context.root.querySelector('[data-imp-card-warning]');
         const cardLink = context.root.querySelector('[data-imp-card-link]');
-        const targetSourceHint = context.root.querySelector('[data-imp-target-source-hint]');
+        const contextBlocker = context.root.querySelector('[data-imp-context-blocker]');
+        const contextBlockerTitle = context.root.querySelector('[data-imp-context-blocker-title]');
+        const contextBlockerCopy = context.root.querySelector('[data-imp-context-blocker-copy]');
+        const contextBlockerLink = context.root.querySelector('[data-imp-context-blocker-link]');
         const heroContextLabel = context.root.querySelector('[data-imp-hero-context-label]');
         const heroSourceLabel = context.root.querySelector('[data-imp-hero-source-label]');
         const heroBatchCount = context.root.querySelector('[data-imp-hero-batch-count]');
@@ -101,6 +110,10 @@ export function initImportacoesIndexPage() {
         const selectedFileLabel = context.root.querySelector('[data-imp-selected-file]');
         const fileNote = context.root.querySelector('[data-imp-file-note]');
         const submitButton = context.root.querySelector('[data-imp-submit]');
+        const flowWorkspace = context.root.querySelector('.imp-flow-workspace');
+        const previewSection = context.root.querySelector('[data-imp-preview-region]');
+        const indexLayout = context.root.querySelector('.imp-index-layout');
+        const indexSidePanel = context.root.querySelector('[data-imp-side-panel]');
         const previewState = context.root.querySelector('[data-imp-preview-state]');
         const previewBadge = context.root.querySelector('[data-imp-preview-badge]');
         const previewOverview = context.root.querySelector('[data-imp-preview-overview]');
@@ -175,15 +188,6 @@ export function initImportacoesIndexPage() {
         const historyBadge = context.root.querySelector('[data-imp-history-badge]');
         const historyContent = context.root.querySelector('[data-imp-history-content]');
         const configLinks = Array.from(context.root.querySelectorAll('[data-imp-config-link]'));
-        const guidePathCard = context.root.querySelector('[data-imp-guide-path-card]');
-        const guidePathTitle = context.root.querySelector('[data-imp-guide-path-title]');
-        const guidePathCopy = context.root.querySelector('[data-imp-guide-path-copy]');
-        const guideContextCard = context.root.querySelector('[data-imp-guide-context-card]');
-        const guideContextTitle = context.root.querySelector('[data-imp-guide-context-title]');
-        const guideContextCopy = context.root.querySelector('[data-imp-guide-context-copy]');
-        const guideReadinessCard = context.root.querySelector('[data-imp-guide-readiness-card]');
-        const guideReadinessTitle = context.root.querySelector('[data-imp-guide-readiness-title]');
-        const guideReadinessCopy = context.root.querySelector('[data-imp-guide-readiness-copy]');
         const form = context.root.querySelector('#imp-upload-form');
         const quotaWarning = context.root.querySelector('[data-imp-quota-warning]');
         const configPageBaseUrl = String(context.root.dataset.impConfigPageBaseUrl || '').trim();
@@ -202,6 +206,7 @@ export function initImportacoesIndexPage() {
         let planLimitsRequest = null;
         let planTier = '';
         let upgradeUrl = '/assinatura';
+        let setupExpanded = false;
 
         let importLimitsByBucket = null;
         let activeProfileConfig = null;
@@ -310,6 +315,7 @@ export function initImportacoesIndexPage() {
 
         fileInput?.addEventListener('change', async () => {
             const file = fileInput.files?.[0] || null;
+            setupExpanded = false;
             await inspectSelectedFile(file);
         });
 
@@ -317,7 +323,13 @@ export function initImportacoesIndexPage() {
 
         form?.addEventListener('submit', async (event) => {
             event.preventDefault();
+            setupExpanded = false;
             await handlePreviewRequest();
+        });
+
+        editSetupButton?.addEventListener('click', () => {
+            setupExpanded = !setupExpanded;
+            renderCurrentState(context.state);
         });
 
         categorizePreviewButton?.addEventListener('click', async () => {
@@ -396,23 +408,23 @@ export function initImportacoesIndexPage() {
                 return String(option.text || `Conta #${accountId}`);
             }
 
-            return accountId ? `Conta #${accountId}` : 'Conta nao selecionada';
+            return accountId ? `Conta #${accountId}` : 'Conta não selecionada';
         }
 
         function currentAccountLabel() {
             if (!accountSelect || accountSelect.selectedIndex < 0) {
-                return 'Conta nao selecionada';
+                return 'Conta não selecionada';
             }
 
-            return String(accountSelect.options[accountSelect.selectedIndex]?.text || 'Conta nao selecionada');
+            return String(accountSelect.options[accountSelect.selectedIndex]?.text || 'Conta não selecionada');
         }
 
         function currentCardLabel() {
             if (!cardSelect || cardSelect.selectedIndex < 0) {
-                return 'Cartao nao selecionado';
+                return 'Cartão não selecionado';
             }
 
-            return String(cardSelect.options[cardSelect.selectedIndex]?.text || 'Cartao nao selecionado');
+            return String(cardSelect.options[cardSelect.selectedIndex]?.text || 'Cartão não selecionado');
         }
 
         function currentContextLabel() {
@@ -713,7 +725,7 @@ export function initImportacoesIndexPage() {
                 hasFileSelected || previewBusy || previewReady || previewWarning || previewCompleted ? 'complete' : 'active',
                 setupComplete
                     ? `${currentTargetLabel()} · ${currentContextLabel()} · ${String(state.selectedSourceType || 'ofx').toUpperCase()}`
-                    : 'Escolha conta ou cartão e defina o formato do arquivo.',
+                    : 'Escolha o destino.',
             );
 
             applyFlowStep(
@@ -721,28 +733,28 @@ export function initImportacoesIndexPage() {
                 flowStepFileCopy,
                 previewReady || previewCompleted ? 'complete' : (hasFileSelected || previewBusy || previewWarning ? 'active' : 'idle'),
                 hasFileSelected
-                    ? `Arquivo pronto: ${state.selectedFile.name}`
-                    : 'Envie OFX ou CSV para liberar a leitura do preview.',
+                    ? `Arquivo: ${state.selectedFile.name}`
+                    : 'Envie OFX ou CSV.',
             );
 
             let previewStepState = 'idle';
-            let previewStepCopy = 'O preview aparece abaixo depois da leitura do arquivo.';
+            let previewStepCopy = 'O preview aparece abaixo.';
 
             if (previewBusy) {
                 previewStepState = 'active';
                 previewStepCopy = state.previewStatus === 'confirming'
-                    ? String(state.jobProgressMessage || 'Importando o arquivo...')
-                    : 'Preparando preview e validando o conteúdo do arquivo.';
+                    ? String(state.jobProgressMessage || 'Importando...')
+                    : 'Preparando preview.';
             } else if (previewReady) {
                 previewStepState = 'active';
                 previewStepCopy = state.previewCanConfirm
-                    ? 'Preview pronto. Revise, categorize se quiser e confirme quando estiver seguro.'
-                    : 'Preview gerado com bloqueios. Revise as mensagens antes de confirmar.';
+                    ? 'Preview pronto. Revise e confirme.'
+                    : 'Preview com bloqueios.';
             } else if (previewWarning) {
                 previewStepState = 'warning';
                 previewStepCopy = Array.isArray(state.previewErrors) && state.previewErrors.length > 0
                     ? state.previewErrors[0]
-                    : 'O arquivo precisa de ajustes antes da confirmação.';
+                    : 'Ajuste o arquivo.';
             } else if (previewCompleted) {
                 previewStepState = 'complete';
                 previewStepCopy = getCompletedMessage(previewSummary);
@@ -811,41 +823,41 @@ export function initImportacoesIndexPage() {
 
             let badgeStatus = 'idle';
             let badgeLabel = 'Aguardando preview';
-            let title = 'Prepare um arquivo para revisar o lote';
-            let copy = 'O preview vai dizer se o lote já pode ser confirmado ou se ainda precisa de revisão.';
+            let title = 'Envie um arquivo para revisar';
+            let copy = 'O preview aparece aqui.';
 
             if (!quota.allowed) {
                 badgeStatus = 'preview_error';
                 badgeLabel = 'Limite atingido';
-                title = 'Limite do plano atingido para este fluxo';
-                copy = quota.message || 'Faça upgrade para preparar e confirmar novos lotes.';
+                title = 'Limite do plano';
+                copy = quota.message || 'Faça upgrade para continuar.';
             } else if (state.previewStatus === 'loading_preview') {
                 badgeStatus = 'loading_preview';
-                badgeLabel = 'Lendo lote';
-                title = 'Lendo e validando o arquivo';
-                copy = 'O sistema está analisando formato, linhas e consistência antes de liberar a revisão.';
+                badgeLabel = 'Preparando';
+                title = 'Preparando preview';
+                copy = 'Lendo o arquivo.';
             } else if (state.previewStatus === 'preview_error') {
                 badgeStatus = 'preview_error';
-                badgeLabel = 'Revisar lote';
-                title = 'O lote precisa de revisão antes de avançar';
+                badgeLabel = 'Revisar';
+                title = 'Ajuste antes de continuar';
                 copy = errorsCount > 0
                     ? state.previewErrors[0]
-                    : 'Corrija o arquivo ou o contexto selecionado e gere o preview novamente.';
+                    : 'Revise o arquivo e tente de novo.';
             } else if (state.previewStatus === 'preview_ready') {
                 badgeStatus = state.previewCanConfirm ? 'preview_ready' : 'preview_error';
-                badgeLabel = state.previewCanConfirm ? 'Pronto para decisão' : 'Com bloqueios';
+                badgeLabel = state.previewCanConfirm ? 'Pronto' : 'Com bloqueios';
                 title = state.previewCanConfirm
                     ? (pendingCount > 0 && canCategorize
-                        ? 'Preview pronto com pendências opcionais'
-                        : 'Lote pronto para confirmação')
-                    : 'Preview gerado, mas ainda com bloqueios';
+                        ? 'Preview pronto'
+                        : 'Pronto para confirmar')
+                    : 'Preview com bloqueios';
                 copy = state.previewCanConfirm
                     ? (pendingCount > 0 && canCategorize
-                        ? `${pendingCount} linha(s) seguem sem categoria. Você pode confirmar agora ou revisar essas linhas antes.`
-                        : 'O lote já pode ser confirmado. Use a tabela para uma última revisão antes de persistir.')
+                        ? `${pendingCount} linha(s) ainda sem categoria.`
+                        : 'Tudo certo para confirmar.')
                     : (errorsCount > 0
                         ? state.previewErrors[0]
-                        : 'Revise os avisos e ajustes pendentes antes de confirmar o lote.');
+                        : 'Revise os bloqueios antes de confirmar.');
             } else if (state.previewStatus === 'confirming') {
                 badgeStatus = 'confirming';
                 badgeLabel = 'Confirmando';
@@ -859,8 +871,8 @@ export function initImportacoesIndexPage() {
             } else if (hasRows) {
                 badgeStatus = 'file_selected';
                 badgeLabel = 'Arquivo pronto';
-                title = 'Arquivo pronto para gerar preview';
-                copy = 'Clique em "Preparar preview" para validar as linhas antes da confirmação.';
+                title = 'Arquivo pronto';
+                copy = 'Clique em "Preparar preview".';
             }
 
             if (previewReadinessBadge) {
@@ -899,7 +911,7 @@ export function initImportacoesIndexPage() {
             if (confirmTitle) {
                 confirmTitle.textContent = state.previewStatus === 'confirmed'
                     ? 'Importação finalizada'
-                    : (state.previewCanConfirm ? 'Checklist pronto para confirmar' : 'Checklist de revisão antes da confirmação');
+                    : (state.previewCanConfirm ? 'Pronto para confirmar' : 'Antes de confirmar');
             }
 
             applyConfirmCheck(
@@ -908,24 +920,24 @@ export function initImportacoesIndexPage() {
                 state.selectedFile instanceof File && isContextSelected(state.selectedImportTarget) ? 'ready' : 'idle',
                 state.selectedFile instanceof File && isContextSelected(state.selectedImportTarget)
                     ? `${currentTargetLabel()} · ${currentContextLabel()} · ${String(state.selectedSourceType || 'ofx').toUpperCase()}`
-                    : 'Selecione contexto, formato e arquivo válidos para iniciar o preview.',
+                    : 'Escolha o contexto e o arquivo.',
             );
 
             let reviewState = 'idle';
-            let reviewCopy = 'O preview mostrará linhas, avisos e eventuais ajustes necessários.';
+            let reviewCopy = 'O preview aparece aqui.';
             if (state.previewStatus === 'loading_preview') {
                 reviewState = 'active';
-                reviewCopy = 'Lendo o lote e preparando a tabela de revisão.';
+                reviewCopy = 'Montando a revisão.';
             } else if (state.previewStatus === 'preview_error') {
                 reviewState = 'warning';
                 reviewCopy = errorsCount > 0
-                    ? `${errorsCount} erro(s) impedem a confirmação deste lote.`
-                    : 'O preview não ficou pronto. Revise arquivo e contexto.';
+                    ? `${errorsCount} erro(s) bloqueiam a confirmação.`
+                    : 'Revise o arquivo e o contexto.';
             } else if (state.previewStatus === 'preview_ready') {
                 reviewState = pendingCount > 0 && canCategorize ? 'warning' : 'ready';
                 reviewCopy = pendingCount > 0 && canCategorize
-                    ? `${pendingCount} linha(s) ainda sem categoria. A confirmação continua opcionalmente liberada.`
-                    : `${previewSummary.totalRows || 0} linha(s) prontas para revisão final.`;
+                    ? `${pendingCount} linha(s) ainda sem categoria.`
+                    : `${previewSummary.totalRows || 0} linha(s) prontas para revisar.`;
             } else if (state.previewStatus === 'confirmed') {
                 reviewState = 'complete';
                 reviewCopy = getCompletedMessage(previewSummary);
@@ -933,10 +945,10 @@ export function initImportacoesIndexPage() {
             applyConfirmCheck(confirmCheckReview, confirmCopyReview, reviewState, reviewCopy);
 
             let confirmState = 'idle';
-            let confirmCopy = 'A confirmação só será liberada quando o lote estiver pronto.';
+            let confirmCopy = 'A confirmação libera quando o lote estiver pronto.';
             if (!quota.allowed) {
                 confirmState = 'warning';
-                confirmCopy = quota.message || 'Faça upgrade para liberar a confirmação deste fluxo.';
+                confirmCopy = quota.message || 'Faça upgrade para confirmar.';
             } else if (state.previewStatus === 'confirming') {
                 confirmState = 'active';
                 confirmCopy = String(state.jobProgressMessage || getProcessingMessage());
@@ -946,13 +958,13 @@ export function initImportacoesIndexPage() {
             } else if (state.previewStatus === 'preview_ready' && state.previewCanConfirm === true) {
                 confirmState = 'ready';
                 confirmCopy = pendingCount > 0 && canCategorize
-                    ? 'Você pode confirmar agora ou revisar as pendências opcionais antes de persistir.'
-                    : 'A confirmação está liberada. Persistir agora grava os dados no sistema.';
+                    ? 'Você já pode confirmar.'
+                    : 'Confirmação liberada.';
             } else if (state.previewStatus === 'preview_ready') {
                 confirmState = 'warning';
                 confirmCopy = errorsCount > 0
-                    ? 'O preview ainda possui bloqueios que precisam ser corrigidos.'
-                    : 'Revise o lote antes de liberar a confirmação.';
+                    ? 'Ainda há bloqueios.'
+                    : 'Revise antes de confirmar.';
             }
             applyConfirmCheck(confirmCheckConfirm, confirmCopyConfirm, confirmState, confirmCopy);
         }
@@ -979,7 +991,7 @@ export function initImportacoesIndexPage() {
             if (effectivePlanTier !== 'free') {
                 const paragraph = document.createElement('p');
                 paragraph.className = 'imp-card-text';
-                paragraph.textContent = 'Plano pago ativo. OFX e CSV liberados sem limite prático.';
+                paragraph.textContent = 'Plano pago ativo. Sem limite prático.';
                 planSummary.appendChild(paragraph);
                 return;
             }
@@ -1024,7 +1036,7 @@ export function initImportacoesIndexPage() {
             if (latestHistoryItems.length === 0) {
                 const emptyState = document.createElement('p');
                 emptyState.className = 'imp-card-text';
-                emptyState.textContent = 'Sem lotes confirmados ainda. O primeiro aparece aqui.';
+                emptyState.textContent = 'Ainda não há lotes.';
                 historyContent.appendChild(emptyState);
                 return;
             }
@@ -1170,24 +1182,6 @@ export function initImportacoesIndexPage() {
                 item.textContent = message;
                 container.appendChild(item);
             });
-        }
-
-        function applyGuideCard(cardElement, titleElement, copyElement, guide) {
-            if (!guide) {
-                return;
-            }
-
-            if (cardElement) {
-                cardElement.dataset.state = String(guide.state || 'info');
-            }
-
-            if (titleElement) {
-                titleElement.textContent = String(guide.title || '');
-            }
-
-            if (copyElement) {
-                copyElement.textContent = String(guide.copy || '');
-            }
         }
 
         function setStatusMessage(message) {
@@ -1417,6 +1411,7 @@ export function initImportacoesIndexPage() {
 
         async function inspectSelectedFile(file) {
             stopJobPolling();
+            setupExpanded = false;
 
             const inspectionToken = ++fileInspectionToken;
             if (!(file instanceof File)) {
@@ -1869,19 +1864,6 @@ export function initImportacoesIndexPage() {
                 resolveActiveConfigAccountLabel,
             });
             const activeConfigAccountId = resolveActiveConfigAccountId();
-            const pathGuide = buildPathGuide(state);
-            const contextGuide = buildContextGuide(state, {
-                activeConfigAccountId,
-                profileDisplay,
-                currentAccountLabel,
-                currentCardLabel,
-            });
-            const readinessGuide = buildReadinessGuide(state, quota, {
-                isContextSelected,
-                isContaOfxPreviewActive,
-                getCompletedMessage,
-                getProcessingMessage,
-            });
             const fileSelectionNote = buildFileNote(state);
             const allRows = Array.isArray(state.previewRows) ? state.previewRows : [];
             const filteredRows = state.showOnlyPendingCategories
@@ -1890,8 +1872,15 @@ export function initImportacoesIndexPage() {
             const hasRows = allRows.length > 0;
             const hasSelectedFile = state.selectedFile instanceof File;
             const hasRenderableRows = filteredRows.length > 0;
-            const showPreviewOverview = state.previewStatus !== 'idle' || hasRows || hasSelectedFile;
+            const showPreviewSection = hasRows
+                || ['loading_preview', 'preview_ready', 'preview_error', 'confirming', 'confirmed'].includes(state.previewStatus);
             const showReviewChrome = hasRows || ['loading_preview', 'preview_ready', 'preview_error', 'confirming', 'confirmed'].includes(state.previewStatus);
+            const hasReviewIssues = (Array.isArray(state.previewWarnings) && state.previewWarnings.length > 0)
+                || (Array.isArray(state.previewErrors) && state.previewErrors.length > 0)
+                || (state.previewStatus === 'preview_ready' && state.previewCanConfirm !== true)
+                || state.previewStatus === 'preview_error';
+            const showPreviewOverview = state.previewStatus !== 'idle'
+                && (!hasRows || hasReviewIssues || ['loading_preview', 'confirming', 'confirmed'].includes(state.previewStatus));
             const showPreviewFooter = ['preview_ready', 'preview_error', 'confirming', 'confirmed'].includes(state.previewStatus);
             const interactionsLocked = state.previewStatus === 'loading_preview' || state.previewStatus === 'confirming';
 
@@ -1927,40 +1916,156 @@ export function initImportacoesIndexPage() {
                 cardSelect.disabled = interactionsLocked || cardSelect.options.length === 0;
             }
 
+            const hasAccountOptions = Boolean(accountSelect && accountSelect.options.length > 0);
+            const hasCardOptions = Boolean(cardSelect && cardSelect.options.length > 0);
+            const cardTargetActive = isCardTarget(state.selectedImportTarget);
+            const hasContextOptionsForTarget = cardTargetActive ? hasCardOptions : hasAccountOptions;
+            const showContextBlocker = !hasContextOptionsForTarget;
+            const showReviewFocus = !showContextBlocker
+                && (hasSelectedFile || showPreviewSection || state.previewStatus !== 'idle');
+            const compactSetup = showReviewFocus && !setupExpanded;
+            const selectedFileName = state.selectedFile?.name || previewSummary.fileName || '';
+            const selectedContextSummary = [
+                currentContextLabel(),
+                String(state.selectedSourceType || 'ofx').toUpperCase(),
+                selectedFileName,
+            ].filter(Boolean).join(' · ');
+
             if (accountField) {
-                accountField.hidden = isCardTarget(state.selectedImportTarget);
+                accountField.hidden = cardTargetActive || !hasAccountOptions;
             }
 
             if (cardField) {
-                cardField.hidden = !isCardTarget(state.selectedImportTarget);
+                cardField.hidden = !cardTargetActive || !hasCardOptions;
             }
 
             if (accountWarning) {
-                accountWarning.hidden = Boolean(accountSelect && accountSelect.options.length > 0);
+                accountWarning.hidden = true;
             }
 
             if (accountLink) {
-                accountLink.hidden = Boolean(accountSelect && accountSelect.options.length > 0);
+                accountLink.hidden = true;
             }
 
             if (accountSelect) {
-                accountSelect.hidden = !(accountSelect.options.length > 0);
+                accountSelect.hidden = !hasAccountOptions;
             }
 
             if (cardWarning) {
-                cardWarning.hidden = Boolean(cardSelect && cardSelect.options.length > 0);
+                cardWarning.hidden = true;
             }
 
             if (cardLink) {
-                cardLink.hidden = Boolean(cardSelect && cardSelect.options.length > 0);
+                cardLink.hidden = true;
             }
 
             if (cardSelect) {
-                cardSelect.hidden = !(cardSelect.options.length > 0);
+                cardSelect.hidden = !hasCardOptions;
             }
 
-            if (targetSourceHint) {
-                targetSourceHint.hidden = !isCardTarget(state.selectedImportTarget);
+            if (formatField) {
+                formatField.hidden = showContextBlocker || compactSetup;
+            }
+
+            if (contextBlocker) {
+                contextBlocker.hidden = !showContextBlocker;
+            }
+
+            if (contextBlockerTitle) {
+                contextBlockerTitle.textContent = cardTargetActive
+                    ? 'Cadastre um cartão'
+                    : 'Crie sua primeira conta';
+            }
+
+            if (contextBlockerCopy) {
+                contextBlockerCopy.textContent = cardTargetActive
+                    ? 'Depois você envia a fatura.'
+                    : 'Depois você envia o arquivo.';
+            }
+
+            if (contextBlockerLink) {
+                contextBlockerLink.href = cardTargetActive
+                    ? (cardLink?.href || '/cartoes')
+                    : (accountLink?.href || '/contas');
+                contextBlockerLink.textContent = cardTargetActive ? 'Criar cartões +' : 'Criar contas +';
+            }
+
+            if (flowCard) {
+                flowCard.classList.toggle('imp-flow-card--compact', showReviewFocus);
+                flowCard.classList.toggle('imp-flow-card--expanded', setupExpanded);
+            }
+
+            if (flowTopline) {
+                flowTopline.hidden = showContextBlocker || compactSetup;
+            }
+
+            if (flowWorkspace) {
+                flowWorkspace.hidden = showContextBlocker || compactSetup;
+            }
+
+            if (indexSidePanel) {
+                indexSidePanel.hidden = showContextBlocker || showReviewFocus;
+            }
+
+            if (indexLayout) {
+                indexLayout.classList.toggle('imp-index-layout--single-column', showContextBlocker || showReviewFocus);
+            }
+
+            if (flowEyebrow) {
+                flowEyebrow.textContent = showContextBlocker
+                    ? 'Antes de importar'
+                    : (showReviewFocus ? 'Selecionado' : 'Passo 1');
+            }
+
+            if (flowTitle) {
+                let focusedTitle = 'Arquivo pronto';
+
+                if (state.previewStatus === 'loading_preview') {
+                    focusedTitle = 'Preparando preview';
+                } else if (state.previewStatus === 'preview_ready') {
+                    focusedTitle = 'Revise e confirme';
+                } else if (state.previewStatus === 'preview_error') {
+                    focusedTitle = 'Ajuste e tente de novo';
+                } else if (state.previewStatus === 'confirming') {
+                    focusedTitle = 'Importando';
+                } else if (state.previewStatus === 'confirmed') {
+                    focusedTitle = 'Importação concluída';
+                }
+
+                flowTitle.textContent = showContextBlocker
+                    ? (cardTargetActive ? 'Cadastre um cartão' : 'Crie sua primeira conta')
+                    : (showReviewFocus ? focusedTitle : 'Envie seu arquivo');
+            }
+
+            if (flowCopy) {
+                flowCopy.textContent = showContextBlocker
+                    ? (cardTargetActive ? 'Depois você envia a fatura.' : 'Depois você envia o arquivo.')
+                    : (showReviewFocus ? selectedContextSummary : 'Escolha o contexto, o formato e o arquivo.');
+            }
+
+            if (flowBadge) {
+                flowBadge.dataset.status = showContextBlocker ? 'idle' : state.previewStatus;
+                flowBadge.textContent = showContextBlocker
+                    ? 'Contexto'
+                    : (showReviewFocus
+                        ? (state.previewStatus === 'file_selected' ? 'Arquivo pronto' : (STATUS_BADGES[state.previewStatus] || STATUS_BADGES.idle))
+                        : (state.previewStatus === 'idle' ? 'Preparar' : (STATUS_BADGES[state.previewStatus] || STATUS_BADGES.idle)));
+            }
+
+            if (editSetupButton) {
+                editSetupButton.hidden = !showReviewFocus || interactionsLocked;
+                editSetupButton.textContent = setupExpanded ? 'Fechar' : 'Alterar';
+            }
+
+            if (compactSubmitButton) {
+                const showCompactSubmit = compactSetup
+                    && ['file_selected', 'loading_preview', 'preview_error'].includes(state.previewStatus);
+
+                compactSubmitButton.hidden = !showCompactSubmit;
+                compactSubmitButton.disabled = !canSubmit() || state.previewStatus === 'loading_preview';
+                compactSubmitButton.textContent = state.previewStatus === 'loading_preview'
+                    ? 'Preparando...'
+                    : (state.previewStatus === 'preview_error' ? 'Tentar novamente' : 'Preparar preview');
             }
 
             if (heroSourceLabel) {
@@ -1995,9 +2100,6 @@ export function initImportacoesIndexPage() {
                 }
             }
 
-            applyGuideCard(guidePathCard, guidePathTitle, guidePathCopy, pathGuide);
-            applyGuideCard(guideContextCard, guideContextTitle, guideContextCopy, contextGuide);
-            applyGuideCard(guideReadinessCard, guideReadinessTitle, guideReadinessCopy, readinessGuide);
             renderFlowSteps(state, previewSummary);
             renderFileStageBadge(state);
 
@@ -2012,9 +2114,9 @@ export function initImportacoesIndexPage() {
             }
 
             if (advancedPanel) {
-                if (state.selectedSourceType === 'csv') {
-                    advancedPanel.open = true;
-                } else if (state.previewStatus === 'idle' && !hasSelectedFile) {
+                const showAdvancedPanel = !showContextBlocker && !compactSetup && state.selectedSourceType === 'csv';
+                advancedPanel.hidden = !showAdvancedPanel;
+                if (!showAdvancedPanel) {
                     advancedPanel.open = false;
                 }
             }
@@ -2057,11 +2159,18 @@ export function initImportacoesIndexPage() {
             }
 
             if (advancedDetails) {
-                advancedDetails.open = state.selectedSourceType === 'csv';
+                if (compactSetup || state.selectedSourceType !== 'csv') {
+                    advancedDetails.open = false;
+                }
             }
 
             if (previewOverview) {
                 previewOverview.hidden = !showPreviewOverview;
+            }
+
+            if (previewSection) {
+                previewSection.hidden = showContextBlocker || !showPreviewSection;
+                previewSection.classList.toggle('imp-preview-card--focused', showReviewFocus && hasRows);
             }
 
             if (advancedAccountName) {
@@ -2218,7 +2327,7 @@ export function initImportacoesIndexPage() {
                     || !(state.previewStatus === 'preview_ready' && state.previewCanConfirm === true);
                 confirmButton.textContent = state.previewStatus === 'confirming'
                     ? 'Confirmando...'
-                    : 'Confirmar importacao';
+                    : 'Confirmar importação';
             }
 
             if (previewTools) {
@@ -2226,7 +2335,7 @@ export function initImportacoesIndexPage() {
             }
 
             if (confirmStrip) {
-                confirmStrip.hidden = !showReviewChrome;
+                confirmStrip.hidden = !showReviewChrome || (state.previewCanConfirm === true && !hasReviewIssues);
             }
 
             if (categorizePreviewButton) {
@@ -2234,14 +2343,14 @@ export function initImportacoesIndexPage() {
                     || !isContaOfxPreviewActive()
                     || state.previewStatus !== 'preview_ready';
                 categorizePreviewButton.textContent = previewSummary.categorizationApplied
-                    ? 'Reaplicar categorizacao'
+                    ? 'Reaplicar categorização'
                     : 'Categorizar linhas';
             }
 
             if (categorizePreviewHelper) {
                 categorizePreviewHelper.textContent = previewSummary.categorizationApplied
-                    ? `${previewSummary.userRuleSuggestedRows || 0} linha(s) sugerida(s) por regra do usuario e ${previewSummary.globalRuleSuggestedRows || 0} por regra global.`
-                    : 'Opcional: aplica sugestoes automaticas por regra do usuario e regra global sem bloquear a confirmacao.';
+                    ? `${previewSummary.userRuleSuggestedRows || 0} por regra do usuário e ${previewSummary.globalRuleSuggestedRows || 0} por regra global.`
+                    : 'Opcional.';
             }
 
             if (pendingOnlyToggle) {
@@ -2263,34 +2372,34 @@ export function initImportacoesIndexPage() {
 
             if (previewEmptyTitle) {
                 if (!hasSelectedFile && state.previewStatus === 'idle') {
-                    previewEmptyTitle.textContent = 'Envie um arquivo para abrir a revisão';
+                    previewEmptyTitle.textContent = 'Envie um arquivo para revisar';
                 } else if (hasSelectedFile && state.previewStatus === 'file_selected') {
-                    previewEmptyTitle.textContent = 'Arquivo pronto para abrir a revisão';
+                    previewEmptyTitle.textContent = 'Arquivo pronto para revisar';
                 } else if (state.previewStatus === 'loading_preview') {
-                    previewEmptyTitle.textContent = 'Montando a revisão do lote';
+                    previewEmptyTitle.textContent = 'Montando preview';
                 } else if (hasRows && state.showOnlyPendingCategories && (previewSummary.uncategorizedRows || 0) === 0) {
-                    previewEmptyTitle.textContent = 'Nenhuma linha pendente neste filtro';
+                    previewEmptyTitle.textContent = 'Nenhuma linha pendente';
                 } else {
-                    previewEmptyTitle.textContent = 'A revisão aparece aqui depois do preparo';
+                    previewEmptyTitle.textContent = 'O preview aparece aqui';
                 }
             }
 
             if (previewEmptyCopy) {
                 if (!hasSelectedFile && state.previewStatus === 'idle') {
-                    previewEmptyCopy.textContent = 'Escolha o contexto e envie OFX ou CSV para montar o preview.';
+                    previewEmptyCopy.textContent = 'Escolha o contexto e envie o arquivo.';
                 } else if (hasSelectedFile && state.previewStatus === 'file_selected') {
-                    previewEmptyCopy.textContent = 'Clique em "Preparar preview" para montar a leitura do lote.';
+                    previewEmptyCopy.textContent = 'Clique em "Preparar preview".';
                 } else if (state.previewStatus === 'loading_preview') {
-                    previewEmptyCopy.textContent = 'Lendo o arquivo e preparando o quadro de validação.';
+                    previewEmptyCopy.textContent = 'Lendo o arquivo.';
                 } else if (hasRows && state.showOnlyPendingCategories && (previewSummary.uncategorizedRows || 0) === 0) {
-                    previewEmptyCopy.textContent = 'Todas as linhas visíveis já estão categorizadas. Desative o filtro para voltar ao lote completo.';
+                    previewEmptyCopy.textContent = 'Desative o filtro para voltar ao lote completo.';
                 } else {
-                    previewEmptyCopy.textContent = 'Resumo do lote, validações e linhas normalizadas aparecem aqui.';
+                    previewEmptyCopy.textContent = 'Revise antes de confirmar.';
                 }
             } else if (previewEmpty) {
                 previewEmpty.textContent = hasRows && state.showOnlyPendingCategories && (previewSummary.uncategorizedRows || 0) === 0
                     ? 'Todas as linhas já estão categorizadas.'
-                    : 'Resumo do lote, validações e linhas normalizadas aparecem aqui.';
+                    : 'Revise antes de confirmar.';
             }
 
             if (hasRenderableRows) {
@@ -2313,25 +2422,25 @@ export function initImportacoesIndexPage() {
                 if (state.previewStatus === 'preview_ready') {
                     const blockingMessage = Array.isArray(state.previewErrors) && state.previewErrors.length > 0
                         ? state.previewErrors[0]
-                        : 'Preview retornou bloqueios. Ajuste os dados e envie novamente.';
+                        : 'Preview com bloqueios.';
 
                     previewNextStep.textContent = state.previewCanConfirm
                         ? ((previewSummary.categorizationApplied !== true && isContaOfxPreviewActive())
-                            ? 'Preview valido. Voce pode confirmar agora ou clicar em "Categorizar linhas" para sugerir categorias antes da importacao.'
+                            ? 'Preview pronto. Você pode confirmar agora ou categorizar antes.'
                             : ((previewSummary.uncategorizedRows || 0) > 0
-                                ? `${previewSummary.uncategorizedRows} linha(s) ainda sem categoria. Voce pode confirmar agora ou revisar antes da importacao.`
-                                : 'Preview valido. Clique em "Confirmar importacao" para persistir os dados.'))
+                                ? `${previewSummary.uncategorizedRows} linha(s) ainda sem categoria.`
+                                : 'Preview pronto. Clique em "Confirmar importação".'))
                         : blockingMessage;
                 } else if (state.previewStatus === 'confirming') {
                     previewNextStep.textContent = String(state.jobProgressMessage || getProcessingMessage());
                 } else if (state.previewStatus === 'preview_error') {
                     previewNextStep.textContent = quota.allowed
-                        ? (state.previewErrors[0] || 'Nao foi possivel concluir a etapa. Revise os dados e tente novamente.')
-                        : 'Limite do plano atingido para este fluxo. Faca upgrade para continuar.';
+                        ? (state.previewErrors[0] || 'Não foi possível concluir a etapa.')
+                        : 'Limite do plano. Faça upgrade para continuar.';
                 } else if (state.previewStatus === 'confirmed') {
                     previewNextStep.textContent = getCompletedMessage(previewSummary);
                 } else {
-                    previewNextStep.textContent = 'Revise o preview para liberar a confirmacao.';
+                    previewNextStep.textContent = 'Envie o arquivo para continuar.';
                 }
             }
         }

@@ -1,7 +1,7 @@
 <?php
 $customizeModal = [
     'title' => 'Personalizar relatórios',
-    'description' => 'Comece no modo essencial e habilite os blocos quando quiser.',
+    'description' => 'Ative apenas os blocos de análise que você usa.',
     'ids' => [
         'overlay' => 'relatoriosCustomizeModalOverlay',
         'title' => 'relatoriosCustomizeModalTitle',
@@ -15,8 +15,7 @@ $customizeModal = [
         [
             'title' => 'Blocos da tela',
             'items' => [
-                ['id' => 'toggleRelQuickStats', 'label' => 'Cards de resumo rápido'],
-                ['id' => 'toggleRelOverviewCharts', 'label' => 'Mini gráficos da visão geral'],
+                ['id' => 'toggleRelOverviewCharts', 'label' => 'Gráficos da visão geral'],
                 ['id' => 'toggleRelControls', 'label' => 'Barra de controles'],
             ],
         ],

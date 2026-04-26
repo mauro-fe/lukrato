@@ -28,10 +28,12 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
             try {
                 const dados = this.coletarDadosFormulario();
 
-                const btnSalvar = document.getElementById('globalBtnSalvar');
-                if (btnSalvar) {
-                    btnSalvar.disabled = true;
-                    btnSalvar.innerHTML = '<i data-lucide="loader-2" class="icon-spin" style="width:16px;height:16px;display:inline-block;"></i> Salvando...';
+                const saveButtons = document.querySelectorAll('.lk-page-submit-btn, #globalBtnSalvar');
+                if (saveButtons.length) {
+                    saveButtons.forEach((btnSalvar) => {
+                        btnSalvar.disabled = true;
+                        btnSalvar.innerHTML = '<i data-lucide="loader-2" class="icon-spin" style="width:16px;height:16px;display:inline-block;"></i> Salvando...';
+                    });
                     refreshIcons();
                 }
 
@@ -269,6 +271,18 @@ export function attachLancamentoGlobalSaveMethods(ManagerClass, dependencies) {
         },
 
         _resetBtnSalvar() {
+            const saveButtons = document.querySelectorAll('.lk-page-submit-btn, #globalBtnSalvar');
+            if (saveButtons.length) {
+                saveButtons.forEach((btnSalvar) => {
+                    btnSalvar.disabled = false;
+                });
+
+                if (this.isPageMode?.()) {
+                    this.syncQuickTypeHeading?.();
+                    return;
+                }
+            }
+
             const btnSalvar = document.getElementById('globalBtnSalvar');
             if (btnSalvar) {
                 btnSalvar.disabled = false;

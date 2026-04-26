@@ -8,15 +8,26 @@ function readWizardOptions(root) {
     };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function releaseWizardBoot(root) {
+    const page = root?.closest('.lancamento-create-page')
+        || document.querySelector('.lancamento-create-page[data-wizard-booting="true"]');
+
+    root?.removeAttribute('data-wizard-booting');
+    page?.removeAttribute('data-wizard-booting');
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
     const root = document.getElementById('modalLancamentoGlobalOverlay');
     const manager = window.lancamentoGlobalManager;
 
     if (!root || !manager?.openModal) {
+        releaseWizardBoot(root);
         return;
     }
 
-    window.setTimeout(() => {
-        manager.openModal(readWizardOptions(root));
-    }, 0);
+    try {
+        await manager.openModal(readWizardOptions(root));
+    } finally {
+        releaseWizardBoot(root);
+    }
 });

@@ -10,20 +10,17 @@ import { Modules } from './state.js';
 /** Map: checkbox ID -> section ID */
 const SECTION_MAP = {
     toggleContasHero: 'contasHero',
-    toggleContasKpis: 'contasKpis',
-    toggleContasDistribution: 'contasDistributionCard'
+    toggleContasKpis: 'contasKpis'
 };
 
 const COMPLETE_DEFAULTS = {
     toggleContasHero: true,
-    toggleContasKpis: true,
-    toggleContasDistribution: true
+    toggleContasKpis: true
 };
 
 const ESSENTIAL_DEFAULTS = {
     ...COMPLETE_DEFAULTS,
-    toggleContasKpis: false,
-    toggleContasDistribution: false
+    toggleContasKpis: false
 };
 
 async function loadContasPrefs() {
@@ -50,13 +47,10 @@ function syncVisibleChildren(container) {
 function syncContasLayout() {
     const overviewStage = document.querySelector('.cont-stage--overview');
     const overviewTop = document.querySelector('.cont-overview-top');
-    const overviewBottom = document.querySelector('.cont-overview-bottom');
-
     const topCount = syncVisibleChildren(overviewTop);
-    const bottomCount = syncVisibleChildren(overviewBottom);
 
     if (overviewStage) {
-        const visibleBlocks = (topCount > 0 ? 1 : 0) + (bottomCount > 0 ? 1 : 0);
+        const visibleBlocks = topCount > 0 ? 1 : 0;
         overviewStage.dataset.visibleCount = String(visibleBlocks);
         overviewStage.style.display = visibleBlocks > 0 ? '' : 'none';
     }

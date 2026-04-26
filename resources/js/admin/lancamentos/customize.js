@@ -9,22 +9,17 @@ import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-p
 
 /** Map: checkbox ID -> section ID */
 const SECTION_MAP = {
-    toggleLanHero: 'lanHeroSection',
-    toggleLanSummary: 'lanSummaryStrip',
     toggleLanExport: 'exportCard',
     toggleLanFilters: 'lanFiltersSection'
 };
 
 const COMPLETE_DEFAULTS = {
-    toggleLanHero: true,
-    toggleLanSummary: true,
     toggleLanExport: true,
     toggleLanFilters: true
 };
 
 const ESSENTIAL_DEFAULTS = {
     ...COMPLETE_DEFAULTS,
-    toggleLanSummary: false,
     toggleLanExport: false
 };
 
@@ -51,14 +46,11 @@ function syncVisibleChildren(container) {
 
 function syncLancamentosLayout() {
     const overviewStage = document.querySelector('.lan-stage--overview');
-    const overviewTop = document.querySelector('.lan-overview-top');
     const overviewBottom = document.querySelector('.lan-overview-bottom');
-
-    const topCount = syncVisibleChildren(overviewTop);
     const bottomCount = syncVisibleChildren(overviewBottom);
 
     if (overviewStage) {
-        const visibleBlocks = (topCount > 0 ? 1 : 0) + (bottomCount > 0 ? 1 : 0);
+        const visibleBlocks = bottomCount > 0 ? 1 : 0;
         overviewStage.dataset.visibleCount = String(visibleBlocks);
         overviewStage.style.display = visibleBlocks > 0 ? '' : 'none';
     }

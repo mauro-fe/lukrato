@@ -3,7 +3,6 @@
 
 <div class="rel-page">
 
-    <?php include __DIR__ . '/sections/quick-stats.php'; ?>
     <?php include __DIR__ . '/sections/section-tabs.php'; ?>
     <?php include __DIR__ . '/sections/panel-overview.php'; ?>
     <?php include __DIR__ . '/sections/panel-relatorios.php'; ?>
