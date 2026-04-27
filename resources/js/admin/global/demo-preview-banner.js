@@ -2,78 +2,136 @@ import '../../../css/admin/modules/demo-preview-banner.css';
 import { escapeHtml } from '../shared/utils.js';
 import { openPrimaryAction, resolvePrimaryActionMeta } from '../shared/primary-actions.js';
 
+const GENERIC_TITLE = 'Dados de exemplo';
+const GENERIC_MESSAGE = 'Esses dados existem só para mostrar como o Lukrato funciona. Assim que você criar seus primeiros registros reais, a demonstração desaparece automaticamente.';
+const DEFAULT_EYEBROW = 'Configuração inicial';
+const DEFAULT_TITLE = 'Cadastre sua primeira conta';
+const DEFAULT_MESSAGE = 'Comece pela base do seu fluxo financeiro. Assim que a conta for criada, o painel passa a refletir a sua operação.';
+const DEFAULT_PREVIEW_BADGE = 'Modo de demonstração';
+const DEFAULT_PREVIEW_TEXT = 'Você está usando dados de exemplo enquanto finaliza a configuração inicial.';
+const DEFAULT_INFO_TITLE = 'Sobre a prévia';
+const DEFAULT_INFO_MESSAGE = 'Os dados de exemplo servem só para você conhecer o fluxo antes do primeiro cadastro real.';
+const DEFAULT_STORAGE_NOTE = 'Não salva nada no banco';
+const DEFAULT_EXIT_NOTE = 'Sai automaticamente ao criar dado real';
+
 function refreshIcons() {
     if (typeof window.lucide !== 'undefined') {
         window.lucide.createIcons();
     }
 }
 
-function createMarkup(meta = {}) {
+function buildViewModel(meta = {}) {
     const primaryAction = resolvePrimaryActionMeta(meta, {
         actionType: 'create_account',
         ctaUrl: 'contas',
         ctaLabel: 'Criar primeira conta',
     });
-    const eyebrow = escapeHtml(String(meta.eyebrow || 'Preview guiado'));
-    const title = escapeHtml(String(meta.title || 'Dados de exemplo'));
-    const message = escapeHtml(String(
-        meta.message
-        || 'Esses dados existem só para mostrar como o app funciona. Assim que você criar seus primeiros registros reais, a demonstração desapavimentacãrece automaticamente.'
-    ));
-    const context = escapeHtml(String(meta.context || 'preview'));
-    const highlightLabel = escapeHtml(String(meta.highlight_label || 'Somente visualização'));
-    const guideItems = [
-        {
-            icon: 'database',
-            label: escapeHtml(String(meta.storage_note || 'Não salva nada no banco')),
-        },
-        {
-            icon: 'refresh-cw',
-            label: escapeHtml(String(meta.exit_note || 'Sai automaticamente ao criar dado real')),
-        },
-    ];
+
+    const rawTitle = String(meta.title || '').trim();
+    const rawMessage = String(meta.message || '').trim();
+
+    return {
+        primaryAction,
+        context: String(meta.context || 'preview').trim() || 'preview',
+        eyebrow: String(meta.eyebrow || DEFAULT_EYEBROW).trim() || DEFAULT_EYEBROW,
+        title: rawTitle === '' || rawTitle === GENERIC_TITLE ? DEFAULT_TITLE : rawTitle,
+        message: rawMessage === '' || rawMessage === GENERIC_MESSAGE ? DEFAULT_MESSAGE : rawMessage,
+        previewBadge: String(meta.highlight_label || meta.preview_label || DEFAULT_PREVIEW_BADGE).trim() || DEFAULT_PREVIEW_BADGE,
+        previewText: String(meta.preview_text || DEFAULT_PREVIEW_TEXT).trim() || DEFAULT_PREVIEW_TEXT,
+        infoTitle: String(meta.info_title || DEFAULT_INFO_TITLE).trim() || DEFAULT_INFO_TITLE,
+        infoMessage: String(meta.info_message || DEFAULT_INFO_MESSAGE).trim() || DEFAULT_INFO_MESSAGE,
+        storageNote: String(meta.storage_note || DEFAULT_STORAGE_NOTE).trim() || DEFAULT_STORAGE_NOTE,
+        exitNote: String(meta.exit_note || DEFAULT_EXIT_NOTE).trim() || DEFAULT_EXIT_NOTE,
+    };
+}
+
+function createMarkup(viewModel) {
+    const eyebrow = escapeHtml(viewModel.eyebrow);
+    const title = escapeHtml(viewModel.title);
+    const message = escapeHtml(viewModel.message);
+    const previewBadge = escapeHtml(viewModel.previewBadge);
+    const previewText = escapeHtml(viewModel.previewText);
+    const ctaLabel = escapeHtml(viewModel.primaryAction.ctaLabel);
+    const ctaAction = escapeHtml(viewModel.primaryAction.actionType);
+    const ctaUrl = escapeHtml(viewModel.primaryAction.ctaUrl);
+    const context = escapeHtml(viewModel.context);
 
     return `
-        <div class="lk-demo-banner surface-card surface-card--glass surface-card--clip" role="status" aria-live="polite" data-demo-context="${context}">
+        <div class="lk-demo-banner surface-card surface-card--interactive" role="status" aria-live="polite" data-demo-context="${context}">
             <div class="lk-demo-banner__main">
-                <div class="lk-demo-banner__icon" aria-hidden="true">
-                    <i data-lucide="sparkles"></i>
-                </div>
-                <div class="lk-demo-banner__content">
-                    <div class="lk-demo-banner__topline">
-                        <span class="lk-demo-banner__eyebrow">
-                            <i data-lucide="sparkles"></i>
-                            ${eyebrow}
-                        </span>
-                        <span class="lk-demo-banner__tag">
-                            <i data-lucide="eye"></i>
-                            ${highlightLabel}
-                        </span>
-                    </div>
-                    <strong class="lk-demo-banner__title">${title}</strong>
-                    <p class="lk-demo-banner__message">${message}</p>
-                    <div class="lk-demo-banner__meta" aria-label="Informações sobre o preview">
-                        ${guideItems.map((item) => `
-                            <span class="lk-demo-banner__meta-item">
-                                <i data-lucide="${item.icon}"></i>
-                                <span>${item.label}</span>
-                            </span>
-                        `).join('')}
-                    </div>
+                <span class="lk-demo-banner__eyebrow">${eyebrow}</span>
+                <strong class="lk-demo-banner__title">${title}</strong>
+                <p class="lk-demo-banner__message">${message}</p>
+                <div class="lk-demo-banner__meta" aria-label="Informações sobre o preview">
+                    <span class="lk-demo-banner__meta-badge">
+                        <i data-lucide="sparkles"></i>
+                        <span>${previewBadge}</span>
+                    </span>
+                    <span class="lk-demo-banner__meta-text">${previewText}</span>
+                    <button type="button" class="lk-demo-banner__inline-link" data-demo-preview-info>
+                        Sobre a prévia
+                    </button>
                 </div>
             </div>
             <div class="lk-demo-banner__actions">
-                <a
-                    class="lk-demo-banner__link surface-button surface-button--primary"
-                    href="${escapeHtml(primaryAction.ctaUrl)}"
-                    data-demo-cta-action="${escapeHtml(primaryAction.actionType)}"
+                <button
+                    type="button"
+                    class="lk-demo-banner__cta surface-button surface-button--primary"
+                    data-demo-cta
+                    data-demo-cta-action="${ctaAction}"
+                    data-demo-cta-url="${ctaUrl}"
                 >
                     <i data-lucide="plus"></i>
-                    <span>${escapeHtml(primaryAction.ctaLabel)}</span>
-                </a>
+                    <span>${ctaLabel}</span>
+                </button>
             </div>
         </div>
     `;
+}
+
+function showPreviewInfo(viewModel) {
+    const detailLines = [viewModel.infoMessage, viewModel.storageNote, viewModel.exitNote].filter(Boolean);
+    const detailText = detailLines.join(' ');
+
+    if (typeof window.Swal !== 'undefined') {
+        window.Swal.fire({
+            icon: 'info',
+            title: viewModel.infoTitle,
+            text: detailText,
+            confirmButtonText: 'Entendi',
+        });
+        return;
+    }
+
+    if (window.LKFeedback?.info) {
+        window.LKFeedback.info(detailText);
+        return;
+    }
+
+    window.alert(detailText);
+}
+
+function bindActions(root, meta, viewModel) {
+    root.querySelector('[data-demo-cta]')?.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        openPrimaryAction(
+            {
+                ...meta,
+                cta_action: event.currentTarget?.dataset?.demoCtaAction || meta.cta_action || meta.primary_action,
+                cta_url: event.currentTarget?.dataset?.demoCtaUrl || meta.cta_url,
+            },
+            {
+                actionType: 'create_account',
+                ctaUrl: 'contas',
+                ctaLabel: viewModel.primaryAction.ctaLabel,
+            }
+        );
+    });
+
+    root.querySelector('[data-demo-preview-info]')?.addEventListener('click', () => {
+        showPreviewInfo(viewModel);
+    });
 }
 
 const DemoPreviewBanner = {
@@ -99,19 +157,11 @@ const DemoPreviewBanner = {
             return;
         }
 
+        const viewModel = buildViewModel(meta);
         const nextKey = JSON.stringify({
-            eyebrow: meta.eyebrow || '',
-            title: meta.title || '',
-            message: meta.message || '',
-            cta_label: meta.cta_label || '',
-            cta_url: meta.cta_url || '',
-            cta_action: meta.cta_action || '',
-            context: meta.context || '',
-            highlight_label: meta.highlight_label || '',
-            primary_action: meta.primary_action || '',
+            ...viewModel,
+            primaryAction: viewModel.primaryAction,
             real_account_count: meta.real_account_count || 0,
-            storage_note: meta.storage_note || '',
-            exit_note: meta.exit_note || '',
         });
 
         if (this.currentKey === nextKey) {
@@ -119,24 +169,9 @@ const DemoPreviewBanner = {
         }
 
         this.currentKey = nextKey;
-        root.innerHTML = createMarkup(meta);
+        root.innerHTML = createMarkup(viewModel);
         root.hidden = false;
-        root.querySelector('.lk-demo-banner__link')?.addEventListener('click', (event) => {
-            event.preventDefault();
-
-            openPrimaryAction(
-                {
-                    ...meta,
-                    cta_action: event.currentTarget?.dataset?.demoCtaAction || meta.cta_action || meta.primary_action,
-                    cta_url: event.currentTarget?.getAttribute('href') || meta.cta_url,
-                },
-                {
-                    actionType: 'create_account',
-                    ctaUrl: 'contas',
-                    ctaLabel: 'Criar primeira conta',
-                }
-            );
-        });
+        bindActions(root, meta, viewModel);
         refreshIcons();
     },
 

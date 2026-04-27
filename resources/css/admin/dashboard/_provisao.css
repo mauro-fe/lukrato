@@ -216,6 +216,22 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
+.provisao-card.previsto .provisao-card-icon {
+  background: linear-gradient(135deg, #64748b, #94a3b8);
+  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.24);
+}
+
+.provisao-card.previsto.is-positive .provisao-card-icon {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.provisao-card.previsto.is-negative .provisao-card-icon {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
 .provisao-card-body {
   display: flex;
   flex-direction: column;
@@ -248,6 +264,14 @@
 
 .provisao-card.receber .provisao-card-value {
   color: var(--color-success);
+}
+
+.provisao-card.previsto.is-positive .provisao-card-value {
+  color: var(--color-success);
+}
+
+.provisao-card.previsto.is-negative .provisao-card-value {
+  color: var(--color-danger);
 }
 
 .provisao-card-count {

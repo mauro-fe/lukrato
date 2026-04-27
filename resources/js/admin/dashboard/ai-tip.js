@@ -381,20 +381,14 @@ class AiTipCard {
     const hasCritical = tips.some(t => t.priority === 'critical' || t.priority === 'high');
     if (badge) {
       if (hasCritical) {
-        badge.textContent = `${tips.filter(t => t.priority === 'critical' || t.priority === 'high').length} atenção`;
+        const focusCount = tips.filter(t => t.priority === 'critical' || t.priority === 'high').length;
+        badge.textContent = focusCount === 1 ? '1 em foco' : `${focusCount} em foco`;
         badge.style.display = '';
-        badge.style.background = 'rgba(239, 68, 68, 0.12)';
-        badge.style.color = '#ef4444';
+        badge.style.background = 'color-mix(in srgb, var(--color-text-muted) 9%, transparent)';
+        badge.style.color = 'var(--color-text-muted)';
+        badge.style.borderColor = 'color-mix(in srgb, var(--color-text-muted) 16%, transparent)';
       } else {
-        const positiveCount = tips.filter(t => t.priority === 'positive').length;
-        if (positiveCount > 0) {
-          badge.textContent = `${positiveCount} positivo(s)`;
-          badge.style.display = '';
-          badge.style.background = 'rgba(16, 185, 129, 0.12)';
-          badge.style.color = '#10b981';
-        } else {
-          badge.style.display = 'none';
-        }
+        badge.style.display = 'none';
       }
     }
 
@@ -446,10 +440,7 @@ class AiTipCard {
 
     const badge = document.getElementById('aiTipBadge');
     if (badge) {
-      badge.textContent = 'Tudo ok';
-      badge.style.display = '';
-      badge.style.background = 'rgba(16, 185, 129, 0.12)';
-      badge.style.color = '#10b981';
+      badge.style.display = 'none';
     }
 
     this.updateIcons();

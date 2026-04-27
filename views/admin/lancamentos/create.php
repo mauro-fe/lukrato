@@ -18,8 +18,8 @@ $wizardInitialStep = $wizardTipo !== '' ? '2' : '1';
 <section class="lancamento-create-page"
     data-wizard-step="<?= htmlspecialchars($wizardInitialStep, ENT_QUOTES, 'UTF-8') ?>"
     <?php if ($wizardTipo !== ''): ?>
-        data-wizard-tipo="<?= htmlspecialchars($wizardTipo, ENT_QUOTES, 'UTF-8') ?>"
-        data-wizard-booting="true"
+    data-wizard-tipo="<?= htmlspecialchars($wizardTipo, ENT_QUOTES, 'UTF-8') ?>"
+    data-wizard-booting="true"
     <?php endif; ?>>
     <div class="lancamento-create-page__toolbar">
         <a class="lancamento-create-page__back" href="<?= htmlspecialchars($backUrl, ENT_QUOTES, 'UTF-8') ?>"
@@ -31,7 +31,11 @@ $wizardInitialStep = $wizardTipo !== '' ? '2' : '1';
 
     <div class="lancamento-create-page__heading">
         <span class="lancamento-create-page__eyebrow">Novo lançamento</span>
-        <h2 class="lancamento-create-page__title">Nova transação</h2>
+        <div class="lancamento-create-page__heading-main">
+            <div class="lancamento-create-page__heading-copy">
+                <h2 class="lancamento-create-page__title">Nova transação</h2>
+            </div>
+        </div>
     </div>
 
     <?php include __DIR__ . '/../partials/modals/modal-lancamento-global.php'; ?>

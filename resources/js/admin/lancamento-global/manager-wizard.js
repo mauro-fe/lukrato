@@ -256,9 +256,14 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
         resetQuickOptions() {
             const panel = document.getElementById('globalQuickOptions');
             const button = document.getElementById('globalQuickMoreOptionsBtn');
+            const step = document.getElementById('globalStep2');
 
             if (panel) {
                 panel.hidden = true;
+            }
+
+            if (step) {
+                step.classList.remove('lk-page-quick-step--expanded');
             }
 
             if (button) {
@@ -274,10 +279,15 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
         toggleQuickOptions(force = null) {
             const panel = document.getElementById('globalQuickOptions');
             const button = document.getElementById('globalQuickMoreOptionsBtn');
+            const step = document.getElementById('globalStep2');
             if (!panel) return;
 
             const shouldOpen = force === null ? panel.hidden : Boolean(force);
             panel.hidden = !shouldOpen;
+
+            if (step) {
+                step.classList.toggle('lk-page-quick-step--expanded', shouldOpen);
+            }
 
             if (button) {
                 button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
@@ -314,29 +324,42 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             const labels = {
                 receita: {
                     title: 'Nova receita',
-                    submit: 'Salvar receita'
+                    submit: 'Salvar receita',
+                    kicker: 'Entrada',
+                    description: 'Registre o valor, a data e os detalhes essenciais da entrada. Forma de recebimento, meta e repetição ficam em Mais opções.'
                 },
                 despesa: {
                     title: 'Nova despesa',
-                    submit: 'Salvar despesa'
+                    submit: 'Salvar despesa',
+                    kicker: 'Saída',
+                    description: 'Registre o valor, a data e o essencial do gasto. Categoria, forma de pagamento e recorrência entram só se você precisar.'
                 },
                 transferencia: {
                     title: 'Nova transferência',
-                    submit: 'Salvar transferência'
+                    submit: 'Salvar transferência',
+                    kicker: 'Mover saldo',
+                    description: 'Escolha a conta de origem, o destino e o valor da movimentação. Os ajustes extras continuam disponíveis abaixo.'
                 }
             };
             const copy = labels[tipo] || {
                 title: 'Nova transação',
-                submit: 'Salvar transação'
+                submit: 'Salvar transação',
+                kicker: 'Fluxo rápido',
+                description: 'Preencha valor, descrição e data. Abra Mais opções apenas quando precisar detalhar a movimentação.'
             };
 
             const kicker = document.getElementById('globalQuickTypeKicker');
             const title = document.getElementById('modalLancamentoGlobalTituloInline');
+            const description = document.getElementById('globalQuickTypeDescription');
             const button = document.getElementById('globalBtnSalvar');
             const submitLabels = document.querySelectorAll('.lk-page-submit-label');
 
-            if (kicker) kicker.hidden = true;
+            if (kicker) {
+                kicker.hidden = false;
+                kicker.textContent = copy.kicker;
+            }
             if (title) title.textContent = copy.title;
+            if (description) description.textContent = copy.description;
             if (button) {
                 button.innerHTML = `<i data-lucide="check"></i> <span class="lk-page-submit-label">${copy.submit}</span>`;
             }

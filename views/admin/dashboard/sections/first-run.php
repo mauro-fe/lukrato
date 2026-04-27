@@ -1,8 +1,22 @@
 <section class="dash-first-run-stack" id="dashboardFirstRunStack" hidden>
     <section class="dash-quick-start surface-card surface-card--interactive" id="dashboardQuickStart" hidden>
         <div class="dash-quick-start__main">
-            <span class="dash-first-run__eyebrow" id="dashboardQuickStartEyebrow">Passo 1</span>
-            <h2 id="dashboardQuickStartTitle">Crie sua primeira conta</h2>
+            <span class="dash-first-run__eyebrow" id="dashboardQuickStartEyebrow">Configuração inicial</span>
+            <h2 id="dashboardQuickStartTitle">Cadastre sua primeira conta</h2>
+            <p class="dash-quick-start__summary" id="dashboardQuickStartSummary">
+                Comece pela base do seu fluxo financeiro. Assim que a conta for criada, o painel passa a refletir a sua operação.
+            </p>
+
+            <div class="dash-quick-start__meta" id="dashboardPreviewNotice" hidden>
+                <span class="dash-quick-start__meta-badge">
+                    <i data-lucide="sparkles"></i>
+                    Modo de demonstração
+                </span>
+                <span class="dash-quick-start__meta-text">Você está usando dados de exemplo enquanto finaliza a configuração inicial.</span>
+                <button type="button" class="dash-first-run__inline-link" id="dashboardPreviewLearnMore">
+                    Sobre a prévia
+                </button>
+            </div>
         </div>
 
         <div class="dash-quick-start__cta-panel">
@@ -17,18 +31,6 @@
     </section>
 
     <section class="dash-first-run-bar surface-card" id="dashboardDisplayNamePrompt" hidden>
-        <div class="dash-first-run-bar__preview" id="dashboardPreviewNotice" hidden>
-            <span class="dash-first-run-bar__icon" aria-hidden="true">
-                <i data-lucide="sparkles"></i>
-            </span>
-            <div class="dash-first-run-bar__preview-copy">
-                <span>Você está em uma prévia com dados de exemplo.</span>
-                <button type="button" class="dash-first-run__inline-link" id="dashboardPreviewLearnMore">
-                    Saiba mais
-                </button>
-            </div>
-        </div>
-
         <form class="dash-first-run-bar__name" id="dashboardDisplayNameForm" hidden>
             <label class="dash-first-run-bar__label" for="dashboardDisplayNameInput">
                 Como prefere ser chamado?

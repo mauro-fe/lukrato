@@ -36,6 +36,12 @@ export function createProvisao({
         }
     };
 
+    const formatSignedMoney = (value) => {
+        const amount = Number(value || 0);
+        const prefix = amount >= 0 ? '+' : '-';
+        return `${prefix}${Utils.money(Math.abs(amount))}`;
+    };
+
     const Provisao = {
         isProUser: null,
 
@@ -112,9 +118,13 @@ export function createProvisao({
             const pagar = document.getElementById('provisaoPagar');
             const receber = document.getElementById('provisaoReceber');
             const projetado = document.getElementById('provisaoProjetado');
+            const previstoMes = document.getElementById('provisaoPrevistoMes');
             const pagarCount = document.getElementById('provisaoPagarCount');
             const receberCount = document.getElementById('provisaoReceberCount');
             const projetadoLabel = document.getElementById('provisaoProjetadoLabel');
+            const previstoMesCard = document.getElementById('provisaoPrevistoCard');
+            const previstoMesLabel = document.getElementById('provisaoPrevistoMesLabel');
+            const previstoMesValor = Number((p.a_receber || 0) - (p.a_pagar || 0));
 
             // Card A Receber - só mostra dados para Pro
             const receberCard = receber?.closest('.provisao-card');
@@ -160,6 +170,42 @@ export function createProvisao({
 
             if (projetadoLabel) {
                 projetadoLabel.textContent = `entra em ${nextMonthLabel} com ${money(p.saldo_projetado || 0)}`;
+            }
+
+            if (previstoMesCard) {
+                previstoMesCard.classList.remove('is-positive', 'is-negative', 'is-neutral');
+
+                if (!isPro) {
+                    previstoMesCard.classList.add('is-neutral');
+                } else if (previstoMesValor > 0) {
+                    previstoMesCard.classList.add('is-positive');
+                } else if (previstoMesValor < 0) {
+                    previstoMesCard.classList.add('is-negative');
+                } else {
+                    previstoMesCard.classList.add('is-neutral');
+                }
+            }
+
+            if (previstoMes) {
+                if (isPro) {
+                    previstoMes.textContent = formatSignedMoney(previstoMesValor);
+                    previstoMes.style.color = '';
+                } else {
+                    previstoMes.textContent = 'R$ --';
+                    previstoMes.style.color = '';
+                }
+            }
+
+            if (previstoMesLabel) {
+                if (!isPro) {
+                    previstoMesLabel.textContent = 'Pro';
+                } else if (previstoMesValor > 0) {
+                    previstoMesLabel.textContent = `fecha ${monthLabelShort} no azul com ${money(previstoMesValor)}`;
+                } else if (previstoMesValor < 0) {
+                    previstoMesLabel.textContent = `fecha ${monthLabelShort} no vermelho em ${money(Math.abs(previstoMesValor))}`;
+                } else {
+                    previstoMesLabel.textContent = `pendências equilibradas até o fechamento de ${monthLabelShort}`;
+                }
             }
 
             // Alertas de vencidos (separados por tipo)

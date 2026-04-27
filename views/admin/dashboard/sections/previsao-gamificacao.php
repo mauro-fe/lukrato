@@ -69,6 +69,14 @@
                     <span class="provisao-card-count" id="provisaoProjetadoLabel">entra no próximo mês com R$ 0,00</span>
                 </div>
             </div>
+            <div class="provisao-card previsto" id="provisaoPrevistoCard">
+                <div class="provisao-card-icon"><i data-lucide="wallet"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">Previsto do mês</span>
+                    <span class="provisao-card-value" id="provisaoPrevistoMes">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoPrevistoMesLabel">impacto líquido do que ainda entra e sai</span>
+                </div>
+            </div>
         </div>
 
         <!-- Próximos vencimentos -->

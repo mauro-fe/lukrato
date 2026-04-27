@@ -3,10 +3,10 @@
    ============================================================================ */
 
 .ai-tip-card {
-  padding: var(--spacing-4);
+  padding: 0.95rem;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: 0.75rem;
   height: 100%;
 }
 
@@ -14,15 +14,15 @@
 .ai-tip-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .ai-tip-header-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  color: color-mix(in srgb, var(--color-primary) 62%, var(--color-text-muted) 38%);
   flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(230, 126, 34, 0.4));
+  filter: none;
 }
 
 .ai-tip-title {
@@ -35,14 +35,15 @@
 
 .ai-tip-badge {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 20px;
-  background: rgba(230, 126, 34, 0.12);
-  color: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 16%, transparent);
+  background: color-mix(in srgb, var(--color-text-muted) 9%, transparent);
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -50,7 +51,7 @@
 .ai-tip-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
 }
 
@@ -60,7 +61,8 @@
   align-items: stretch;
   gap: 0;
   padding: 0;
-  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--color-card-border) 86%, transparent);
+  border-radius: 12px;
   text-decoration: none;
   color: var(--color-text);
   overflow: hidden;
@@ -68,13 +70,14 @@
     border-color 0.2s ease,
     background 0.2s ease,
     box-shadow 0.2s ease;
-  animation: aiTipSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  background: color-mix(in srgb, var(--color-surface) 97%, transparent);
+  animation: none;
 }
 
 .ai-tip-item:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-card-border));
-  background: rgba(255, 255, 255, 0.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-card-border));
+  background: color-mix(in srgb, var(--color-primary) 3%, var(--color-surface));
+  box-shadow: none;
   text-decoration: none;
   color: var(--color-text);
 }
@@ -96,9 +99,10 @@
 
 /* --- Accent bar (left border) --- */
 .ai-tip-accent {
-  width: 3px;
+  width: 2px;
   flex-shrink: 0;
   border-radius: 3px 0 0 3px;
+  opacity: 0.82;
 }
 
 .ai-tip-accent--critical { background: linear-gradient(180deg, #ef4444, #dc2626); }
@@ -112,18 +116,18 @@
 .ai-tip-content {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 9px;
+  padding: 9px 10px;
   flex: 1;
   min-width: 0;
 }
 
 /* --- Tip icon --- */
 .ai-tip-item-icon {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,8 +135,8 @@
 }
 
 .ai-tip-item-icon svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 .ai-tip-item-icon--critical {
@@ -178,8 +182,8 @@
 }
 
 .ai-tip-item-desc {
-  font-size: 10px;
-  color: var(--color-text-muted);
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--color-text-muted) 90%, var(--color-text) 10%);
   line-height: 1.35;
 }
 
@@ -189,21 +193,21 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 10px;
+  padding: 0 8px;
   flex-shrink: 0;
-  min-width: 46px;
-  border-left: 1px solid var(--color-card-border);
+  min-width: 52px;
+  border-left: 1px solid color-mix(in srgb, var(--color-card-border) 82%, transparent);
 }
 
 .ai-tip-metric-value {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-text);
 }
 
 .ai-tip-metric-label {
-  font-size: 9px;
+  font-size: 8px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
@@ -221,10 +225,10 @@
   width: 12px;
   height: 12px;
   color: var(--color-text);
-  opacity: 0.4;
+  opacity: 0.28;
   flex-shrink: 0;
   align-self: center;
-  margin-right: 4px;
+  margin-right: 2px;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 

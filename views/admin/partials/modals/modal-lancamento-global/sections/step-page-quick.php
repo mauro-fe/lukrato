@@ -4,7 +4,7 @@
         <button type="button" class="lk-btn-voltar lk-page-quick-back"
             onclick="lancamentoGlobalManager.voltarEscolhaTipo()">
             <i data-lucide="arrow-left"></i>
-            Voltar
+            Trocar tipo
         </button>
         <div class="lk-page-quick-title">
             <h3 id="modalLancamentoGlobalTituloInline">Nova transação</h3>

@@ -39,9 +39,11 @@ class DashboardFirstRunExperience {
       displayNameSubmit: document.getElementById('dashboardDisplayNameSubmit'),
       displayNameDismiss: document.getElementById('dashboardDisplayNameDismiss'),
       displayNameFeedback: document.getElementById('dashboardDisplayNameFeedback'),
+      alertsSection: document.getElementById('sectionAlertas'),
       quickStart: document.getElementById('dashboardQuickStart'),
       quickStartEyebrow: document.getElementById('dashboardQuickStartEyebrow'),
       quickStartTitle: document.getElementById('dashboardQuickStartTitle'),
+      quickStartSummary: document.getElementById('dashboardQuickStartSummary'),
       primaryActionCta: document.getElementById('dashboardFirstTransactionCta'),
       openTourPrompt: document.getElementById('dashboardOpenTourPrompt'),
       emptyStateTitle: document.querySelector('#emptyState p'),
@@ -102,10 +104,12 @@ class DashboardFirstRunExperience {
     this.state.transactionCount = currentCount;
     this.state.isDemo = detail.isDemo === true;
 
-    this.toggleQuickStart(currentCount === 0);
+    const shouldShowQuickStart = this.shouldShowQuickStart();
+
+    this.toggleQuickStart(shouldShowQuickStart);
     this.syncPrimaryActionCopy(actionCopy);
     this.syncDisplayNamePrompt();
-    this.togglePrimaryActionFocus(currentCount === 0);
+    this.togglePrimaryActionFocus(shouldShowQuickStart);
 
     if (!isFirstPayload && previousCount === 0 && currentCount > 0) {
       this.handleFirstActionCompleted();
@@ -128,6 +132,10 @@ class DashboardFirstRunExperience {
     this.syncStackVisibility();
   }
 
+  shouldShowQuickStart() {
+    return this.state.isDemo === true && Number(this.state.transactionCount ?? 0) === 0;
+  }
+
   syncPrimaryActionCopy(copy) {
     if (!copy) {
       return;
@@ -141,6 +149,10 @@ class DashboardFirstRunExperience {
 
     if (this.elements.quickStartTitle) {
       this.elements.quickStartTitle.textContent = onboardingContent.title;
+    }
+
+    if (this.elements.quickStartSummary) {
+      this.elements.quickStartSummary.textContent = onboardingContent.summary;
     }
 
     if (this.elements.primaryActionCta) {
@@ -187,14 +199,16 @@ class DashboardFirstRunExperience {
   buildQuickStartContent(copy) {
     if (copy?.action?.actionType === 'create_transaction') {
       return {
-        eyebrow: 'Passo 2',
-        title: 'Adicione sua primeira transação',
+        eyebrow: 'Próxima ação',
+        title: 'Registre a primeira transação',
+        summary: 'Com a conta pronta, registre a primeira movimentação para transformar o painel inicial em acompanhamento real do período.',
       };
     }
 
     return {
-      eyebrow: 'Passo 1',
-      title: 'Crie sua primeira conta',
+      eyebrow: 'Configuração inicial',
+      title: 'Cadastre sua primeira conta',
+      summary: 'Comece pela base do seu fluxo financeiro. Assim que a conta for criada, o painel passa a refletir a sua operação.',
     };
   }
 
@@ -240,12 +254,8 @@ class DashboardFirstRunExperience {
       this.elements.displayNameForm.hidden = !shouldShowName;
     }
 
-    const shouldShowBar = shouldShowPreview || shouldShowName;
-
-    this.elements.displayNameCard.hidden = !shouldShowBar;
-    this.elements.displayNameCard.classList.toggle('is-preview-only', shouldShowPreview && !shouldShowName);
-    this.elements.displayNameCard.classList.toggle('is-name-only', shouldShowName && !shouldShowPreview);
-    this.elements.displayNameCard.classList.toggle('is-dual', shouldShowPreview && shouldShowName);
+    this.elements.displayNameCard.hidden = !shouldShowName;
+    this.elements.displayNameCard.classList.toggle('is-name-only', shouldShowName);
 
     this.syncStackVisibility();
   }
@@ -259,6 +269,14 @@ class DashboardFirstRunExperience {
     const hasDisplayNameBar = this.elements.displayNameCard && !this.elements.displayNameCard.hidden;
 
     this.elements.firstRunStack.hidden = !(hasQuickStart || hasDisplayNameBar);
+
+    document.body.classList.toggle('dashboard-demo-preview-active', this.state.isDemo === true);
+    document.body.classList.toggle('dashboard-first-use-active', Boolean(hasQuickStart));
+    document.body.classList.toggle('dashboard-onboarding-active', Boolean(hasQuickStart));
+
+    if (this.elements.alertsSection) {
+      this.elements.alertsSection.classList.toggle('dashboard-alerts--suppressed', Boolean(hasQuickStart));
+    }
   }
 
   dismissDisplayNamePrompt() {
@@ -458,7 +476,7 @@ class DashboardFirstRunExperience {
   focusPrimaryAction() {
     this.togglePrimaryActionFocus(true);
 
-    if (this.state.transactionCount === 0) {
+    if (this.shouldShowQuickStart()) {
       this.elements.quickStart?.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
