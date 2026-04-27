@@ -7,12 +7,19 @@
             Trocar tipo
         </button>
         <div class="lk-page-quick-title">
+            <span class="lk-page-step-eyebrow" id="globalQuickTypeKicker">Informações</span>
             <h3 id="modalLancamentoGlobalTituloInline">Nova transação</h3>
+            <p id="globalQuickTypeDescription">Preencha as informações principais e salve sem atrito.</p>
         </div>
     </div>
 
     <div class="lk-page-quick-card surface-card">
         <?php include __DIR__ . '/account-context.php'; ?>
+
+        <div class="lk-page-step-copy">
+            <h4 id="globalStep2Title">Informações principais</h4>
+            <p id="globalStep2Subtitle">Valor, data, categoria, subcategoria e forma de pagamento ou recebimento.</p>
+        </div>
 
         <div class="lk-page-quick-grid">
             <div class="lk-form-group lk-page-step-panel lk-page-step-panel--value">
@@ -46,6 +53,118 @@
                 <input type="hidden" id="globalLancamentoHora" name="hora_lancamento" value="">
             </div>
 
+            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--category" id="globalCategoriaGroup">
+                <label for="globalLancamentoCategoria" class="lk-label">
+                    <i data-lucide="tag"></i>
+                    Categoria
+                </label>
+                <div class="lk-ai-category-row">
+                    <div class="lk-select-wrapper" style="flex:1">
+                        <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select"
+                            data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
+                            data-lk-select-search-placeholder="Buscar categoria...">
+                            <option value="">Sem categoria</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                    </div>
+                    <button type="button" class="lk-btn-ai-suggest" id="btnGlobalAiSuggestCategoria"
+                        onclick="lancamentoGlobalManager.sugerirCategoriaIA()" title="Sugerir categoria com IA">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--subcategoria subcategoria-select-group"
+                id="globalSubcategoriaGroup" style="display: none;">
+                <label for="globalLancamentoSubcategoria" class="lk-label">
+                    <i data-lucide="tags"></i>
+                    Subcategoria
+                </label>
+                <div class="lk-select-wrapper">
+                    <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select"
+                        data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
+                        data-lk-select-search-placeholder="Buscar subcategoria...">
+                        <option value="">Sem subcategoria</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                </div>
+            </div>
+
+            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--method lk-forma-pagamento-section"
+                id="globalFormaPagamentoGroup" style="display: none;">
+                <label for="globalFormaPagamento" class="lk-forma-pagamento-label">
+                    <i data-lucide="wallet"></i>
+                    Forma de pagamento
+                </label>
+                <div class="lk-select-wrapper">
+                    <select id="globalFormaPagamento" name="forma_pagamento" class="lk-select"
+                        data-lk-custom-select="modal"
+                        onchange="lancamentoGlobalManager.selecionarFormaPagamento(this.value)">
+                        <option value="">Não informar</option>
+                        <option value="pix">PIX</option>
+                        <option value="cartao_credito">Cartão de crédito</option>
+                        <option value="cartao_debito">Cartão de débito</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="boleto">Boleto</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                </div>
+            </div>
+
+            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--method lk-forma-pagamento-section"
+                id="globalFormaRecebimentoGroup" style="display: none;">
+                <label for="globalFormaRecebimento" class="lk-forma-pagamento-label">
+                    <i data-lucide="hand-coins"></i>
+                    Forma de recebimento
+                </label>
+                <div class="lk-select-wrapper">
+                    <select id="globalFormaRecebimento" name="forma_recebimento" class="lk-select"
+                        data-lk-custom-select="modal"
+                        onchange="lancamentoGlobalManager.selecionarFormaRecebimento(this.value)">
+                        <option value="">Não informar</option>
+                        <option value="pix">PIX</option>
+                        <option value="deposito">Depósito</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="transferencia">Transferência</option>
+                        <option value="estorno_cartao">Estorno no cartão</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                </div>
+            </div>
+
+            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--card lk-forma-cartao-info"
+                id="globalCartaoCreditoGroup" style="display: none;">
+                <label for="globalLancamentoCartaoCredito" class="lk-label">
+                    <i data-lucide="credit-card"></i>
+                    Cartão
+                </label>
+                <div class="lk-select-wrapper">
+                    <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select"
+                        data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
+                        data-lk-select-search-placeholder="Buscar cartão..."
+                        onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
+                        <option value="">Selecione o cartão</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                </div>
+            </div>
+
+            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--support" id="globalFaturaEstornoGroup"
+                style="display: none;">
+                <label for="globalLancamentoFaturaEstorno" class="lk-label">
+                    <i data-lucide="receipt"></i>
+                    Fatura do estorno
+                </label>
+                <div class="lk-select-wrapper">
+                    <select id="globalLancamentoFaturaEstorno" name="fatura_mes_ano" class="lk-select"
+                        data-lk-custom-select="modal" data-lk-select-search="true"
+                        data-lk-select-search-placeholder="Buscar fatura...">
+                        <option value="">Carregando faturas...</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                </div>
+            </div>
+
             <div class="lk-form-group lk-page-step-panel lk-page-step-panel--destination" id="globalContaDestinoGroup"
                 style="display: none;">
                 <label for="globalLancamentoContaDestino" class="lk-label required">
@@ -63,24 +182,65 @@
             </div>
         </div>
 
+        <div class="lk-planning-alerts" id="globalCategoriaPlanningAlerts" hidden></div>
+
         <div class="lk-page-quick-actions">
-            <button type="button" class="lk-btn-skip lk-page-more-options-btn" id="globalQuickMoreOptionsBtn"
-                onclick="lancamentoGlobalManager.toggleQuickOptions()" aria-expanded="false"
-                aria-controls="globalQuickOptions">
-                <i data-lucide="sliders-horizontal"></i>
-                Mais opções
-            </button>
+            <div class="lk-page-quick-actions-main">
+                <button type="button" class="lk-btn-skip lk-page-more-options-btn" id="globalQuickDetailsBtn"
+                    onclick="lancamentoGlobalManager.nextStep()">
+                    <i data-lucide="arrow-right-circle"></i>
+                    Ajustes opcionais
+                </button>
 
-            <button type="submit" class="lk-btn lk-btn-primary lk-page-submit-btn" id="globalBtnSalvar">
-                <i data-lucide="check"></i>
-                <span class="lk-page-submit-label">Salvar transação</span>
-            </button>
+                <button type="submit" class="lk-btn lk-btn-primary lk-page-submit-btn" id="globalBtnSalvar">
+                    <i data-lucide="check"></i>
+                    <span class="lk-page-submit-label">Salvar transação</span>
+                </button>
+            </div>
         </div>
+    </div>
 
-        <div class="lk-page-quick-options" id="globalQuickOptions" hidden>
+    <div class="lk-page-quick-history">
+        <button type="button" class="lk-page-history-toggle" id="globalQuickHistoryBtn"
+            onclick="lancamentoGlobalManager.toggleQuickHistory()" aria-expanded="false"
+            aria-controls="globalQuickHistoryPanel">
+            <span>
+                <i data-lucide="history"></i>
+                Últimas movimentações
+            </span>
+            <i data-lucide="chevron-down" class="lk-page-history-toggle__chevron"></i>
+        </button>
+
+        <div class="lk-page-history-panel" id="globalQuickHistoryPanel" hidden>
+            <div class="lk-historico-list surface-card" id="globalLancamentoHistorico">
+                <div class="lk-historico-empty">
+                    <i data-lucide="history"></i>
+                    <p>Escolha uma conta para ver o histórico.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="lk-wizard-step lk-page-details-step" data-step="3" id="globalStep3">
+    <div class="lk-page-details-head">
+        <button type="button" class="lk-btn-voltar lk-page-quick-back" onclick="lancamentoGlobalManager.goToStep(2)">
+            <i data-lucide="arrow-left"></i>
+            Voltar para informações
+        </button>
+
+        <div class="lk-page-details-title">
+            <span class="lk-page-step-chip lk-page-step-chip--optional">Opcional</span>
+            <h3 id="globalStep3Title">Ajustes opcionais</h3>
+            <p id="globalStep3Subtitle">Meta, repetição, lembrete e outros detalhes avançados.</p>
+        </div>
+    </div>
+
+    <div class="lk-page-quick-card surface-card">
+        <div class="lk-page-quick-options">
             <div class="lk-page-quick-options-head">
-                <span>Ajustes</span>
-                <small>Forma, categoria, meta e repetição quando precisar.</small>
+                <span>Complementos</span>
+                <small>Use só quando precisar deixar o lançamento mais completo.</small>
             </div>
 
             <div class="lk-page-quick-options-grid">
@@ -96,79 +256,7 @@
                             </span>
                         </label>
                     </div>
-                    <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem
-                        confirmados.</small>
-                </div>
-
-                <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaPagamentoGroup"
-                    style="display: none;">
-                    <label for="globalFormaPagamento" class="lk-forma-pagamento-label">
-                        <i data-lucide="wallet"></i>
-                        Forma de pagamento
-                    </label>
-                    <div class="lk-select-wrapper">
-                        <select id="globalFormaPagamento" name="forma_pagamento" class="lk-select"
-                            data-lk-custom-select="modal" onchange="lancamentoGlobalManager.selecionarFormaPagamento(this.value)">
-                            <option value="">Não informar</option>
-                            <option value="pix">PIX</option>
-                            <option value="cartao_credito">Cartão de crédito</option>
-                            <option value="cartao_debito">Cartão de débito</option>
-                            <option value="dinheiro">Dinheiro</option>
-                            <option value="boleto">Boleto</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                    </div>
-                </div>
-
-                <div class="lk-form-group lk-forma-pagamento-section" id="globalFormaRecebimentoGroup"
-                    style="display: none;">
-                    <label for="globalFormaRecebimento" class="lk-forma-pagamento-label">
-                        <i data-lucide="hand-coins"></i>
-                        Forma de recebimento
-                    </label>
-                    <div class="lk-select-wrapper">
-                        <select id="globalFormaRecebimento" name="forma_recebimento" class="lk-select"
-                            data-lk-custom-select="modal" onchange="lancamentoGlobalManager.selecionarFormaRecebimento(this.value)">
-                            <option value="">Não informar</option>
-                            <option value="pix">PIX</option>
-                            <option value="deposito">Depósito</option>
-                            <option value="dinheiro">Dinheiro</option>
-                            <option value="transferencia">Transferência</option>
-                            <option value="estorno_cartao">Estorno no cartão</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                    </div>
-                </div>
-
-                <div class="lk-form-group lk-forma-cartao-info" id="globalCartaoCreditoGroup" style="display: none;">
-                    <label for="globalLancamentoCartaoCredito" class="lk-label">
-                        <i data-lucide="credit-card"></i>
-                        Cartão
-                    </label>
-                    <div class="lk-select-wrapper">
-                        <select id="globalLancamentoCartaoCredito" name="cartao_credito_id" class="lk-select"
-                            data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
-                            data-lk-select-search-placeholder="Buscar cartão..."
-                            onchange="typeof lancamentoGlobalManager !== 'undefined' && lancamentoGlobalManager.onCartaoEstornoChange && lancamentoGlobalManager.onCartaoEstornoChange()">
-                            <option value="">Selecione o cartão</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                    </div>
-                </div>
-
-                <div class="lk-form-group" id="globalFaturaEstornoGroup" style="display: none;">
-                    <label for="globalLancamentoFaturaEstorno" class="lk-label">
-                        <i data-lucide="receipt"></i>
-                        Fatura do estorno
-                    </label>
-                    <div class="lk-select-wrapper">
-                        <select id="globalLancamentoFaturaEstorno" name="fatura_mes_ano" class="lk-select"
-                            data-lk-custom-select="modal" data-lk-select-search="true"
-                            data-lk-select-search-placeholder="Buscar fatura...">
-                            <option value="">Carregando faturas...</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                    </div>
+                    <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem confirmados.</small>
                 </div>
 
                 <div class="lk-form-group" id="globalParcelamentoGroup" style="display: none;">
@@ -252,44 +340,6 @@
                         <span class="lk-input-suffix" id="globalNumeroParcelasSuffixTexto">parcelas</span>
                     </div>
                     <div id="globalParcelamentoPreview" class="lk-parcelamento-preview" style="display: none;"></div>
-                </div>
-
-                <div class="lk-form-group" id="globalCategoriaGroup">
-                    <label for="globalLancamentoCategoria" class="lk-label">
-                        <i data-lucide="tag"></i>
-                        Categoria
-                    </label>
-                    <div class="lk-ai-category-row">
-                        <div class="lk-select-wrapper" style="flex:1">
-                            <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select"
-                                data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
-                                data-lk-select-search-placeholder="Buscar categoria...">
-                                <option value="">Sem categoria</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                        </div>
-                        <button type="button" class="lk-btn-ai-suggest" id="btnGlobalAiSuggestCategoria"
-                            onclick="lancamentoGlobalManager.sugerirCategoriaIA()" title="Sugerir categoria com IA">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="lk-planning-alerts" id="globalCategoriaPlanningAlerts" hidden></div>
-
-                <div class="lk-form-group subcategoria-select-group" id="globalSubcategoriaGroup">
-                    <label for="globalLancamentoSubcategoria" class="lk-label">
-                        <i data-lucide="tags"></i>
-                        Subcategoria
-                    </label>
-                    <div class="lk-select-wrapper">
-                        <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select"
-                            data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
-                            data-lk-select-search-placeholder="Buscar subcategoria...">
-                            <option value="">Sem subcategoria</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                    </div>
                 </div>
 
                 <div class="lk-form-group" id="globalMetaGroup" style="display: none;">
@@ -457,27 +507,6 @@
                     <i data-lucide="check"></i>
                     <span class="lk-page-submit-label">Salvar transação</span>
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="lk-page-quick-history">
-        <button type="button" class="lk-page-history-toggle" id="globalQuickHistoryBtn"
-            onclick="lancamentoGlobalManager.toggleQuickHistory()" aria-expanded="false"
-            aria-controls="globalQuickHistoryPanel">
-            <span>
-                <i data-lucide="history"></i>
-                Últimas movimentações
-            </span>
-            <i data-lucide="chevron-down" class="lk-page-history-toggle__chevron"></i>
-        </button>
-
-        <div class="lk-page-history-panel" id="globalQuickHistoryPanel" hidden>
-            <div class="lk-historico-list surface-card" id="globalLancamentoHistorico">
-                <div class="lk-historico-empty">
-                    <i data-lucide="history"></i>
-                    <p>Escolha uma conta para ver o histórico.</p>
-                </div>
             </div>
         </div>
     </div>

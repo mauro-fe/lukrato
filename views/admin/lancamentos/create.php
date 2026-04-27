@@ -38,5 +38,29 @@ $wizardInitialStep = $wizardTipo !== '' ? '2' : '1';
         </div>
     </div>
 
+    <div class="lancamento-create-page__stepper" aria-label="Etapas do lançamento">
+        <div class="lancamento-create-page__step" data-step="1">
+            <span class="lancamento-create-page__step-index">1</span>
+            <span class="lancamento-create-page__step-copy">
+                <strong>Escolha</strong>
+                <small>Receita, despesa ou transferência</small>
+            </span>
+        </div>
+        <div class="lancamento-create-page__step" data-step="2">
+            <span class="lancamento-create-page__step-index">2</span>
+            <span class="lancamento-create-page__step-copy">
+                <strong>Informações</strong>
+                <small>Valor, data, categoria e forma</small>
+            </span>
+        </div>
+        <div class="lancamento-create-page__step" data-step="3">
+            <span class="lancamento-create-page__step-index">3</span>
+            <span class="lancamento-create-page__step-copy">
+                <strong>Opcional</strong>
+                <small>Meta, lembrete e ajustes finais</small>
+            </span>
+        </div>
+    </div>
+
     <?php include __DIR__ . '/../partials/modals/modal-lancamento-global.php'; ?>
 </section>

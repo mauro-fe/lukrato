@@ -72,7 +72,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             this.currentStep = 1;
             this.tipoAtual = null;
             this.resetarFormulario();
-            this.totalSteps = this.isPageMode?.() ? 2 : 5;
+            this.totalSteps = this.isPageMode?.() ? 3 : 5;
             this.restaurarCabecalhoPadrao();
             this.resetQuickOptions?.();
 
@@ -233,12 +233,7 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
         },
 
         saveQuick() {
-            if (this.tipoAtual === 'transferencia') {
-                this.nextStep();
-                return;
-            }
-
-            if (this.currentStep !== 2) {
+            if (this.currentStep < 2) {
                 this.goToStep(2);
             }
 
@@ -326,31 +321,31 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
                     title: 'Nova receita',
                     submit: 'Salvar receita',
                     kicker: 'Entrada',
-                    description: 'Registre o valor, a data e os detalhes essenciais da entrada. Forma de recebimento, meta e repetição ficam em Mais opções.'
+
                 },
                 despesa: {
                     title: 'Nova despesa',
                     submit: 'Salvar despesa',
                     kicker: 'Saída',
-                    description: 'Registre o valor, a data e o essencial do gasto. Categoria, forma de pagamento e recorrência entram só se você precisar.'
+
                 },
                 transferencia: {
                     title: 'Nova transferência',
                     submit: 'Salvar transferência',
                     kicker: 'Mover saldo',
-                    description: 'Escolha a conta de origem, o destino e o valor da movimentação. Os ajustes extras continuam disponíveis abaixo.'
+
                 }
             };
             const copy = labels[tipo] || {
                 title: 'Nova transação',
                 submit: 'Salvar transação',
                 kicker: 'Fluxo rápido',
-                description: 'Preencha valor, descrição e data. Abra Mais opções apenas quando precisar detalhar a movimentação.'
+
             };
 
             const kicker = document.getElementById('globalQuickTypeKicker');
             const title = document.getElementById('modalLancamentoGlobalTituloInline');
-            const description = document.getElementById('globalQuickTypeDescription');
+
             const button = document.getElementById('globalBtnSalvar');
             const submitLabels = document.querySelectorAll('.lk-page-submit-label');
 
@@ -359,7 +354,6 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
                 kicker.textContent = copy.kicker;
             }
             if (title) title.textContent = copy.title;
-            if (description) description.textContent = copy.description;
             if (button) {
                 button.innerHTML = `<i data-lucide="check"></i> <span class="lk-page-submit-label">${copy.submit}</span>`;
             }
