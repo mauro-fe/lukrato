@@ -40,6 +40,8 @@ class LancamentoController extends WebController
                 'isPro' => $user->isPro(),
                 'menu' => 'lancamentos',
                 'hideLaunchFab' => true,
+                'hideSupportFab' => true,
+                'hideScrollToTop' => true,
                 'backUrl' => $backUrl,
                 'backLabel' => $this->resolveBackLabel($backPath),
                 'wizardSource' => $this->normalizeWizardSource($this->getStringQuery('origem', '')),

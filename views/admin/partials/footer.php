@@ -3,10 +3,13 @@
 </main>
 <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
+<?php $hideScrollToTop = $hideScrollToTop ?? false; ?>
 <!-- Botão Scroll to Top -->
+<?php if (!$hideScrollToTop): ?>
 <button id="scrollToTopBtn" class="scroll-to-top" aria-label="Voltar ao topo" title="Voltar ao topo">
     <i data-lucide="arrow-up"></i>
 </button>
+<?php endif; ?>
 
 <footer class="footer">
     <div class="footer-content">

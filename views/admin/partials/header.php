@@ -14,6 +14,7 @@ $isSysAdmin     = $isSysAdmin     ?? false;
 $showUpgradeCTA = $showUpgradeCTA ?? true;
 $isPro          = $isPro          ?? (!$showUpgradeCTA);
 $hideLaunchFab  = $hideLaunchFab  ?? false;
+$hideSupportFab = $hideSupportFab ?? false;
 $userTheme      = $userTheme      ?? 'dark';
 $showSuggestionEntry = \Application\Support\Engagement\FeedbackVisibility::canCollectGeneralFeedback(
     $currentUser?->created_at
@@ -458,7 +459,9 @@ $footerModules = is_array($footerModules ?? null)
     <?php if (!$hideLaunchFab): ?>
     <?php include __DIR__ . '/botao-lancamento.php'; ?>
     <?php endif; ?>
+    <?php if (!$hideSupportFab): ?>
     <?php include __DIR__ . '/botao-suporte.php'; ?>
+    <?php endif; ?>
 
     <div id="lk-app-modal-root" class="lk-modal-root lk-modal-root--app" aria-hidden="true"></div>
 
