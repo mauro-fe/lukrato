@@ -95,9 +95,7 @@ export function createProvisao({
             }
 
             if (headlineEl) {
-                headlineEl.textContent = (p.saldo_projetado || 0) >= 0
-                    ? `Se nada mudar, você fecha ${monthLabelShort} com ${money(p.saldo_projetado || 0)}. A leitura abaixo considera saldo atual de ${money(p.saldo_atual || 0)}, o que ainda entra e o que ainda sai.`
-                    : `Se nada mudar, você fecha ${monthLabelShort} com ${money(p.saldo_projetado || 0)}. A leitura abaixo considera saldo atual de ${money(p.saldo_atual || 0)}, o que ainda entra e o que ainda sai.`;
+                headlineEl.textContent = `Saldo atual ${money(p.saldo_atual || 0)}. Com o que ainda entra e sai, ${monthLabelShort} fecha em ${money(p.saldo_projetado || 0)}.`;
             }
 
             // Atualizar título e link conforme plano
@@ -169,7 +167,7 @@ export function createProvisao({
             }
 
             if (projetadoLabel) {
-                projetadoLabel.textContent = `entra em ${nextMonthLabel} com ${money(p.saldo_projetado || 0)}`;
+                projetadoLabel.textContent = `abre ${nextMonthLabel} com ${money(p.saldo_projetado || 0)}`;
             }
 
             if (previstoMesCard) {
@@ -200,11 +198,11 @@ export function createProvisao({
                 if (!isPro) {
                     previstoMesLabel.textContent = 'Pro';
                 } else if (previstoMesValor > 0) {
-                    previstoMesLabel.textContent = `fecha ${monthLabelShort} no azul com ${money(previstoMesValor)}`;
+                    previstoMesLabel.textContent = `${monthLabelShort} vira no azul`;
                 } else if (previstoMesValor < 0) {
-                    previstoMesLabel.textContent = `fecha ${monthLabelShort} no vermelho em ${money(Math.abs(previstoMesValor))}`;
+                    previstoMesLabel.textContent = `${monthLabelShort} vira no vermelho`;
                 } else {
-                    previstoMesLabel.textContent = `pendências equilibradas até o fechamento de ${monthLabelShort}`;
+                    previstoMesLabel.textContent = 'entradas e saídas empatadas';
                 }
             }
 

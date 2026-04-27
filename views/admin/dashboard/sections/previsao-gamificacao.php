@@ -48,7 +48,7 @@
             <div class="provisao-card pagar">
                 <div class="provisao-card-icon"><i data-lucide="arrow-up-right"></i></div>
                 <div class="provisao-card-body">
-                    <span class="provisao-card-label">Restante a pagar</span>
+                    <span class="provisao-card-label">A pagar</span>
                     <span class="provisao-card-value" id="provisaoPagar">R$ 0,00</span>
                     <span class="provisao-card-count" id="provisaoPagarCount">0 pendentes</span>
                 </div>
@@ -56,17 +56,9 @@
             <div class="provisao-card receber">
                 <div class="provisao-card-icon"><i data-lucide="arrow-down-left"></i></div>
                 <div class="provisao-card-body">
-                    <span class="provisao-card-label">Restante a receber</span>
+                    <span class="provisao-card-label">A receber</span>
                     <span class="provisao-card-value" id="provisaoReceber">R$ 0,00</span>
                     <span class="provisao-card-count" id="provisaoReceberCount">0 pendentes</span>
-                </div>
-            </div>
-            <div class="provisao-card projetado">
-                <div class="provisao-card-icon"><i data-lucide="trending-up"></i></div>
-                <div class="provisao-card-body">
-                    <span class="provisao-card-label">Saldo no fim do mês</span>
-                    <span class="provisao-card-value" id="provisaoProjetado">R$ 0,00</span>
-                    <span class="provisao-card-count" id="provisaoProjetadoLabel">entra no próximo mês com R$ 0,00</span>
                 </div>
             </div>
             <div class="provisao-card previsto" id="provisaoPrevistoCard">
@@ -74,9 +66,20 @@
                 <div class="provisao-card-body">
                     <span class="provisao-card-label">Previsto do mês</span>
                     <span class="provisao-card-value" id="provisaoPrevistoMes">R$ 0,00</span>
-                    <span class="provisao-card-count" id="provisaoPrevistoMesLabel">impacto líquido do que ainda entra e sai</span>
+                    <span class="provisao-card-count" id="provisaoPrevistoMesLabel">impacto líquido do que ainda entra e
+                        sai</span>
                 </div>
             </div>
+            <div class="provisao-card projetado">
+                <div class="provisao-card-icon"><i data-lucide="trending-up"></i></div>
+                <div class="provisao-card-body">
+                    <span class="provisao-card-label">Saldo final</span>
+                    <span class="provisao-card-value" id="provisaoProjetado">R$ 0,00</span>
+                    <span class="provisao-card-count" id="provisaoProjetadoLabel">abre o próximo mês com R$
+                        0,00</span>
+                </div>
+            </div>
+
         </div>
 
         <!-- Próximos vencimentos -->

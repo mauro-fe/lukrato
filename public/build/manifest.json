@@ -433,7 +433,7 @@
     ]
   },
   "admin/dashboard/index.js": {
-    "file": "assets/dashboard-DDNplRZa.js",
+    "file": "assets/dashboard-CUAE67As.js",
     "name": "dashboard",
     "src": "admin/dashboard/index.js",
     "isEntry": true,
@@ -447,7 +447,7 @@
       "_ui-preferences-DQxiKBrB.js"
     ],
     "css": [
-      "assets/dashboard-CWeT8WD-.css"
+      "assets/dashboard-CHaJhO-R.css"
     ]
   },
   "admin/faturas/index.js": {
