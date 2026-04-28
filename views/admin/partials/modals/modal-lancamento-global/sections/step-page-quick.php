@@ -9,7 +9,7 @@
         <div class="lk-page-quick-title">
             <span class="lk-page-step-eyebrow" id="globalQuickTypeKicker">Informações</span>
             <h3 id="modalLancamentoGlobalTituloInline">Nova transação</h3>
-            <p id="globalQuickTypeDescription">Preencha as informações principais e salve sem atrito.</p>
+
         </div>
     </div>
 
@@ -51,43 +51,6 @@
                 </label>
                 <input type="date" id="globalLancamentoData" name="data" class="lk-input lk-input-date" required>
                 <input type="hidden" id="globalLancamentoHora" name="hora_lancamento" value="">
-            </div>
-
-            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--category" id="globalCategoriaGroup">
-                <label for="globalLancamentoCategoria" class="lk-label">
-                    <i data-lucide="tag"></i>
-                    Categoria
-                </label>
-                <div class="lk-ai-category-row">
-                    <div class="lk-select-wrapper" style="flex:1">
-                        <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select"
-                            data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
-                            data-lk-select-search-placeholder="Buscar categoria...">
-                            <option value="">Sem categoria</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                    </div>
-                    <button type="button" class="lk-btn-ai-suggest" id="btnGlobalAiSuggestCategoria"
-                        onclick="lancamentoGlobalManager.sugerirCategoriaIA()" title="Sugerir categoria com IA">
-                        <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="lk-form-group lk-page-step-panel lk-page-step-panel--subcategoria subcategoria-select-group"
-                id="globalSubcategoriaGroup" style="display: none;">
-                <label for="globalLancamentoSubcategoria" class="lk-label">
-                    <i data-lucide="tags"></i>
-                    Subcategoria
-                </label>
-                <div class="lk-select-wrapper">
-                    <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select"
-                        data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
-                        data-lk-select-search-placeholder="Buscar subcategoria...">
-                        <option value="">Sem subcategoria</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
-                </div>
             </div>
 
             <div class="lk-form-group lk-page-step-panel lk-page-step-panel--method lk-forma-pagamento-section"
@@ -181,6 +144,43 @@
                 </div>
             </div>
         </div>
+        <div class="lk-form-group lk-page-step-panel lk-page-step-panel--category" id="globalCategoriaGroup">
+            <label for="globalLancamentoCategoria" class="lk-label">
+                <i data-lucide="tag"></i>
+                Categoria
+            </label>
+            <div class="lk-ai-category-row">
+                <div class="lk-select-wrapper" style="flex:1">
+                    <select id="globalLancamentoCategoria" name="categoria_id" class="lk-select"
+                        data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
+                        data-lk-select-search-placeholder="Buscar categoria...">
+                        <option value="">Sem categoria</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="lk-select-icon"></i>
+                </div>
+                <button type="button" class="lk-btn-ai-suggest" id="btnGlobalAiSuggestCategoria"
+                    onclick="lancamentoGlobalManager.sugerirCategoriaIA()" title="Sugerir categoria com IA">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="lk-form-group lk-page-step-panel lk-page-step-panel--subcategoria subcategoria-select-group"
+            id="globalSubcategoriaGroup" style="display: none;">
+            <label for="globalLancamentoSubcategoria" class="lk-label">
+                <i data-lucide="tags"></i>
+                Subcategoria
+            </label>
+            <div class="lk-select-wrapper">
+                <select id="globalLancamentoSubcategoria" name="subcategoria_id" class="lk-select"
+                    data-lk-custom-select="modal" data-lk-select-search="true" data-lk-select-sort="alpha"
+                    data-lk-select-search-placeholder="Buscar subcategoria...">
+                    <option value="">Sem subcategoria</option>
+                </select>
+                <i data-lucide="chevron-down" class="lk-select-icon"></i>
+            </div>
+        </div>
+
 
         <div class="lk-planning-alerts" id="globalCategoriaPlanningAlerts" hidden></div>
 
@@ -232,7 +232,6 @@
         <div class="lk-page-details-title">
             <span class="lk-page-step-chip lk-page-step-chip--optional">Opcional</span>
             <h3 id="globalStep3Title">Ajustes opcionais</h3>
-            <p id="globalStep3Subtitle">Meta, repetição, lembrete e outros detalhes avançados.</p>
         </div>
     </div>
 
@@ -256,7 +255,8 @@
                             </span>
                         </label>
                     </div>
-                    <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem confirmados.</small>
+                    <small class="lk-helper-text" id="globalPagoHelperText">Pendentes não alteram o saldo até serem
+                        confirmados.</small>
                 </div>
 
                 <div class="lk-form-group" id="globalParcelamentoGroup" style="display: none;">

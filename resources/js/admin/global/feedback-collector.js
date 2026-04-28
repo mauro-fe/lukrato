@@ -303,26 +303,39 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
         ).join('');
 
         Swal.fire({
-            title: 'Envie seu feedback',
+            title: '',
             html: `
                 <div class="lk-sg-modal">
-                    <p class="lk-sg-subtitle">Sua opinião nos ajuda a melhorar o Lukrato.</p>
-                    <div class="lk-sg-section">
+                    <div class="lk-sg-hero">
+                        <div class="lk-sg-hero__icon" aria-hidden="true">
+                            <i data-lucide="lightbulb"></i>
+                        </div>
+                        <div class="lk-sg-hero__copy">
+                            <span class="lk-sg-hero__eyebrow">Feedback</span>
+                            <h3 class="lk-sg-hero__title">Envie seu feedback</h3>
+                        </div>
+                    </div>
+                    <div class="lk-sg-grid">
+                    <div class="lk-sg-section lk-sg-section--panel">
                         <label class="lk-sg-label">Tipo</label>
                         <div class="lk-sg-chips">${typeChips}</div>
                     </div>
-                    <div class="lk-sg-section">
+                    <div class="lk-sg-section lk-sg-section--panel">
                         <label class="lk-sg-label">Avaliação</label>
-                        <div class="lk-star-rating">${stars}</div>
+                        <div class="lk-sg-rating-shell">
+                            <div class="lk-star-rating">${stars}</div>
+                            <span class="lk-sg-rating-hint">Opcional</span>
+                        </div>
                     </div>
-                    <div class="lk-sg-section">
+                    <div class="lk-sg-section lk-sg-section--panel lk-sg-section--message">
                         <label class="lk-sg-label" for="lkSuggestionText">Mensagem</label>
                         <textarea id="lkSuggestionText" class="lk-sg-textarea" placeholder="Descreva sua sugestão, crítica ou elogio..." maxlength="2000" rows="4"></textarea>
+                    </div>
                     </div>
                 </div>
             `,
             showConfirmButton: true,
-            confirmButtonText: '<i data-lucide="send"></i> Enviar feedback',
+            confirmButtonText: '<i data-lucide="send"></i> Enviar',
             showCancelButton: true,
             cancelButtonText: 'Cancelar',
             ...swalTheme,

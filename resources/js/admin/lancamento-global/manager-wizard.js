@@ -30,6 +30,34 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
             });
         },
 
+        scrollPageModeStepIntoView(stepElement = null) {
+            if (!this.isPageMode?.()) {
+                return;
+            }
+
+            const root = this.getRootElement?.();
+            const page = root?.closest('.lancamento-create-page');
+            const anchor = page?.querySelector('.lancamento-create-page__stepper') || stepElement || page;
+
+            if (!anchor) {
+                return;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const desktopTopbar = Number.parseInt(styles.getPropertyValue('--topbar-height'), 10) || 76;
+            const mobileTopbar = Number.parseInt(styles.getPropertyValue('--topbar-height-mobile'), 10) || 56;
+            const topbarOffset = window.innerWidth <= 900 ? mobileTopbar : desktopTopbar;
+            const targetTop = Math.max(
+                anchor.getBoundingClientRect().top + window.scrollY - topbarOffset - 12,
+                0,
+            );
+            const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
+            window.requestAnimationFrame(() => {
+                window.scrollTo({ top: targetTop, behavior });
+            });
+        },
+
         closeModal() {
             const root = this.getRootElement?.();
             if (!root) {
@@ -192,6 +220,8 @@ export function attachLancamentoGlobalWizardMethods(ManagerClass, dependencies) 
 
             const body = document.querySelector('#modalLancamentoGlobalOverlay .lk-modal-body-modern');
             if (body) body.scrollTop = 0;
+
+            this.scrollPageModeStepIntoView(newStep);
 
             refreshIcons();
         },

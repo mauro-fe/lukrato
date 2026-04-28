@@ -125,6 +125,14 @@
     align-items: stretch;
   }
 
+  .categories-section-tools {
+    gap: var(--spacing-2);
+  }
+
+  .categories-section-search-row {
+    gap: var(--spacing-2);
+  }
+
   .categories-section-description {
     max-width: none;
   }

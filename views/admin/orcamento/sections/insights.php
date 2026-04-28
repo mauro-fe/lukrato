@@ -5,7 +5,7 @@
             <i data-lucide="lightbulb"></i>
             <span>Insights</span>
         </div>
-        <span class="orc-insights-section__count" id="orcInsightCount">0 insights</span>
+        <span class="orc-insights-section__count" id="orcInsightCount">0 itens</span>
     </div>
     <div class="orc-insights-grid" id="insightsGrid"></div>
 </div>

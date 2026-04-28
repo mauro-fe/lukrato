@@ -96,183 +96,183 @@ $footerModules = is_array($footerModules ?? null)
     <?php loadPageCss($currentViewId); ?>
 
     <style>
-    html.lk-preboot,
-    html.lk-preboot body {
-        overflow: hidden;
-        background: #0b1220;
-    }
-
-    .lk-preboot-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 2147483000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        background:
-            radial-gradient(1200px 420px at 50% 0%, rgba(249, 115, 22, 0.16), transparent 60%),
-            linear-gradient(180deg, rgba(11, 18, 32, 0.98), rgba(15, 23, 42, 0.98));
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.22s ease, visibility 0.22s ease;
-    }
-
-    html:not(.lk-preboot) .lk-preboot-overlay,
-    .lk-preboot-overlay.is-hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-    }
-
-    .lk-preboot-card {
-        position: relative;
-        overflow: hidden;
-        width: min(360px, calc(100vw - 2rem));
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.85rem;
-        padding: 1.55rem 1.6rem 1.45rem;
-        border-radius: 18px;
-        background: linear-gradient(180deg, rgba(18, 32, 48, 0.94), rgba(9, 23, 37, 0.96));
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        text-align: center;
-    }
-
-    .lk-preboot-card::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 auto;
-        height: 3px;
-        background: linear-gradient(90deg, #f97316, rgba(249, 115, 22, 0.18), transparent);
-    }
-
-    .lk-preboot-spinner {
-        position: relative;
-        width: 78px;
-        height: 78px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        background: rgba(249, 115, 22, 0.08);
-        box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.14), 0 14px 34px rgba(249, 115, 22, 0.12);
-    }
-
-    .lk-preboot-spinner::before {
-        content: "";
-        position: absolute;
-        inset: 10px;
-        border-radius: inherit;
-        border: 1px solid rgba(249, 115, 22, 0.2);
-    }
-
-    .lk-preboot-ring {
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        border: 2px solid rgba(249, 115, 22, 0.16);
-        border-top-color: #f97316;
-        border-right-color: rgba(249, 115, 22, 0.48);
-    }
-
-    .lk-preboot-orbit {
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        transform-origin: 50% 50%;
-        animation: lk-preboot-spin 0.95s linear infinite;
-        will-change: transform;
-    }
-
-    .lk-preboot-orbit-dot {
-        content: "";
-        position: absolute;
-        top: -4px;
-        left: 50%;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: #f97316;
-        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16), 0 0 18px rgba(249, 115, 22, 0.55);
-        transform: translateX(-50%);
-    }
-
-    .lk-preboot-logo {
-        position: relative;
-        z-index: 1;
-        width: 40px;
-        height: 40px;
-        object-fit: contain;
-        filter: drop-shadow(0 6px 14px rgba(249, 115, 22, 0.24));
-    }
-
-    .lk-preboot-title {
-        margin: 0;
-        color: #f8fafc;
-        font-size: 1rem;
-        font-weight: 700;
-        letter-spacing: 0;
-    }
-
-    .lk-preboot-subtitle {
-        margin: 0;
-        color: rgba(226, 232, 240, 0.78);
-        font-size: 0.86rem;
-        line-height: 1.45;
-    }
-
-    @keyframes lk-preboot-spin {
-        to {
-            transform: rotate(360deg);
+        html.lk-preboot,
+        html.lk-preboot body {
+            overflow: hidden;
+            background: #0b1220;
         }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
 
         .lk-preboot-overlay {
-            transition: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2147483000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background:
+                radial-gradient(1200px 420px at 50% 0%, rgba(249, 115, 22, 0.16), transparent 60%),
+                linear-gradient(180deg, rgba(11, 18, 32, 0.98), rgba(15, 23, 42, 0.98));
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
         }
-    }
+
+        html:not(.lk-preboot) .lk-preboot-overlay,
+        .lk-preboot-overlay.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .lk-preboot-card {
+            position: relative;
+            overflow: hidden;
+            width: min(360px, calc(100vw - 2rem));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 1.55rem 1.6rem 1.45rem;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(18, 32, 48, 0.94), rgba(9, 23, 37, 0.96));
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            text-align: center;
+        }
+
+        .lk-preboot-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316, rgba(249, 115, 22, 0.18), transparent);
+        }
+
+        .lk-preboot-spinner {
+            position: relative;
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(249, 115, 22, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.14), 0 14px 34px rgba(249, 115, 22, 0.12);
+        }
+
+        .lk-preboot-spinner::before {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border-radius: inherit;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+
+        .lk-preboot-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 2px solid rgba(249, 115, 22, 0.16);
+            border-top-color: #f97316;
+            border-right-color: rgba(249, 115, 22, 0.48);
+        }
+
+        .lk-preboot-orbit {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            transform-origin: 50% 50%;
+            animation: lk-preboot-spin 0.95s linear infinite;
+            will-change: transform;
+        }
+
+        .lk-preboot-orbit-dot {
+            content: "";
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #f97316;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16), 0 0 18px rgba(249, 115, 22, 0.55);
+            transform: translateX(-50%);
+        }
+
+        .lk-preboot-logo {
+            position: relative;
+            z-index: 1;
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 14px rgba(249, 115, 22, 0.24));
+        }
+
+        .lk-preboot-title {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0;
+        }
+
+        .lk-preboot-subtitle {
+            margin: 0;
+            color: rgba(226, 232, 240, 0.78);
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        @keyframes lk-preboot-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .lk-preboot-overlay {
+                transition: none;
+            }
+        }
     </style>
 
     <script>
-    (function() {
-        const root = document.documentElement;
-        root.classList.add('lk-preboot');
+        (function() {
+            const root = document.documentElement;
+            root.classList.add('lk-preboot');
 
-        let released = false;
+            let released = false;
 
-        window.__LK_RELEASE_PREBOOT__ = function() {
-            if (released) {
-                return;
-            }
-
-            released = true;
-            root.classList.remove('lk-preboot');
-
-            const overlay = document.getElementById('lkPrebootOverlay');
-            if (!overlay) {
-                return;
-            }
-
-            overlay.classList.add('is-hidden');
-            window.setTimeout(function() {
-                overlay.remove();
-            }, 260);
-        };
-
-        window.addEventListener('load', function() {
-            window.setTimeout(function() {
-                if (typeof window.__LK_RELEASE_PREBOOT__ === 'function') {
-                    window.__LK_RELEASE_PREBOOT__();
+            window.__LK_RELEASE_PREBOOT__ = function() {
+                if (released) {
+                    return;
                 }
-            }, 180);
-        }, {
-            once: true
-        });
-    })();
+
+                released = true;
+                root.classList.remove('lk-preboot');
+
+                const overlay = document.getElementById('lkPrebootOverlay');
+                if (!overlay) {
+                    return;
+                }
+
+                overlay.classList.add('is-hidden');
+                window.setTimeout(function() {
+                    overlay.remove();
+                }, 260);
+            };
+
+            window.addEventListener('load', function() {
+                window.setTimeout(function() {
+                    if (typeof window.__LK_RELEASE_PREBOOT__ === 'function') {
+                        window.__LK_RELEASE_PREBOOT__();
+                    }
+                }, 180);
+            }, {
+                once: true
+            });
+        })();
     </script>
 
     <!-- Proteção contra internet lenta (timeout, retry, indicadores) -->
@@ -284,24 +284,24 @@ $footerModules = is_array($footerModules ?? null)
          Aplica sidebar-collapsed + desabilita transition no primeiro paint
          ============================================================================ -->
     <script>
-    (function() {
-        try {
-            var h = document.documentElement;
-            // 1) Bloquear transitions no first paint
-            h.classList.add('sidebar-no-transition');
-            // 2) Guardar estado para aplicar no body logo que existir
-            window.__lkSidebarCollapsed = (localStorage.getItem('lk.sidebar') === '1' && window.matchMedia(
-                '(min-width:993px)').matches);
-            // 3) Liberar transitions após o primeiro frame
-            window.addEventListener('load', function() {
-                requestAnimationFrame(function() {
+        (function() {
+            try {
+                var h = document.documentElement;
+                // 1) Bloquear transitions no first paint
+                h.classList.add('sidebar-no-transition');
+                // 2) Guardar estado para aplicar no body logo que existir
+                window.__lkSidebarCollapsed = (localStorage.getItem('lk.sidebar') === '1' && window.matchMedia(
+                    '(min-width:993px)').matches);
+                // 3) Liberar transitions após o primeiro frame
+                window.addEventListener('load', function() {
                     requestAnimationFrame(function() {
-                        h.classList.remove('sidebar-no-transition');
+                        requestAnimationFrame(function() {
+                            h.classList.remove('sidebar-no-transition');
+                        });
                     });
                 });
-            });
-        } catch (e) {}
-    })();
+            } catch (e) {}
+        })();
     </script>
 
     <!-- ============================================================================
@@ -344,7 +344,7 @@ $footerModules = is_array($footerModules ?? null)
         </div>
     </div>
     <script>
-    if (window.__lkSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
+        if (window.__lkSidebarCollapsed) document.body.classList.add('sidebar-collapsed');
     </script>
     <div id="lkPageTransitionOverlay" aria-hidden="true"></div>
 
@@ -371,35 +371,35 @@ $footerModules = is_array($footerModules ?? null)
         <!-- Menu de Navegação -->
         <nav class="sidebar-nav">
             <?php foreach ($sidebarGroups as $groupLabel => $modules): ?>
-            <div class="sidebar-nav-group">
-                <span
-                    class="sidebar-nav-label"><?= htmlspecialchars((string) $groupLabel, ENT_QUOTES, 'UTF-8') ?></span>
-                <?php foreach ($modules as $module): ?>
-                <?php
+                <div class="sidebar-nav-group">
+                    <span
+                        class="sidebar-nav-label"><?= htmlspecialchars((string) $groupLabel, ENT_QUOTES, 'UTF-8') ?></span>
+                    <?php foreach ($modules as $module): ?>
+                        <?php
                         $moduleMenu = (string) ($module['menu'] ?? '');
                         $moduleLabel = (string) ($module['label'] ?? '');
                         $moduleTitle = (string) ($module['title'] ?? $moduleLabel);
                         $moduleRoute = (string) ($module['route'] ?? '');
                         $moduleIcon = (string) ($module['icon'] ?? 'circle');
                         ?>
-                <a href="<?= htmlspecialchars($routeUrl($moduleRoute), ENT_QUOTES, 'UTF-8') ?>"
-                    class="nav-item <?= $moduleMenu !== '' ? $active($moduleMenu) : '' ?>"
-                    <?= $moduleMenu !== '' ? $aria($moduleMenu) : '' ?>
-                    title="<?= htmlspecialchars($moduleTitle, ENT_QUOTES, 'UTF-8') ?>">
-                    <i data-lucide="<?= htmlspecialchars($moduleIcon, ENT_QUOTES, 'UTF-8') ?>"></i>
-                    <span class="nav-item-content">
-                        <span class="nav-item-title"><?= htmlspecialchars($moduleLabel, ENT_QUOTES, 'UTF-8') ?></span>
-                    </span>
-                </a>
-                <?php endforeach; ?>
-            </div>
+                        <a href="<?= htmlspecialchars($routeUrl($moduleRoute), ENT_QUOTES, 'UTF-8') ?>"
+                            class="nav-item <?= $moduleMenu !== '' ? $active($moduleMenu) : '' ?>"
+                            <?= $moduleMenu !== '' ? $aria($moduleMenu) : '' ?>
+                            title="<?= htmlspecialchars($moduleTitle, ENT_QUOTES, 'UTF-8') ?>">
+                            <i data-lucide="<?= htmlspecialchars($moduleIcon, ENT_QUOTES, 'UTF-8') ?>"></i>
+                            <span class="nav-item-content">
+                                <span class="nav-item-title"><?= htmlspecialchars($moduleLabel, ENT_QUOTES, 'UTF-8') ?></span>
+                            </span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
             <?php endforeach; ?>
         </nav>
 
         <!-- Rodapé da Sidebar -->
         <div class="sidebar-footer">
             <?php foreach ($footerModules as $module): ?>
-            <?php
+                <?php
                 $moduleKey = (string) ($module['key'] ?? '');
                 $moduleMenu = (string) ($module['menu'] ?? '');
                 $moduleLabel = (string) ($module['label'] ?? '');
@@ -407,30 +407,30 @@ $footerModules = is_array($footerModules ?? null)
                 $moduleRoute = (string) ($module['route'] ?? '');
                 $moduleIcon = (string) ($module['icon'] ?? 'circle');
                 ?>
-            <a href="<?= htmlspecialchars($routeUrl($moduleRoute), ENT_QUOTES, 'UTF-8') ?>"
-                class="nav-item <?= $moduleMenu !== '' ? $active($moduleMenu) : '' ?>"
-                <?= $moduleMenu !== '' ? $aria($moduleMenu) : '' ?>
-                title="<?= htmlspecialchars($moduleTitle, ENT_QUOTES, 'UTF-8') ?>">
-                <?php if ($moduleKey === 'perfil'): ?>
-                <div class="sidebar-avatar" id="sidebarAvatar">
-                    <span class="avatar-initials-xs"><?= mb_substr($topNavFirstName ?? $username ?? 'U', 0, 1) ?></span>
-                </div>
-                <?php else: ?>
-                <i data-lucide="<?= htmlspecialchars($moduleIcon, ENT_QUOTES, 'UTF-8') ?>"></i>
-                <?php endif; ?>
-                <span class="nav-item-content">
-                    <span class="nav-item-title"><?= htmlspecialchars($moduleLabel, ENT_QUOTES, 'UTF-8') ?></span>
-                </span>
-            </a>
+                <a href="<?= htmlspecialchars($routeUrl($moduleRoute), ENT_QUOTES, 'UTF-8') ?>"
+                    class="nav-item <?= $moduleMenu !== '' ? $active($moduleMenu) : '' ?>"
+                    <?= $moduleMenu !== '' ? $aria($moduleMenu) : '' ?>
+                    title="<?= htmlspecialchars($moduleTitle, ENT_QUOTES, 'UTF-8') ?>">
+                    <?php if ($moduleKey === 'perfil'): ?>
+                        <div class="sidebar-avatar" id="sidebarAvatar">
+                            <span class="avatar-initials-xs"><?= mb_substr($topNavFirstName ?? $username ?? 'U', 0, 1) ?></span>
+                        </div>
+                    <?php else: ?>
+                        <i data-lucide="<?= htmlspecialchars($moduleIcon, ENT_QUOTES, 'UTF-8') ?>"></i>
+                    <?php endif; ?>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title"><?= htmlspecialchars($moduleLabel, ENT_QUOTES, 'UTF-8') ?></span>
+                    </span>
+                </a>
             <?php endforeach; ?>
             <?php if ($showSuggestionEntry): ?>
-            <a href="#" class="nav-item" id="sidebarSuggestionBtn" title="Enviar sugestão">
-                <i data-lucide="message-circle"></i>
-                <span class="nav-item-content">
-                    <span class="nav-item-title">Sugestão</span>
-                    <small class="nav-item-subtitle">Envie seu feedback</small>
-                </span>
-            </a>
+                <a href="#" class="nav-item" id="sidebarSuggestionBtn" title="Enviar sugestão">
+                    <i data-lucide="message-circle"></i>
+                    <span class="nav-item-content">
+                        <span class="nav-item-title">Sugestão</span>
+                        <small class="nav-item-subtitle">Envie seu feedback</small>
+                    </span>
+                </a>
             <?php endif; ?>
             <a id="btn-logout" class="nav-item" href="<?= BASE_URL ?>logout" title="Sair">
                 <i data-lucide="log-out"></i>
@@ -439,12 +439,16 @@ $footerModules = is_array($footerModules ?? null)
                 </span>
             </a>
             <?php if ($showUpgradeCTA): ?>
-            <div class="sidebar-pro-cta">
-                <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn">
-                    <i data-lucide="star"></i>
-                    <span>Pro</span>
-                </a>
-            </div>
+                <div class="sidebar-pro-cta">
+                    <a href="<?= BASE_URL ?>billing" class="sidebar-pro-btn" title="Conhecer o Lukrato Pro">
+                        <span class="sidebar-pro-btn__icon" aria-hidden="true">
+                            <i data-lucide="crown"></i>
+                        </span>
+                        <span class="sidebar-pro-btn__copy">
+                            <span class="sidebar-pro-btn__title">Pro</span>
+                        </span>
+                    </a>
+                </div>
             <?php endif; ?>
         </div>
     </aside>
@@ -457,10 +461,10 @@ $footerModules = is_array($footerModules ?? null)
     <!-- ================ BOTÕES ======================== -->
 
     <?php if (!$hideLaunchFab): ?>
-    <?php include __DIR__ . '/botao-lancamento.php'; ?>
+        <?php include __DIR__ . '/botao-lancamento.php'; ?>
     <?php endif; ?>
     <?php if (!$hideSupportFab): ?>
-    <?php include __DIR__ . '/botao-suporte.php'; ?>
+        <?php include __DIR__ . '/botao-suporte.php'; ?>
     <?php endif; ?>
 
     <div id="lk-app-modal-root" class="lk-modal-root lk-modal-root--app" aria-hidden="true"></div>

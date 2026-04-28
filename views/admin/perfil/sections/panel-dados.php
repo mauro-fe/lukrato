@@ -20,9 +20,7 @@
                     <div>
                         <span class="profile-quick-name__eyebrow">Atualização rápida</span>
                         <h4 class="profile-quick-name__title">Nome de exibição</h4>
-                        <p class="profile-quick-name__description">
-                            Salva instantaneamente e sincroniza o nome mostrado no topo, avatar e perfil.
-                        </p>
+
                     </div>
                 </div>
 
@@ -42,10 +40,6 @@
                         Salvar nome
                     </button>
                 </div>
-
-                <small class="profile-quick-name__hint">
-                    O restante dos dados pessoais continua no fluxo atual logo abaixo.
-                </small>
 
                 <p class="profile-quick-name__status" data-slot="display-name-status" hidden></p>
             </div>

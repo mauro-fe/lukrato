@@ -145,6 +145,7 @@
 
 /* Export card body */
 .export-card-body {
+  position: relative;
   padding: var(--spacing-5);
 }
 

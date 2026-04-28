@@ -24,7 +24,7 @@
                     </button>
                 </div>
 
-                <p class="profile-subtitle">Nome, contato e endereço organizados com a mesma hierarquia visual das outras áreas do produto.</p>
+                <p class="profile-subtitle">Nome, contato e endereço em um fluxo mais direto e fácil de revisar.</p>
             </div>
         </div>
 

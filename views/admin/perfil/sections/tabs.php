@@ -7,6 +7,6 @@
         <button type="button" class="profile-tab surface-filter surface-filter--soft" data-tab="endereco" role="tab" aria-selected="false"
             aria-controls="panel-endereco">
             <span class="tab-icon"><i data-lucide="map-pin" style="color:#ef4444"></i></span>
-            <span class="tab-label">Endereco</span>
+            <span class="tab-label">Endereço</span>
         </button>
     </nav>

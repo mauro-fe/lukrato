@@ -3,7 +3,7 @@
     <div class="met-page-header__text">
         <p class="met-page-header__eyebrow">Planejamento</p>
         <h1 class="met-page-header__title">Metas</h1>
-        <p class="met-page-header__desc">Quanto você já juntou e quanto falta para atingir seus objetivos</p>
+        <p class="met-page-header__desc">Quanto já foi acumulado e quanto ainda falta para concluir seus objetivos.</p>
     </div>
 
     <div class="met-page-header__meta" aria-label="Resumo rápido da tela">

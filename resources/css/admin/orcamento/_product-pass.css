@@ -1,0 +1,431 @@
+/* ============================================================================
+   ORCAMENTO — Product pass
+   ============================================================================ */
+
+.orc-page {
+  gap: var(--spacing-4);
+}
+
+.orc-overview-shell {
+  gap: var(--spacing-3);
+  padding: clamp(0.95rem, 0.88vw + 0.72rem, 1.18rem);
+}
+
+.orc-overview-shell__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
+  gap: 0.95rem;
+  align-items: start;
+}
+
+.orc-overview-shell__intro,
+.orc-page-header__text {
+  gap: 10px;
+}
+
+.orc-overview-shell__intro {
+  display: grid;
+}
+
+.orc-page-header {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.orc-page-header__eyebrow {
+  min-height: 26px;
+  padding: 0 10px;
+  font-size: 0.64rem;
+}
+
+.orc-page-header__title {
+  font-size: clamp(1.36rem, 1.14rem + 0.66vw, 1.88rem);
+}
+
+.orc-page-header__desc {
+  max-width: 52ch;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.orc-page-header__meta {
+  display: none;
+}
+
+.orc-page-header__chip {
+  min-height: 26px;
+  padding: 0 10px;
+  font-size: 0.64rem;
+  font-weight: 650;
+}
+
+.orc-actions-bar {
+  justify-content: flex-start;
+  gap: var(--spacing-2);
+  padding-top: 0;
+}
+
+.orc-actions-bar__left {
+  gap: 0.55rem;
+}
+
+.orc-action-btn {
+  min-height: 40px;
+  padding: 0.68rem 0.92rem;
+  border-radius: 14px;
+  font-size: 0.79rem;
+  box-shadow: none;
+}
+
+.orc-action-btn:hover {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.orc-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  align-content: start;
+}
+
+.orc-summary-card {
+  min-height: 0;
+  gap: 0.8rem;
+  padding: 0.88rem 0.92rem;
+}
+
+.orc-summary-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  font-size: 1rem;
+}
+
+.orc-summary-card__label {
+  font-size: 0.69rem;
+}
+
+.orc-summary-card__value {
+  font-size: 1rem;
+}
+
+.orc-toolbar {
+  gap: 0.75rem;
+  padding: 0.8rem;
+}
+
+.orc-toolbar__search {
+  min-height: 42px;
+  padding: 0 0.85rem;
+}
+
+.orc-toolbar__chips {
+  gap: 0.45rem;
+}
+
+.orc-chip {
+  min-height: 32px;
+  padding: 0.33rem 0.78rem;
+  font-size: 0.75rem;
+}
+
+.orc-toolbar__sort {
+  gap: 0.25rem;
+  font-size: 0.68rem;
+}
+
+.orc-workspace-shell {
+  gap: var(--spacing-3);
+}
+
+.orc-workspace-main,
+.orc-workspace-side {
+  gap: var(--spacing-3);
+}
+
+.orc-workspace-side {
+  gap: 0.75rem;
+  top: calc(var(--header-height) + var(--spacing-2));
+  max-height: calc(100vh - var(--header-height) - var(--spacing-3));
+}
+
+.orc-workspace-side > .surface-card {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.orc-workspace-side > .surface-card.surface-card--interactive:hover {
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+}
+
+.orc-listing-shell {
+  gap: var(--spacing-3);
+  padding: 1rem;
+}
+
+.orc-listing-shell__head {
+  gap: 0.8rem;
+}
+
+.orc-section-eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.68rem;
+}
+
+.orc-section-title {
+  font-size: clamp(1.02rem, 0.96rem + 0.25vw, 1.15rem);
+}
+
+.orc-section-copy {
+  margin-top: 4px;
+  max-width: 46ch;
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.orc-listing-shell__meta {
+  min-width: 124px;
+  gap: 2px;
+  padding: 0.65rem 0.75rem;
+}
+
+.orc-listing-shell__meta-label {
+  font-size: 0.61rem;
+}
+
+.orc-listing-shell__meta-value {
+  font-size: 1.1rem;
+}
+
+.orc-grid {
+  gap: 0.75rem;
+}
+
+.orc-grid[data-card-count="1"] {
+  justify-items: start;
+}
+
+.orc-grid[data-card-count="1"] .orc-card {
+  width: min(100%, 780px);
+  min-height: 0;
+}
+
+.orc-card {
+  min-height: 226px;
+  gap: 10px;
+  padding: 12px 13px;
+}
+
+.orc-card__category {
+  gap: 8px;
+}
+
+.orc-card__name {
+  font-size: 0.86rem;
+}
+
+.orc-card__actions {
+  gap: 0;
+  opacity: 0.64;
+}
+
+.orc-card__action-btn {
+  width: 26px;
+  height: 26px;
+  font-size: 0.7rem;
+}
+
+.orc-card__progress {
+  gap: 7px;
+}
+
+.orc-card__progress-bar {
+  height: 7px;
+}
+
+.orc-card__spent {
+  font-size: 0.92rem;
+}
+
+.orc-card__limit {
+  font-size: 0.72rem;
+}
+
+.orc-card__limit-hint {
+  min-height: 22px;
+  padding: 0 0.48rem;
+  font-size: 0.64rem;
+}
+
+.orc-card__daily {
+  gap: 3px 8px;
+  margin-top: 0.45rem;
+  padding: 0.58rem 0.68rem;
+  border-radius: 12px;
+}
+
+.orc-card__daily-label {
+  font-size: 0.6rem;
+}
+
+.orc-card__daily-value {
+  font-size: 0.86rem;
+}
+
+.orc-card__daily-hint {
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.orc-card__daily--danger .orc-card__daily-label {
+  font-size: 0.58rem;
+}
+
+.orc-card__footer {
+  gap: 0.35rem 0.45rem;
+}
+
+.orc-card__pct {
+  padding: 2px 6px;
+  font-size: 0.7rem;
+}
+
+.orc-card__remaining {
+  font-size: 0.72rem;
+}
+
+.orc-card__badge {
+  font-size: 0.61rem;
+}
+
+.orc-focus-panel,
+.orc-insights-section {
+  gap: 0.7rem;
+  padding: 0.88rem;
+}
+
+.orc-focus-panel__main,
+.orc-focus-panel__content {
+  gap: 8px;
+}
+
+.orc-focus-panel__eyebrow {
+  gap: 0.35rem;
+  margin-bottom: 2px;
+  font-size: 0.64rem;
+}
+
+.orc-focus-callout {
+  gap: 11px;
+  padding: 12px;
+}
+
+.orc-focus-callout__title {
+  font-size: 0.96rem;
+}
+
+.orc-focus-callout__text {
+  max-width: 28ch;
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.orc-focus-callout__meta {
+  gap: 0.38rem;
+  margin-top: 2px;
+}
+
+.orc-focus-callout__pill {
+  min-height: 24px;
+  padding: 0.2rem 0.58rem;
+  font-size: 0.67rem;
+}
+
+.orc-focus-callout__actions .orc-action-btn {
+  min-height: 36px;
+  padding: 0.52rem 0.65rem;
+  font-size: 0.75rem;
+}
+
+.orc-focus-panel__stats {
+  gap: 0.5rem;
+}
+
+.orc-focus-stat {
+  gap: 3px;
+  padding: 0.62rem 0.72rem;
+}
+
+.orc-focus-stat__label {
+  font-size: 0.6rem;
+}
+
+.orc-focus-stat__value {
+  font-size: 0.92rem;
+}
+
+.orc-section-label {
+  gap: 0.4rem;
+  margin-bottom: 0;
+  font-size: 0.7rem;
+}
+
+.orc-insights-section__count {
+  min-height: 22px;
+  padding: 0 7px;
+  font-size: 0.58rem;
+}
+
+.orc-insights-grid {
+  gap: 0.65rem;
+}
+
+.orc-insight-card {
+  gap: 10px;
+  padding: 9px 10px;
+}
+
+.orc-insight-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.orc-insight-title {
+  font-size: 0.8rem;
+}
+
+.orc-insight-text {
+  font-size: 0.72rem;
+}
+
+.orc-insight-action {
+  min-height: 30px;
+  padding: 0.28rem 0.56rem;
+  font-size: 0.68rem;
+}
+
+.orc-workspace-side .orc-customize-open {
+  min-height: 38px;
+  padding: 0.58rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+@media (min-width: 1181px) {
+  .orc-workspace-shell {
+    grid-template-columns: minmax(0, 1.56fr) minmax(280px, 0.8fr);
+  }
+}
+
+@media (max-width: 1180px) {
+  .orc-overview-shell__top {
+    grid-template-columns: 1fr;
+  }
+
+  .orc-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .orc-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

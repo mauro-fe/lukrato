@@ -15,12 +15,16 @@
     </div>
 
     <div class="lk-conta-info surface-card" id="globalContaInfo" style="display: none;">
-        <div class="lk-conta-badge">
-            <i data-lucide="wallet"></i>
-            <span id="globalContaNome">Conta</span>
+        <div class="lk-conta-info-copy">
+            <span class="lk-conta-info-kicker">Conta selecionada</span>
+            <div class="lk-conta-badge">
+                <i data-lucide="wallet"></i>
+                <span id="globalContaNome">Conta</span>
+            </div>
         </div>
         <div class="lk-conta-saldo">
-            Saldo atual: <strong id="globalContaSaldo">R$ 0,00</strong>
+            <span class="lk-conta-saldo-label">Saldo atual</span>
+            <strong id="globalContaSaldo">R$ 0,00</strong>
         </div>
     </div>
 </div>

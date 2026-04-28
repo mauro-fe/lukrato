@@ -324,10 +324,42 @@ export const CartoesUI = {
         }
 
         emptyState.style.display = 'none';
-        grid.innerHTML = STATE.filteredCartoes.map((cartao) => CartoesUI.createCardHTML(cartao)).join('');
+        const criticalCardId = CartoesUI.getCriticalCardId(STATE.filteredCartoes);
+        grid.innerHTML = STATE.filteredCartoes
+            .map((cartao) => CartoesUI.createCardHTML(cartao, { criticalCardId }))
+            .join('');
         CartoesUI.updateView();
         CartoesUI.setupCardActions();
         refreshIcons();
+    },
+
+    getCriticalCardId(cartoes = STATE.filteredCartoes) {
+        let criticalCardId = null;
+        let criticalScore = -1;
+
+        cartoes.forEach((cartao) => {
+            const limiteTotal = parseFloat(cartao.limite_total) || 0;
+            const limiteDisponivel = parseFloat(cartao.limite_disponivel_real ?? cartao.limite_disponivel) || 0;
+            const limiteUtilizado = parseFloat(cartao.limite_utilizado) || Math.max(0, limiteTotal - limiteDisponivel);
+            const percentualUso = clamp(
+                cartao.percentual_uso ?? (limiteTotal > 0 ? (limiteUtilizado / limiteTotal) * 100 : 0),
+                0,
+                100
+            );
+            const isCritical = Boolean(cartao.temFaturaPendente) || percentualUso >= 80;
+
+            if (!isCritical) {
+                return;
+            }
+
+            const score = (cartao.temFaturaPendente ? 200 : 0) + percentualUso;
+            if (score > criticalScore) {
+                criticalScore = score;
+                criticalCardId = cartao.id;
+            }
+        });
+
+        return criticalCardId;
     },
 
     updateEmptyState() {
@@ -352,7 +384,7 @@ export const CartoesUI = {
         clearButton.style.display = 'none';
     },
 
-    createCardHTML(cartao) {
+    createCardHTML(cartao, options = {}) {
         const limiteTotal = parseFloat(cartao.limite_total) || 0;
         const limiteDisponivel = parseFloat(cartao.limite_disponivel_real ?? cartao.limite_disponivel) || 0;
         const limiteUtilizado = parseFloat(cartao.limite_utilizado) || Math.max(0, limiteTotal - limiteDisponivel);
@@ -370,28 +402,30 @@ export const CartoesUI = {
         const instituicaoNome = safeText(cartao.conta?.instituicao_financeira?.nome, 'Sem instituição');
         const cardName = safeText(cartao.nome_cartao || cartao.nome, 'Cartão');
         const brandName = safeText(Utils.formatBandeira(cartao.bandeira), 'Cartão');
-        const statusLabel = cartao.temFaturaPendente ? 'Fatura pendente' : 'Sem pendências';
+        const statusTitle = cartao.temFaturaPendente ? 'Fatura pendente' : 'Sem pendências';
+        const statusChipLabel = cartao.temFaturaPendente ? 'Pendente' : 'Em dia';
         const closingLabel = cartao.dia_fechamento ? `Dia ${cartao.dia_fechamento}` : 'A definir';
         const dueLabel = cartao.dia_vencimento ? `Dia ${cartao.dia_vencimento}` : 'A definir';
         const availableLabel = percentualDisponivel > 0
             ? `${formatPercent(percentualDisponivel, 0)} do limite ainda livre`
             : 'Limite comprometido';
+        const isCritical = String(options.criticalCardId ?? '') === String(cartao.id ?? '');
         const demoChip = isDemoCard(cartao)
             ? `<span class="card-meta-chip card-meta-chip--status is-ok" ${buildTooltipAttrs('Cartão de exemplo', 'Esse cartão existe só para demonstrar como o painel funciona.')}>
                     <i data-lucide="flask-conical"></i>
                     Exemplo
                </span>`
             : '';
-        const usageAlertChip = percentualUso >= 50
+        const usageAlertChip = percentualUso >= 80
             ? `<span class="card-meta-chip card-meta-chip--usage ${usageTone.className}" ${buildTooltipAttrs(usageTone.label, usageTone.tooltip)}>
-                    <i data-lucide="${percentualUso >= 80 ? 'triangle-alert' : 'activity'}"></i>
-                    ${usageTone.label}
+                    <i data-lucide="triangle-alert"></i>
+                    Uso alto
                </span>`
             : '';
 
         return `
             <article
-                class="credit-card surface-card surface-card--interactive surface-card--clip"
+                class="credit-card surface-card surface-card--interactive surface-card--clip ${isCritical ? 'is-critical' : ''}"
                 data-id="${cartao.id}"
                 data-brand="${String(cartao.bandeira || 'outros').toLowerCase()}"
                 style="--card-accent:${accentColor};"
@@ -413,15 +447,11 @@ export const CartoesUI = {
 
                 <div class="card-header">
                     <div class="card-card-badges">
-                        <span class="card-meta-chip card-meta-chip--brand" ${buildTooltipAttrs(`Bandeira ${brandName}`, 'Rede de processamento usada por este cartao para compras e parcelamentos.')}>
-                            <i data-lucide="badge-check"></i>
-                            ${brandName}
-                        </span>
-                        <span class="card-meta-chip card-meta-chip--status ${cartao.temFaturaPendente ? 'is-pending' : 'is-ok'}" ${buildTooltipAttrs(statusLabel, cartao.temFaturaPendente
+                        <span class="card-meta-chip card-meta-chip--status ${cartao.temFaturaPendente ? 'is-pending' : 'is-ok'}" ${buildTooltipAttrs(statusTitle, cartao.temFaturaPendente
             ? 'Há uma fatura aberta para este cartão que merece acompanhamento ou pagamento.'
             : 'Sem pendências abertas para o ciclo atual deste cartão.')}>
                             <i data-lucide="${cartao.temFaturaPendente ? 'circle-alert' : 'badge-check'}"></i>
-                            ${statusLabel}
+                            ${statusChipLabel}
                         </span>
                         ${demoChip}
                         ${usageAlertChip}
@@ -461,10 +491,6 @@ export const CartoesUI = {
                 </div>
 
                 <div class="card-details">
-                    <div class="card-detail-item ${usageTone.className}">
-                        <span class="card-detail-label">Uso do limite</span>
-                        <strong class="card-detail-value">${formatPercent(percentualUso)}</strong>
-                    </div>
                     <div class="card-detail-item">
                         <span class="card-detail-label">Fechamento</span>
                         <strong class="card-detail-value">${closingLabel}</strong>
@@ -477,7 +503,7 @@ export const CartoesUI = {
 
                 <div class="card-progress">
                     <div class="card-progress-head">
-                        <span>Uso do limite: ${formatPercent(percentualUso)}</span>
+                        <span>${formatPercent(percentualUso)} usado</span>
                         <span>${usageTone.summary}</span>
                     </div>
                     <div class="limit-bar" aria-hidden="true">
@@ -537,9 +563,9 @@ export const CartoesUI = {
             : null;
 
         const message = hasActiveFilters()
-            ? `Mostrando ${visiveis} de ${total} cartões com os filtros atuais.`
+            ? `Mostrando ${visiveis} de ${total} cartões.`
             : total
-                ? 'Painel consolidado com limite, faturas e cartões que pedem atenção.'
+                ? 'Resumo com limite, faturas e cartões em atenção.'
                 : 'Cadastre seu primeiro cartão para acompanhar limite e vencimentos aqui.';
 
         const pills = [

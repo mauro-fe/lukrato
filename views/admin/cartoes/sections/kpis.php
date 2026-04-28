@@ -6,7 +6,7 @@
         <div class="stat-card__summary">
             <span class="stat-summary__eyebrow">Visão consolidada</span>
             <h2 class="stat-summary__title">Seu limite total</h2>
-            <p class="stat-summary__subtitle">Acompanhe disponível, uso e os cartões que pedem atenção primeiro.</p>
+            <p class="stat-summary__subtitle">Disponível, uso e cartões que pedem atenção.</p>
         </div>
 
         <div class="stat-card__metric">

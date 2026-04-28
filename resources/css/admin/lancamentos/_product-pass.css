@@ -86,6 +86,62 @@
   padding: 1rem 1.1rem;
 }
 
+.export-card .card-header-icon {
+  cursor: pointer;
+}
+
+.pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+.pro-badge i,
+.pro-badge svg {
+  width: 12px;
+  height: 12px;
+  color: currentColor;
+}
+
+.card-collapse-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.card-collapse-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 88%, black);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.card-collapse-btn i,
+.card-collapse-btn svg {
+  color: currentColor;
+  transition: transform 0.25s ease;
+}
+
+.card-collapse-btn[aria-expanded="false"] i,
+.card-collapse-btn[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+
+.card-collapse-btn[aria-expanded="true"] i,
+.card-collapse-btn[aria-expanded="true"] svg {
+  transform: rotate(0deg);
+}
+
 .card-title {
   font-size: 1rem;
 }
@@ -210,9 +266,14 @@
 
   .lan-overview-bottom {
     display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.95rem;
-    align-items: start;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+  }
+
+  .lan-overview-bottom > * {
+    height: 100%;
   }
 
   .lan-overview-top[data-visible-count="1"],
@@ -285,7 +346,9 @@
   .lk-filters-section,
   .modern-card.export-card {
     min-height: 0;
-    align-self: start;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
   }
 
   .lk-filters-header,
@@ -299,6 +362,7 @@
   }
 
   .lk-filters-body {
+    flex: 1;
     gap: 0.95rem;
   }
 
@@ -321,8 +385,6 @@
   }
 
   .modern-card.export-card {
-    display: flex;
-    flex-direction: column;
     justify-content: space-between;
   }
 
@@ -337,6 +399,7 @@
   }
 
   .export-card-body {
+    flex: 1;
     padding-top: 1rem;
   }
 
@@ -532,7 +595,8 @@
   }
 
   .pro-badge {
-    padding: 0.18rem 0.55rem;
+    min-height: 32px;
+    padding: 0 0.6rem;
     font-size: 0.6rem;
   }
 

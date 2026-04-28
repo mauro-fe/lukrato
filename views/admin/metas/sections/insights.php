@@ -5,11 +5,11 @@
             <i data-lucide="lightbulb"></i>
             <span>Insights</span>
         </div>
-        <span class="met-insights-section__count" id="metInsightCount">0 insights</span>
+        <span class="met-insights-section__count" id="metInsightCount">0 itens</span>
     </div>
     <div class="met-insights-grid" id="metInsightsGrid"></div>
     <div class="met-insights-footer">
-        <p class="met-insights-footer__copy">Ajuste a leitura da tela conforme o momento das suas metas.</p>
+        <p class="met-insights-footer__copy">Ajuste a tela conforme o momento das suas metas.</p>
         <div class="met-customize-trigger">
             <button class="met-customize-open" id="btnCustomizeMetas" type="button">
                 <i data-lucide="sliders-horizontal"></i>

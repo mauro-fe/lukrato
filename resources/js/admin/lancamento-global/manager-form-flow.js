@@ -13,28 +13,36 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
             if (step === 2) {
                 const contaId = this.contaSelecionada?.id || document.getElementById('globalContaSelect')?.value;
                 if (!contaId) {
-                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta', customClass: { container: 'swal-above-modal' } });
-                    return false;
+                    return this.showFieldValidationMessage({
+                        field: 'globalContaSelect',
+                        text: 'Selecione a conta',
+                    });
                 }
 
                 this.preencherDescricaoPadraoSeVazia?.();
                 const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
                 if (!valor || valor <= 0) {
-                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe um valor válido', customClass: { container: 'swal-above-modal' } });
-                    return false;
+                    return this.showFieldValidationMessage({
+                        field: 'globalLancamentoValor',
+                        text: 'Informe um valor válido',
+                    });
                 }
 
                 const data = document.getElementById('globalLancamentoData')?.value || '';
                 if (!data) {
-                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
-                    return false;
+                    return this.showFieldValidationMessage({
+                        field: 'globalLancamentoData',
+                        text: 'Informe a data',
+                    });
                 }
 
                 if (this.tipoAtual === 'transferencia') {
                     const contaDest = document.getElementById('globalLancamentoContaDestino')?.value;
                     if (!contaDest) {
-                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
-                        return false;
+                        return this.showFieldValidationMessage({
+                            field: 'globalLancamentoContaDestino',
+                            text: 'Selecione a conta de destino',
+                        });
                     }
                 }
 
@@ -45,12 +53,12 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                         if (cartao) {
                             const limiteDisponivel = parseFloat(cartao.limite_disponivel || 0);
                             if (valor > limiteDisponivel) {
-                                Swal.fire({
+                                return this.showFieldValidationMessage({
+                                    field: 'globalLancamentoValor',
                                     icon: 'error', title: 'Limite Insuficiente',
                                     html: `<p>O valor da compra (${formatMoney(valor)}) excede o limite disponível do cartão.</p><p><strong>Limite disponível:</strong> ${formatMoney(limiteDisponivel)}</p>`,
-                                    confirmButtonText: 'Entendi', customClass: { container: 'swal-above-modal' }
+                                    confirmButtonText: 'Entendi',
                                 });
-                                return false;
                             }
                         }
                     }
@@ -61,8 +69,10 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                     if (formaRec === 'estorno_cartao') {
                         const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
                         if (!cartaoId) {
-                            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o cartão para o estorno', customClass: { container: 'swal-above-modal' } });
-                            return false;
+                            return this.showFieldValidationMessage({
+                                field: 'globalLancamentoCartaoCredito',
+                                text: 'Selecione o cartão para o estorno',
+                            });
                         }
                     }
                 }
@@ -72,8 +82,10 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                 if (this.tipoAtual === 'transferencia') {
                     const contaDest = document.getElementById('globalLancamentoContaDestino')?.value;
                     if (!contaDest) {
-                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a conta de destino', customClass: { container: 'swal-above-modal' } });
-                        return false;
+                        return this.showFieldValidationMessage({
+                            field: 'globalLancamentoContaDestino',
+                            text: 'Selecione a conta de destino',
+                        });
                     }
                 }
                 // Validate credit card limit if cartão selected
@@ -85,12 +97,12 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                             const valor = parseMoney(document.getElementById('globalLancamentoValor')?.value);
                             const limiteDisponivel = parseFloat(cartao.limite_disponivel || 0);
                             if (valor > limiteDisponivel) {
-                                Swal.fire({
+                                return this.showFieldValidationMessage({
+                                    field: 'globalLancamentoValor',
                                     icon: 'error', title: 'Limite Insuficiente',
                                     html: `<p>O valor (${formatMoney(valor)}) excede o limite disponível.</p><p><strong>Limite:</strong> ${formatMoney(limiteDisponivel)}</p>`,
-                                    confirmButtonText: 'Entendi', customClass: { container: 'swal-above-modal' }
+                                    confirmButtonText: 'Entendi',
                                 });
-                                return false;
                             }
                         }
                     }
@@ -101,8 +113,10 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                     if (formaRec === 'estorno_cartao') {
                         const cartaoId = document.getElementById('globalLancamentoCartaoCredito')?.value;
                         if (!cartaoId) {
-                            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione o cartão para o estorno', customClass: { container: 'swal-above-modal' } });
-                            return false;
+                            return this.showFieldValidationMessage({
+                                field: 'globalLancamentoCartaoCredito',
+                                text: 'Selecione o cartão para o estorno',
+                            });
                         }
                     }
                 }
@@ -111,8 +125,10 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
             if (step === 4) {
                 const data = document.getElementById('globalLancamentoData')?.value || '';
                 if (!data) {
-                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Informe a data', customClass: { container: 'swal-above-modal' } });
-                    return false;
+                    return this.showFieldValidationMessage({
+                        field: 'globalLancamentoData',
+                        text: 'Informe a data',
+                    });
                 }
             }
 
@@ -122,8 +138,10 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                 if (parcelado) {
                     const totalParcelas = parseInt(document.getElementById('globalLancamentoTotalParcelas')?.value) || 0;
                     if (totalParcelas < 2 || totalParcelas > 48) {
-                        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'O número de parcelas deve ser entre 2 e 48', customClass: { container: 'swal-above-modal' } });
-                        return false;
+                        return this.showFieldValidationMessage({
+                            field: 'globalLancamentoTotalParcelas',
+                            text: 'O número de parcelas deve ser entre 2 e 48',
+                        });
                     }
                 }
                 const recorrente = document.getElementById('globalLancamentoRecorrente')?.checked;
@@ -132,14 +150,84 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                     if (modo === 'quantidade') {
                         const total = parseInt(document.getElementById('globalLancamentoRecorrenciaTotal')?.value) || 0;
                         if (total < 2 || total > 120) {
-                            Swal.fire({ icon: 'warning', title: 'Atenção', text: 'A quantidade de repetições deve ser entre 2 e 120', customClass: { container: 'swal-above-modal' } });
-                            return false;
+                            return this.showFieldValidationMessage({
+                                field: 'globalLancamentoRecorrenciaTotal',
+                                text: 'A quantidade de repetições deve ser entre 2 e 120',
+                            });
                         }
                     }
                 }
             }
 
             return true;
+        },
+
+        showFieldValidationMessage({ field, icon = 'warning', title = 'Atenção', text = '', html = '', confirmButtonText = 'OK' }) {
+            Swal.fire({
+                icon,
+                title,
+                text: html ? undefined : text,
+                html: html || undefined,
+                confirmButtonText,
+                customClass: { container: 'swal-above-modal' }
+            }).then(() => {
+                window.setTimeout(() => {
+                    this.focusValidationField(field);
+                }, 120);
+            });
+
+            return false;
+        },
+
+        focusValidationField(field) {
+            const target = typeof field === 'string' ? document.getElementById(field) : field;
+            if (!target) return;
+
+            const fieldContainer =
+                target.closest('.lk-form-group, .lk-page-step-panel') ||
+                target.closest('.lk-input-money, .lk-select-wrapper') ||
+                target;
+
+            let focusTarget = target;
+            if (target.matches?.('select, .lk-select')) {
+                focusTarget = target.closest('.lk-select-wrapper')?.querySelector('.lk-custom-select-selected') || target;
+            }
+
+            if (!focusTarget.matches?.('input, select, textarea, button, [tabindex]')) {
+                focusTarget = focusTarget.querySelector?.('input, select, textarea, button, [tabindex]:not([tabindex="-1"])') || focusTarget;
+            }
+
+            if (!(focusTarget instanceof HTMLElement)) return;
+
+            const isPageMode = Boolean(target.closest('#modalLancamentoGlobalOverlay.lk-modal-overlay--page'));
+
+            if (isPageMode) {
+                const topbar = document.querySelector('.top-navbar, .lk-header, .lk-topbar');
+                const stickyStepper = window.innerWidth <= 900
+                    ? document.querySelector('.lancamento-create-page__stepper')
+                    : null;
+                const topbarHeight = topbar instanceof HTMLElement ? topbar.getBoundingClientRect().height : 0;
+                const stepperHeight = stickyStepper instanceof HTMLElement ? stickyStepper.getBoundingClientRect().height : 0;
+                const offset = topbarHeight + stepperHeight + 24;
+                const rect = fieldContainer.getBoundingClientRect();
+                const targetTop = Math.max(window.scrollY + rect.top - offset, 0);
+
+                window.scrollTo({ top: targetTop, behavior: 'smooth' });
+            } else {
+                fieldContainer.scrollIntoView?.({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            }
+
+            if (!focusTarget.matches('input, select, textarea, button, a, [tabindex]')) {
+                focusTarget.tabIndex = -1;
+            }
+
+            window.setTimeout(() => {
+                focusTarget.focus?.({ preventScroll: true });
+
+                if ((focusTarget.tagName === 'INPUT' || focusTarget.tagName === 'TEXTAREA') && typeof focusTarget.select === 'function') {
+                    focusTarget.select();
+                }
+            }, 40);
         },
 
         resolveDescricaoPadrao() {
@@ -326,29 +414,14 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
             this.syncQuickTypeHeading?.(tipo);
             this.resetQuickOptions?.();
 
-            // Update step 2 question text
-            const step2Title = document.getElementById('globalStep2Title');
-            const step2Subtitle = document.getElementById('globalStep2Subtitle');
-            if (tipo === 'receita') {
-                if (step2Title) step2Title.textContent = 'Informações da receita';
-                if (step2Subtitle) step2Subtitle.textContent = 'Valor, data, categoria, subcategoria e forma de recebimento na mesma etapa.';
-            } else if (tipo === 'transferencia') {
-                if (step2Title) step2Title.textContent = 'Informações da transferência';
-                if (step2Subtitle) step2Subtitle.textContent = 'Valor, data e conta de destino antes dos ajustes opcionais.';
-            } else {
-                if (step2Title) step2Title.textContent = 'Informações da despesa';
-                if (step2Subtitle) step2Subtitle.textContent = 'Valor, data, categoria, subcategoria e forma de pagamento onde o usuário espera.';
-            }
+
 
             // Update step 3 question text
             const step3Title = document.getElementById('globalStep3Title');
-            const step3Subtitle = document.getElementById('globalStep3Subtitle');
             if (tipo === 'transferencia') {
                 if (step3Title) step3Title.textContent = 'Ajustes opcionais';
-                if (step3Subtitle) step3Subtitle.textContent = 'Meta e complementos só se precisar enriquecer a transferência.';
             } else {
                 if (step3Title) step3Title.textContent = 'Ajustes opcionais';
-                if (step3Subtitle) step3Subtitle.textContent = 'Meta, parcelamento, repetição e lembrete quando fizer sentido.';
             }
 
             // Update step 4 question text

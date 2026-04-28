@@ -253,9 +253,9 @@ export const ContasRender = {
             if (STATE.lastLoadError && STATE.contas.length === 0) {
                 descriptionEl.textContent = STATE.lastLoadError;
             } else if (query || typeFilter !== 'all') {
-                descriptionEl.textContent = 'Busca e filtros afetam apenas a lista abaixo. O resumo no topo continua considerando todas as contas ativas.';
+                descriptionEl.textContent = 'Busca e filtros afetam só a lista abaixo. O topo continua consolidado.';
             } else {
-                descriptionEl.textContent = 'A conta com maior saldo aparece primeiro, seguida pelas demais em ordem de saldo.';
+                descriptionEl.textContent = 'Ordenadas pelo maior saldo para leitura mais rápida.';
             }
         }
     },
@@ -281,7 +281,7 @@ export const ContasRender = {
             summaryEl.innerHTML = `
                 <div class="contas-filter-summary-text">
                     <i data-lucide="info"></i>
-                    <span>Use busca e filtro para localizar contas rapidamente sem perder a visão consolidada do topo.</span>
+                    <span>Busque ou filtre sem alterar o resumo do topo.</span>
                 </div>
             `;
             return;
@@ -404,9 +404,7 @@ export const ContasRender = {
             : 0;
         const shareLabel = balance > 0 ? formatPercent(share) : '0%';
         const shareText = balance > 0
-            ? (portfolio.primaryAccount?.id === conta.id
-                ? `Conta principal com ${shareLabel} do saldo positivo`
-                : `${shareLabel} do saldo positivo`)
+            ? `${shareLabel} do saldo positivo`
             : balance < 0
                 ? 'Saldo abaixo de zero no momento'
                 : 'Sem participacao no saldo positivo';
@@ -415,20 +413,20 @@ export const ContasRender = {
         const isReserve = RESERVE_TYPES.has(type);
         const balanceClass = balance >= 0 ? 'positive' : 'negative';
         const progressContext = isFeatured
-            ? 'Conta principal'
+            ? 'Principal'
             : isReserve
-                ? 'Saldo guardado'
-                : typeLabel;
+                ? 'Reserva'
+                : 'Participacao';
         const featuredBadge = isFeatured
             ? `<span class="account-chip account-chip--featured" ${buildTooltipAttrs('Conta principal', 'Hoje esta é a conta com maior saldo entre as contas ativas.')}>
                     <i data-lucide="sparkles"></i>
-                    Conta principal
+                    Principal
                </span>`
             : '';
         const reserveBadge = isReserve
             ? `<span class="account-chip account-chip--reserve" ${buildTooltipAttrs('Saldo guardado', 'Essa conta está marcada como reserva para dinheiro separado do uso do dia a dia.')}>
                     <i data-lucide="piggy-bank"></i>
-                    Saldo guardado
+                    Reserva
                </span>`
             : '';
         const demoBadge = conta?.is_demo

@@ -5,7 +5,6 @@
                 <div class="section-icon"><i data-lucide="triangle-alert" style="color:white"></i></div>
                 <div class="section-header-text">
                     <h3>Zona de Perigo</h3>
-                    <p>Ações irreversíveis com sua conta</p>
                 </div>
             </div>
 

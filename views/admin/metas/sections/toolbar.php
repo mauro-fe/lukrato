@@ -2,7 +2,7 @@
 <section class="met-toolbar surface-card" id="metToolbarSection" data-aos="fade-up" data-aos-delay="120">
     <label class="met-toolbar__search">
         <i data-lucide="search"></i>
-        <input type="search" id="metSearchInput" placeholder="Buscar meta por nome">
+        <input type="search" id="metSearchInput" placeholder="Buscar meta">
     </label>
     <div class="met-toolbar__chips" id="metFilterChips">
         <button type="button" class="met-chip is-active" data-filter="all">Todas</button>

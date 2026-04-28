@@ -7,7 +7,7 @@
             <span class="cart-section__eyebrow">Cartões</span>
             <h2 class="cart-section__title">Seus cartões ativos</h2>
             <p class="cart-section__desc">
-                Cartões com fatura pendente ou uso elevado aparecem em destaque.
+                Pendentes ou com uso alto aparecem em destaque.
             </p>
         </div>
 

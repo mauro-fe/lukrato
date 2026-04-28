@@ -269,13 +269,11 @@ function getBudgetedCategoryCount() {
     ).size;
 }
 
-function renderContextChip(label, tone = 'default') {
-    return `<span class="cat-context-chip ${tone}">${escapeHtml(label)}</span>`;
-}
-
 function updateFilterSummary({ query, visibleCount, totalCount }) {
     const summary = document.getElementById('catFilterSummary');
     if (!summary) return;
+
+    summary.classList.remove('d-none');
 
     if (STATE.lastLoadError && totalCount === 0) {
         summary.innerHTML = `
@@ -288,12 +286,8 @@ function updateFilterSummary({ query, visibleCount, totalCount }) {
     }
 
     if (!query) {
-        summary.innerHTML = `
-            <div class="cat-filter-summary-content">
-                <i data-lucide="info"></i>
-                <span>As ações de reordenação valem para categorias criadas por você. Os limites mensais seguem ${escapeHtml(getMonthReferenceLabel())}.</span>
-            </div>
-        `;
+        summary.innerHTML = '';
+        summary.classList.add('d-none');
         return;
     }
 
@@ -307,55 +301,12 @@ function updateFilterSummary({ query, visibleCount, totalCount }) {
 }
 
 function updateContextCard({ receitas, despesas, receitasTotal, despesasTotal }) {
-    const totalCategorias = STATE.categorias.length;
-    const visibleCount = new Set([...receitas, ...despesas].map(cat => cat.id)).size;
     const query = STATE.filterQuery.trim();
-    const defaultCount = STATE.categorias.filter(cat => !cat.user_id).length;
     const ownCount = STATE.categorias.filter(cat => !!cat.user_id).length;
+    const totalCategorias = Number(receitasTotal || 0) + Number(despesasTotal || 0);
 
-    const title = document.getElementById('catContextTitle');
-    const description = document.getElementById('catContextDescription');
-    const chips = document.getElementById('catContextChips');
     const clearSearchButton = document.getElementById('catClearSearchButton');
     const refreshButton = document.getElementById('catRefreshButton');
-
-    if (title) {
-        title.textContent = query
-            ? `${visibleCount} resultado(s) para "${STATE.filterQuery.trim()}"`
-            : `${totalCategorias} categorias para organizar receitas e despesas`;
-    }
-
-    if (description) {
-        if (STATE.lastLoadError && totalCategorias === 0) {
-            description.textContent = STATE.lastLoadError;
-        } else if (query) {
-            description.textContent = 'A busca considera nome da categoria e nome da subcategoria, com destaque automático nos matches.';
-        } else {
-            description.textContent = `Os limites mensais e o gasto atual exibidos abaixo consideram ${getMonthReferenceLabel()}.`;
-        }
-    }
-
-    if (chips) {
-        const contextualChips = [
-            renderContextChip(`Orçamentos: ${getMonthReferenceLabel()}`, 'info'),
-            renderContextChip(`Receitas ${receitas.length}/${receitasTotal}`, 'success'),
-            renderContextChip(`Despesas ${despesas.length}/${despesasTotal}`, 'danger'),
-        ];
-
-        if (defaultCount > 0) {
-            contextualChips.push(renderContextChip(`${defaultCount} padrão`, 'neutral'));
-        }
-
-        if (query) {
-            contextualChips.push(renderContextChip(`Busca: ${STATE.filterQuery.trim()}`, 'accent'));
-        }
-
-        if (STATE.filterQuery.trim()) {
-            contextualChips.push(renderContextChip('Reordenação pausada durante a busca', 'warning'));
-        }
-
-        chips.innerHTML = contextualChips.join('');
-    }
 
     if (clearSearchButton) {
         clearSearchButton.classList.toggle('d-none', !query);
@@ -383,7 +334,7 @@ function updateRefreshButtons() {
     if (topButton) {
         const label = topButton.querySelector('span');
         if (label) {
-            label.textContent = isBusy ? 'Atualizando...' : 'Atualizar dados';
+            label.textContent = isBusy ? 'Atualizando' : 'Atualizar';
         }
     }
 }

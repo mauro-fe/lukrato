@@ -24,7 +24,6 @@
                     </button>
                 </div>
 
-                <p class="profile-subtitle">Segurança, aparência e integrações da sua conta em uma composição mais limpa e consistente com o resto do painel.</p>
             </div>
         </div>
 

@@ -350,7 +350,16 @@ const EventListeners = {
             });
         }
 
-        DOM.toggleExportCard?.addEventListener('click', () => {
+        const exportHeader = DOM.exportCard?.querySelector('.card-header-icon');
+        if (exportHeader) {
+            exportHeader.addEventListener('click', (event) => {
+                if (event.target.closest('#toggleExportCard')) return;
+                UI.syncExportCard(DOM.exportCardBody?.hidden);
+            });
+        }
+
+        DOM.toggleExportCard?.addEventListener('click', (event) => {
+            event.stopPropagation();
             UI.syncExportCard(DOM.exportCardBody?.hidden);
         });
 

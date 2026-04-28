@@ -10,20 +10,17 @@ import { Modules } from './state.js';
 /** Map: checkbox ID -> section ID */
 const SECTION_MAP = {
     toggleCategoriasKpis: 'categoriasKpis',
-    toggleCategoriasCreateCard: 'categoriasCreateCard',
-    toggleCategoriasContextCard: 'catContextCard'
+    toggleCategoriasCreateCard: 'categoriasCreateCard'
 };
 
 const COMPLETE_DEFAULTS = {
     toggleCategoriasKpis: true,
-    toggleCategoriasCreateCard: true,
-    toggleCategoriasContextCard: true
+    toggleCategoriasCreateCard: true
 };
 
 const ESSENTIAL_DEFAULTS = {
     ...COMPLETE_DEFAULTS,
-    toggleCategoriasKpis: false,
-    toggleCategoriasContextCard: false
+    toggleCategoriasKpis: false
 };
 
 async function loadCategoriasPrefs() {

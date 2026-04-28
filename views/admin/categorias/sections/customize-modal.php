@@ -17,7 +17,6 @@ $customizeModal = [
             'items' => [
                 ['id' => 'toggleCategoriasKpis', 'label' => 'Cards de KPI'],
                 ['id' => 'toggleCategoriasCreateCard', 'label' => 'Card de criação'],
-                ['id' => 'toggleCategoriasContextCard', 'label' => 'Contexto e busca'],
             ],
         ],
     ],

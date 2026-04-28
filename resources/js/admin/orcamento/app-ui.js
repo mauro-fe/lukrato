@@ -262,8 +262,8 @@ export function createOrcamentoUi({
             focus.innerHTML = `
                 <div class="orc-focus-callout">
                     <div>
-                        <h2 class="orc-focus-callout__title">Monte seus limites.</h2>
-                        <p class="orc-focus-callout__text">Crie uma base inicial com sugestões ou abra só as categorias que mais pesam no mês.</p>
+                        <h2 class="orc-focus-callout__title">Comece pelos limites.</h2>
+                        <p class="orc-focus-callout__text">Use sugestões ou ajuste só as categorias que mais pesam no mês.</p>
                     </div>
                     <div class="orc-focus-callout__actions">
                         <button type="button" class="orc-action-btn orc-action-btn--primary" onclick="orcamentoManager.openSugestoes()">
@@ -283,12 +283,18 @@ export function createOrcamentoUi({
 
         const topName = topPressure.categoria?.nome || topPressure.categoria_nome || 'Categoria';
         const topDailyInfo = getDailyBudgetInfo(topPressure);
+        const topDailyPillLabel = {
+            'Média real por dia': 'Média/dia',
+            'Planejado por dia': 'Plano/dia',
+            'Pode gastar por dia': 'Livre/dia',
+            'Corte diário': 'Corte/dia',
+        }[topDailyInfo.label] || topDailyInfo.label;
         const topRemaining = topPressure.percentual > 100
             ? `Excedido em <strong>${Utils.formatCurrency(topPressure.excedido || 0)}</strong>`
             : `Restam <strong>${Utils.formatCurrency(topPressure.disponivel || 0)}</strong>`;
         const helper = disponivelTotal > 0
-            ? `Folga total de <strong>${Utils.formatCurrency(disponivelTotal)}</strong> no período`
-            : 'Sem folga total no período';
+            ? `Folga total: <strong>${Utils.formatCurrency(disponivelTotal)}</strong>`
+            : 'Sem folga no período';
 
         focus.innerHTML = `
             <div class="orc-focus-callout">
@@ -297,7 +303,7 @@ export function createOrcamentoUi({
                     <p class="orc-focus-callout__text">${topRemaining}. ${helper}.</p>
                     <div class="orc-focus-callout__meta">
                         <span class="orc-focus-callout__pill">${Math.round(topPressure.percentual || 0)}% usado</span>
-                        <span class="orc-focus-callout__pill">${Utils.escHtml(topDailyInfo.label)}: ${Utils.escHtml(topDailyInfo.value)}</span>
+                        <span class="orc-focus-callout__pill">${Utils.escHtml(topDailyPillLabel)}: ${Utils.escHtml(topDailyInfo.value)}</span>
                         ${topPressure.rollover && (topPressure.rollover_valor || 0) > 0
                 ? `<span class="orc-focus-callout__pill">Rollover de ${Utils.formatCurrency(topPressure.rollover_valor || 0)}</span>`
                 : ''}
@@ -400,6 +406,8 @@ export function createOrcamentoUi({
         const visibleCount = document.getElementById('orcVisibleCount');
         if (!grid || !empty) return;
 
+        grid.dataset.cardCount = '0';
+
         if (!STATE.orcamentos.length) {
             grid.style.display = 'none';
             empty.style.display = 'flex';
@@ -413,6 +421,7 @@ export function createOrcamentoUi({
 
         if (!filteredOrcamentos.length) {
             if (visibleCount) visibleCount.textContent = '0';
+            grid.dataset.cardCount = '0';
             grid.innerHTML = `
                 <div class="orc-soft-empty surface-card">
                     <i data-lucide="search-x"></i>
@@ -426,6 +435,7 @@ export function createOrcamentoUi({
         if (visibleCount) {
             visibleCount.textContent = String(filteredOrcamentos.length);
         }
+        grid.dataset.cardCount = String(filteredOrcamentos.length);
 
         grid.innerHTML = filteredOrcamentos.map((orc) => {
             const pct = orc.percentual || 0;
@@ -512,13 +522,13 @@ export function createOrcamentoUi({
 
         if (!dedupedInsights.length) {
             if (section) section.style.display = 'none';
-            if (insightCount) insightCount.textContent = '0 insights';
+            if (insightCount) insightCount.textContent = '0 itens';
             return;
         }
 
         if (section) section.style.display = '';
         if (insightCount) {
-            insightCount.textContent = `${dedupedInsights.length} ${dedupedInsights.length === 1 ? 'insight' : 'insights'}`;
+            insightCount.textContent = `${dedupedInsights.length} ${dedupedInsights.length === 1 ? 'item' : 'itens'}`;
         }
         grid.innerHTML = dedupedInsights.map((insight) => {
             const icon = insight.icone || Utils.getInsightIcon(insight.tipo);

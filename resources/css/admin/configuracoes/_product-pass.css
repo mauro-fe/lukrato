@@ -1,0 +1,431 @@
+.profile-page--configuracoes {
+  gap: var(--spacing-4);
+}
+
+.profile-page--configuracoes .profile-header {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-4);
+  padding: 22px 24px;
+  border-color: color-mix(in srgb, var(--color-primary) 16%, var(--glass-border));
+}
+
+.profile-page--configuracoes .profile-header__main {
+  gap: 16px;
+  align-items: center;
+}
+
+.profile-page--configuracoes .profile-avatar-wrapper--compact .profile-avatar {
+  width: 76px;
+  height: 76px;
+}
+
+.profile-page--configuracoes .profile-avatar-wrapper--compact .avatar-initials {
+  font-size: 30px;
+}
+
+.profile-page--configuracoes .profile-avatar-wrapper--compact .avatar-edit-btn {
+  width: 32px;
+  height: 32px;
+  right: -2px;
+  bottom: -2px;
+}
+
+.profile-page--configuracoes .profile-header__content {
+  gap: 6px;
+}
+
+.profile-page--configuracoes .profile-subtitle {
+  max-width: 62ch;
+}
+
+.profile-page--configuracoes .profile-header__highlights {
+  display: none;
+}
+
+.profile-page--configuracoes .config-appearance-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 20px 24px;
+  border-radius: 22px;
+}
+
+.profile-page--configuracoes .config-appearance-card__header {
+  gap: 12px;
+  align-items: center;
+}
+
+.profile-page--configuracoes .config-appearance-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.profile-page--configuracoes .config-appearance-card__copy h2 {
+  font-size: clamp(1.55rem, 2vw, 1.9rem);
+  letter-spacing: -0.03em;
+}
+
+.profile-page--configuracoes .config-appearance-card__copy p {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-page--configuracoes .config-theme-options {
+  gap: 10px;
+}
+
+.profile-page--configuracoes .config-theme-option {
+  min-height: 50px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font-weight: 600;
+}
+
+.profile-page--configuracoes .config-theme-option.is-active {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent),
+    0 12px 24px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.profile-page--configuracoes .profile-tabs {
+  padding: 8px;
+  gap: 8px;
+}
+
+.profile-page--configuracoes .profile-tab {
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: 16px;
+}
+
+.profile-page--configuracoes .profile-tab .tab-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.profile-page--configuracoes .profile-tab.active {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 8%, transparent),
+    0 12px 24px color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.profile-page--configuracoes .profile-tab.tab-danger.active {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-danger) 8%, transparent),
+    0 12px 24px color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+.profile-page--configuracoes .profile-tab-panel.active {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.profile-page--configuracoes .profile-section {
+  padding: 22px 24px;
+  border-radius: 24px;
+}
+
+.profile-page--configuracoes .section-header {
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+}
+
+.profile-page--configuracoes .section-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.profile-page--configuracoes .section-header-text h3 {
+  font-size: clamp(1.55rem, 2vw, 1.9rem);
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
+.profile-page--configuracoes .section-header-text p {
+  margin-top: 2px;
+}
+
+.profile-page--configuracoes .form-row {
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.profile-page--configuracoes .form-input,
+.profile-page--configuracoes .form-select {
+  min-height: 48px;
+  border-radius: 16px;
+}
+
+.profile-page--configuracoes .pwd-strength {
+  padding: 12px 14px 10px;
+  border-radius: 14px;
+}
+
+.profile-page--configuracoes .form-actions,
+.profile-page--configuracoes .form-actions--inside {
+  margin-top: 20px;
+  padding-top: 18px;
+}
+
+.profile-page--configuracoes .btn-save {
+  min-width: 200px;
+  min-height: 46px;
+  border-radius: 16px;
+}
+
+.profile-page--configuracoes .plan-section,
+.profile-page--configuracoes .referral-section,
+.profile-page--configuracoes .danger-zone {
+  overflow: hidden;
+}
+
+.profile-page--configuracoes .current-plan {
+  margin-bottom: 12px;
+}
+
+.profile-page--configuracoes .plan-description {
+  max-width: 52ch;
+  line-height: 1.55;
+}
+
+.profile-page--configuracoes .btn-manage-plan {
+  min-width: 200px;
+  min-height: 46px;
+}
+
+.profile-page--configuracoes .referral-section-content {
+  gap: 20px;
+}
+
+.profile-page--configuracoes .referral-info {
+  text-align: left;
+}
+
+.profile-page--configuracoes .referral-reward-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-page--configuracoes .reward-item {
+  justify-content: flex-start;
+  min-height: 58px;
+  padding: 12px 14px;
+}
+
+.profile-page--configuracoes .referral-container {
+  gap: 14px;
+}
+
+.profile-page--configuracoes .referral-code-box,
+.profile-page--configuracoes .referral-link-box {
+  padding: 6px;
+  border-radius: 16px;
+}
+
+.profile-page--configuracoes .referral-limit-bar {
+  margin-bottom: 0;
+  padding: 16px 18px;
+}
+
+.profile-page--configuracoes .limit-bar-track {
+  height: 10px;
+}
+
+.profile-page--configuracoes .referral-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 150px));
+  gap: 14px;
+}
+
+.profile-page--configuracoes .stat-item {
+  min-width: 0;
+  min-height: 96px;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.profile-page--configuracoes .stat-value {
+  font-size: 2rem;
+}
+
+.profile-page--configuracoes .referral-share-buttons {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.profile-page--configuracoes .btn-share {
+  min-width: 140px;
+  min-height: 44px;
+  padding: 0 16px;
+  justify-content: center;
+  border-radius: 15px;
+  box-shadow: none;
+}
+
+.profile-page--configuracoes .integration-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+}
+
+.profile-page--configuracoes .integration-status {
+  margin-bottom: 0;
+  padding-bottom: 12px;
+}
+
+.profile-page--configuracoes .integration-action {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+}
+
+.profile-page--configuracoes .integration-instructions {
+  max-width: 56ch;
+  margin: 0;
+}
+
+.profile-page--configuracoes .integration-linked-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.profile-page--configuracoes .integration-linked-subtitle {
+  margin: -6px 0 0;
+}
+
+.profile-page--configuracoes .telegram-link-steps {
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+.profile-page--configuracoes .telegram-link-meta {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.profile-page--configuracoes .telegram-link-actions {
+  justify-content: flex-start;
+}
+
+.profile-page--configuracoes .danger-zone-content {
+  gap: 20px;
+}
+
+.profile-page--configuracoes .danger-zone-info h4 {
+  margin-bottom: 0;
+  font-size: clamp(1.2rem, 1.8vw, 1.4rem);
+}
+
+.profile-page--configuracoes .danger-zone-info p {
+  margin: 0;
+  max-width: 60ch;
+  line-height: 1.6;
+}
+
+.profile-page--configuracoes .danger-zone-info ul {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-page--configuracoes .danger-zone-info li {
+  min-height: 72px;
+  padding: 14px 16px;
+}
+
+.profile-page--configuracoes .btn-delete-account {
+  width: min(100%, 360px);
+  margin-left: auto;
+  min-height: 52px;
+  border-radius: 16px;
+}
+
+.profile-page--configuracoes .profile-customize-trigger {
+  margin-top: var(--spacing-1);
+}
+
+.profile-page--configuracoes .profile-customize-open {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0 16px;
+}
+
+@media (max-width: 1024px) {
+  .profile-page--configuracoes .config-appearance-card,
+  .profile-page--configuracoes .plan-section-content,
+  .profile-page--configuracoes .referral-container,
+  .profile-page--configuracoes .danger-zone-info ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-page--configuracoes {
+    gap: var(--spacing-3);
+  }
+
+  .profile-page--configuracoes .profile-header,
+  .profile-page--configuracoes .config-appearance-card,
+  .profile-page--configuracoes .profile-section {
+    padding: 18px;
+  }
+
+  .profile-page--configuracoes .profile-header__main {
+    align-items: flex-start;
+  }
+
+  .profile-page--configuracoes .profile-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-page--configuracoes .profile-tab {
+    min-height: 50px;
+  }
+
+  .profile-page--configuracoes .profile-tab .tab-label {
+    display: inline;
+    font-size: var(--font-size-xs);
+  }
+
+  .profile-page--configuracoes .referral-reward-info,
+  .profile-page--configuracoes .referral-stats,
+  .profile-page--configuracoes .referral-share-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-page--configuracoes .btn-manage-plan,
+  .profile-page--configuracoes .btn-save,
+  .profile-page--configuracoes .btn-delete-account,
+  .profile-page--configuracoes .btn-share {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .profile-page--configuracoes .profile-tabs,
+  .profile-page--configuracoes .config-theme-options {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-page--configuracoes .profile-avatar-wrapper--compact .profile-avatar {
+    width: 68px;
+    height: 68px;
+  }
+
+  .profile-page--configuracoes .profile-title {
+    font-size: clamp(1.8rem, 9vw, 2.3rem);
+  }
+}

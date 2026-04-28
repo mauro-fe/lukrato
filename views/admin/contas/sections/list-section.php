@@ -7,7 +7,7 @@
             <span class="cont-section__eyebrow">Contas</span>
             <h2 class="cont-section__title" id="contasListTitle">Suas contas ativas</h2>
             <p class="cont-section__desc" id="contasListDescription">
-                A conta com maior saldo aparece primeiro para facilitar sua leitura.
+                Ordenadas pelo maior saldo para leitura mais rápida.
             </p>
         </div>
 

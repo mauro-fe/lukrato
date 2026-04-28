@@ -3,15 +3,41 @@
     <div class="categories-section-header">
         <div class="categories-section-copy">
             <p class="categories-section-kicker">Organização por tipo</p>
-            <h2 class="categories-section-title" id="categoriasSectionTitle">Receitas e despesas em paralelo</h2>
-            <p class="categories-section-description">Navegue pelos dois grupos lado a lado, com cards amplos e rolagem
-                interna previsível.</p>
+            <h2 class="categories-section-title" id="categoriasSectionTitle">Receitas e despesas</h2>
+            <p class="categories-section-description">Navegue pelos dois grupos lado a lado, com rolagem interna previsível.</p>
         </div>
 
-        <button class="cat-customize-open surface-card" id="btnCustomizeCategorias" type="button">
-            <i data-lucide="sliders-horizontal"></i>
-            <span>Personalizar tela</span>
-        </button>
+        <div class="categories-section-tools">
+            <div class="categories-section-search-row">
+                <div class="cat-search-wrapper categories-section-search">
+                    <i data-lucide="search" class="cat-search-icon"></i>
+                    <input type="text" id="catSearchInput" class="cat-search-input"
+                        placeholder="Buscar categoria ou subcategoria..." autocomplete="off" />
+                    <button type="button" id="catSearchClear" class="cat-search-clear d-none" title="Limpar busca">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <div class="cat-context-actions categories-section-actions">
+                    <button type="button" class="cat-context-btn" data-action="refresh-categorias" id="catRefreshButton">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Atualizar</span>
+                    </button>
+                    <button type="button" class="cat-context-btn ghost d-none" data-action="clear-categoria-search"
+                        id="catClearSearchButton">
+                        <i data-lucide="x"></i>
+                        <span>Limpar busca</span>
+                    </button>
+
+                    <button class="cat-customize-open surface-card" id="btnCustomizeCategorias" type="button">
+                        <i data-lucide="sliders-horizontal"></i>
+                        <span>Personalizar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cat-filter-summary d-none" id="catFilterSummary" aria-live="polite"></div>
+        </div>
     </div>
 
     <div class="categories-grid">

@@ -61,6 +61,17 @@
     width: 100%;
   }
 
+  .categories-section-tools,
+  .categories-section-search-row,
+  .categories-section-meta-row {
+    gap: var(--spacing-2);
+  }
+
+  .categories-section .cat-customize-open {
+    width: 100%;
+    justify-content: center;
+  }
+
   /* Create card mobile compact */
   .create-card.modern-card {
     border-radius: var(--radius-md);
