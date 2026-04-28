@@ -3,9 +3,9 @@
    =================================================================== */
 
 .sysadmin-swal.swal2-popup {
-  background: var(--color-bg) !important;
+  --lk-swal-accent: #f97316;
+  max-width: 540px !important;
   color: var(--color-text) !important;
-  border: 1px solid var(--glass-border);
 }
 
 .swal2-radio{
@@ -18,17 +18,25 @@
 
 .sysadmin-swal .swal2-html-container {
   color: var(--color-text) !important;
+  text-align: left !important;
 }
 
 .sysadmin-swal label {
   color: var(--color-text) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted) !important;
 }
 
 .sysadmin-swal .swal2-input,
 .sysadmin-swal .swal2-select {
-  background: var(--color-bg) !important;
-  color: var(--color-text) !important;
-  border: 1px solid var(--glass-border) !important;
+  background: color-mix(in srgb, var(--surface-modal-bg, var(--color-bg)) 84%, rgba(255, 255, 255, 0.03)) !important;
 }
 
 .sysadmin-swal .swal2-input::placeholder {
@@ -36,26 +44,34 @@
 }
 
 .sysadmin-swal .swal2-confirm {
-  background: linear-gradient(135deg, #f97316, #ea580c) !important;
+  min-width: 140px;
 }
 
 .sysadmin-swal .swal2-cancel {
-  background: var(--glass-bg) !important;
-  color: var(--color-text) !important;
-  border: 1px solid var(--glass-border) !important;
+  min-width: 120px;
 }
 
 .sysadmin-swal .subscription-info-box {
-  background: var(--color-bg) !important;
-  padding: 12px;
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--theme-surface-card-bg, var(--color-bg)) 82%, transparent) !important;
+  padding: 16px;
+  border-radius: 18px;
   margin-top: 15px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid color-mix(in srgb, #f97316 12%, var(--glass-border));
   color: var(--color-text) !important;
 }
 
 .sysadmin-swal .subscription-info-box h4,
 .sysadmin-swal .subscription-info-box p {
   color: var(--color-text) !important;
+}
+
+.sysadmin-swal .swal-form-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.sysadmin-swal .swal-form-group {
+  display: grid;
+  gap: 0;
 }
 

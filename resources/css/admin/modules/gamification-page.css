@@ -1998,9 +1998,8 @@
    =============================================== */
 
 .achievement-modal.swal2-popup {
-  background: var(--color-bg) !important;
-  border: 1px solid var(--color-card-border) !important;
-  box-shadow: var(--shadow-lg) !important;
+  --lk-swal-accent: var(--color-primary);
+  max-width: 560px !important;
   color: var(--text-color);
 }
 
@@ -2011,6 +2010,7 @@
 
 .achievement-modal .swal2-html-container {
   color: var(--color-text) !important;
+  text-align: left !important;
 }
 
 .achievement-modal .swal2-html-container p {
@@ -2018,16 +2018,10 @@
 }
 
 .achievement-modal .swal2-confirm {
-  background: var(--color-primary) !important;
-  border: none !important;
-  padding: 10px 24px !important;
-  border-radius: var(--radius-md) !important;
-  font-weight: 600 !important;
-  transition: all var(--transition-normal) !important;
+  min-width: 140px;
 }
 
 .achievement-modal .swal2-confirm:hover {
-  background: var(--color-primary-hover) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -2042,6 +2036,140 @@
 
 .achievement-modal .swal2-icon.swal2-success .swal2-success-ring {
   border-color: rgba(249, 115, 22, 0.3) !important;
+}
+
+.achievements-modal.swal2-popup {
+  --lk-swal-accent: var(--color-primary);
+  width: min(860px, calc(100vw - 32px)) !important;
+  max-width: 860px !important;
+}
+
+.achievements-modal .swal2-html-container {
+  text-align: left !important;
+}
+
+.achievements-modal .swal2-confirm {
+  min-width: 140px;
+}
+
+.achievements-modal-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.achievements-modal-stats .stat-item {
+  padding: 16px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--theme-surface-card-bg, var(--color-bg)) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-card-border));
+}
+
+.achievements-modal-stats .stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.achievements-modal-stats .stat-label {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.achievements-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.achievement-modal-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 16px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--theme-surface-card-bg, var(--color-bg)) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--color-card-border));
+}
+
+.achievement-modal-item.unlocked {
+  border-color: color-mix(in srgb, #10b981 32%, var(--color-card-border));
+}
+
+.achievement-modal-item.locked {
+  opacity: 0.86;
+}
+
+.achievement-modal-item .achievement-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.achievement-modal-item .achievement-info {
+  min-width: 0;
+}
+
+.achievement-modal-item .achievement-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.achievement-modal-item .achievement-desc {
+  margin-top: 6px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.achievement-modal-item .achievement-points-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.achievement-modal-item .achievement-check {
+  color: #10b981;
+}
+
+.achievement-modal-item .pro-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #f59e0b 20%, transparent);
+  color: #fbbf24;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .achievements-modal.swal2-popup {
+    width: calc(100vw - 20px) !important;
+  }
+
+  .achievements-modal-stats,
+  .achievements-modal-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===============================================

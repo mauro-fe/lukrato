@@ -611,7 +611,7 @@ export function attachLancamentoGlobalFormFlowMethods(ManagerClass, dependencies
                 pagoCheck.checked = false;
                 pagoCheck.disabled = true;
                 pagoGroup.classList.add('lk-form-group-disabled');
-                pagoHelper.textContent = 'Recorrencias comecam como pendentes. Voce pode marcar cada ocorrencia como paga depois.';
+                pagoHelper.textContent = 'Recorrências começam como pendentes. Você pode marcar cada ocorrência como paga depois.';
                 this.schedulePlanningAlertsRender();
                 return;
             }

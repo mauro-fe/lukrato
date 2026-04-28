@@ -741,7 +741,7 @@ function showAchievementDetail(achievement) {
         icon: isUnlocked ? 'success' : 'info',
         confirmButtonText: 'Fechar',
         confirmButtonColor: '#f97316',
-        customClass: { popup: 'achievement-modal' },
+        customClass: { popup: 'lk-swal-popup achievement-modal' },
         didOpen: () => { if (window.lucide) lucide.createIcons(); }
     });
 }

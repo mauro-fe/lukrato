@@ -197,6 +197,19 @@ import { resolveAccountsEndpoint } from '../api/endpoints/finance.js';
      * Confirmação padrão de logout (SweetAlert2 ou confirm nativo)
      */
     function defaultConfirmLogout() {
+        if (window.LKFeedback?.confirm) {
+            return window.LKFeedback.confirm('Sua sessão será encerrada agora e você voltará para a tela de login.', {
+                title: 'Deseja realmente sair?',
+                eyebrow: 'Sessão',
+                icon: 'warning',
+                iconName: 'log-out',
+                confirmButtonText: 'Sim, sair',
+                cancelButtonText: 'Cancelar',
+                isDanger: true,
+                reverseButtons: false,
+            }).then(result => Boolean(result.isConfirmed));
+        }
+
         if (window.Swal?.fire) {
             return window.Swal.fire({
                 title: 'Deseja realmente sair?',

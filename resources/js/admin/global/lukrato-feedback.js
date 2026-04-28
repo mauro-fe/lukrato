@@ -81,6 +81,227 @@ import { buildAppUrl } from '../shared/api.js';
         return buildAppUrl(raw);
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function joinClassNames(...parts) {
+        return parts.filter(Boolean).join(' ');
+    }
+
+    function resolveConfirmIconName(icon, isDanger) {
+        const normalizedIcon = typeof icon === 'string' ? icon.toLowerCase() : 'question';
+        const iconMap = {
+            error: 'octagon-alert',
+            info: 'info',
+            question: 'circle-help',
+            success: 'badge-check',
+            warning: 'triangle-alert',
+        };
+
+        if (isDanger && (normalizedIcon === 'warning' || normalizedIcon === 'question')) {
+            return 'triangle-alert';
+        }
+
+        return iconMap[normalizedIcon] || 'circle-help';
+    }
+
+    function resolveConfirmEyebrow(eyebrow, icon, isDanger) {
+        if (typeof eyebrow === 'string' && eyebrow.trim() !== '') {
+            return eyebrow.trim();
+        }
+
+        const normalizedIcon = typeof icon === 'string' ? icon.toLowerCase() : 'question';
+
+        if (isDanger || normalizedIcon === 'warning' || normalizedIcon === 'error') {
+            return 'Atenção';
+        }
+
+        return 'Confirmação';
+    }
+
+    function buildConfirmHtml({ title, message, html, iconName, eyebrow, isDanger }) {
+        return `
+            <div class="lk-swal-card${isDanger ? ' lk-swal-card--danger' : ''}">
+                <div class="lk-swal-card__hero">
+                    <div class="lk-swal-card__icon" aria-hidden="true">
+                        <i data-lucide="${escapeHtml(iconName)}"></i>
+                    </div>
+                    <div class="lk-swal-card__copy">
+                        <span class="lk-swal-card__eyebrow">${escapeHtml(eyebrow)}</span>
+                        <h3 class="lk-swal-card__title">${escapeHtml(title)}</h3>
+                        ${message !== '' ? `<p class="lk-swal-card__text">${escapeHtml(message)}</p>` : ''}
+                    </div>
+                </div>
+                ${html ? `<div class="lk-swal-card__body">${html}</div>` : ''}
+            </div>
+        `;
+    }
+
+    function decorateConfirmPopup(popup, accentColor, originalDidOpen) {
+        const titleEl = popup.querySelector('.lk-swal-card__title');
+        const textEl = popup.querySelector('.lk-swal-card__text');
+
+        popup.setAttribute('role', 'alertdialog');
+
+        if (titleEl) {
+            titleEl.id = 'lkSwalConfirmTitle';
+            popup.setAttribute('aria-labelledby', titleEl.id);
+        }
+
+        if (textEl) {
+            textEl.id = 'lkSwalConfirmDescription';
+            popup.setAttribute('aria-describedby', textEl.id);
+        }
+
+        if (accentColor) {
+            popup.style.setProperty('--lk-swal-accent', accentColor);
+        }
+
+        window.lucide?.createIcons?.({ nodes: [popup] });
+
+        if (typeof originalDidOpen === 'function') {
+            originalDidOpen(popup);
+        }
+    }
+
+    function buildConfirmDialogOptions(message, options = {}) {
+        const {
+            title = 'Confirmar',
+            confirmButtonText = 'Confirmar',
+            cancelButtonText = 'Cancelar',
+            icon = 'question',
+            iconName,
+            eyebrow,
+            description = '',
+            html = '',
+            isDanger = false,
+            reverseButtons = true,
+            focusCancel = isDanger,
+            customClass = {},
+            confirmButtonColor,
+            didOpen,
+            ...restOptions
+        } = options;
+
+        const confirmMessage = description || message || '';
+        const bodyHtml = typeof html === 'string' ? html : '';
+        const resolvedIconName = iconName || resolveConfirmIconName(icon, isDanger);
+        const resolvedEyebrow = resolveConfirmEyebrow(eyebrow, icon, isDanger);
+        const accentColor = confirmButtonColor || (isDanger ? CONFIG.colors.error : CONFIG.colors.primary);
+
+        return {
+            ...restOptions,
+            title: '',
+            html: buildConfirmHtml({
+                title,
+                message: confirmMessage,
+                html: bodyHtml,
+                iconName: resolvedIconName,
+                eyebrow: resolvedEyebrow,
+                isDanger,
+            }),
+            showCancelButton: true,
+            confirmButtonText,
+            cancelButtonText,
+            confirmButtonColor: accentColor,
+            reverseButtons,
+            focusCancel,
+            ...getSwalTheme(),
+            customClass: {
+                ...customClass,
+                popup: joinClassNames(
+                    'lk-swal-popup',
+                    'lk-swal-confirm',
+                    isDanger ? 'lk-swal-confirm--danger' : '',
+                    customClass.popup
+                ),
+                confirmButton: joinClassNames(
+                    isDanger ? 'lk-swal-btn-danger' : '',
+                    customClass.confirmButton
+                ),
+            },
+            didOpen: (popup) => {
+                decorateConfirmPopup(popup, accentColor, didOpen);
+            },
+        };
+    }
+
+    function hasCustomPopupClass(customClass) {
+        if (!customClass || typeof customClass !== 'object') {
+            return false;
+        }
+
+        if (typeof customClass.popup === 'string') {
+            return customClass.popup.trim() !== '';
+        }
+
+        return Array.isArray(customClass.popup) && customClass.popup.length > 0;
+    }
+
+    function isDangerConfirmColor(value) {
+        if (typeof value !== 'string') {
+            return false;
+        }
+
+        return /(danger|#e74c3c|#ef4444|#dc3545|#d33\b)/i.test(value.trim());
+    }
+
+    function canAutoShellRawConfirm(options) {
+        if (!options || typeof options !== 'object' || Array.isArray(options)) {
+            return false;
+        }
+
+        if (options.showCancelButton !== true || options.toast === true) {
+            return false;
+        }
+
+        if (options.html != null && options.html !== '' && typeof options.html !== 'string') {
+            return false;
+        }
+
+        if (hasCustomPopupClass(options.customClass)) {
+            return false;
+        }
+
+        return typeof options.title === 'string'
+            || typeof options.text === 'string'
+            || typeof options.html === 'string'
+            || typeof options.input === 'string';
+    }
+
+    function installRawSwalConfirmShell() {
+        if (!window.Swal?.fire || window.Swal.__lkConfirmShellInstalled === true) {
+            return;
+        }
+
+        const originalFire = window.Swal.fire.bind(window.Swal);
+
+        window.Swal.fire = function wrappedSwalFire(...args) {
+            if (args.length !== 1 || !canAutoShellRawConfirm(args[0])) {
+                return originalFire(...args);
+            }
+
+            const options = args[0];
+            const isDanger = options.icon === 'error'
+                || isDangerConfirmColor(options.confirmButtonColor)
+                || (options.focusCancel === true && options.icon === 'warning');
+
+            return originalFire(buildConfirmDialogOptions(options.text || '', {
+                ...options,
+                title: options.title || 'Confirmar',
+                isDanger,
+            }));
+        };
+
+        window.Swal.__lkConfirmShellInstalled = true;
+    }
+
     // ============================================
     // FEEDBACK FUNCTIONS
     // ============================================
@@ -220,30 +441,7 @@ import { buildAppUrl } from '../shared/api.js';
      * Mostra diálogo de confirmação
      */
     function showConfirm(message, options = {}) {
-        const {
-            title = 'Confirmar',
-            confirmButtonText = 'Confirmar',
-            cancelButtonText = 'Cancelar',
-            icon = 'question',
-            isDanger = false,
-        } = options;
-
-        return Swal.fire({
-            icon: icon,
-            title: title,
-            text: message,
-            showCancelButton: true,
-            confirmButtonText: confirmButtonText,
-            cancelButtonText: cancelButtonText,
-            confirmButtonColor: isDanger ? CONFIG.colors.error : CONFIG.colors.primary,
-            reverseButtons: true,
-            focusCancel: isDanger,
-            ...getSwalTheme(),
-            customClass: {
-                popup: 'lk-swal-popup lk-swal-confirm',
-                confirmButton: isDanger ? 'lk-swal-btn-danger' : '',
-            },
-        });
+        return Swal.fire(buildConfirmDialogOptions(message, options));
     }
 
     /**
@@ -380,6 +578,12 @@ import { buildAppUrl } from '../shared/api.js';
             }
             return result;
         });
+    }
+
+    installRawSwalConfirmShell();
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', installRawSwalConfirmShell, { once: true });
     }
 
     // ============================================

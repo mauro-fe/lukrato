@@ -811,14 +811,12 @@
 }
 /* ===== MODAL DE CONQUISTA DESBLOQUEADA ===== */
 .achievement-unlock-modal.swal2-popup {
-  background: var(--color-bg) !important;
-  border: 2px solid var(--color-primary) !important;
-  border-radius: 20px !important;
+  --lk-swal-accent: var(--color-primary);
+  border-radius: 24px !important;
   padding: 2rem 3rem !important;
   max-width: 650px !important;
   width: 90% !important;
   overflow: visible !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
 }
 
 .achievement-unlock-modal .swal2-title {
@@ -889,7 +887,7 @@
   font-weight: 700 !important;
   margin: 1rem auto 0 auto !important;
   padding: 0.65rem 1.25rem !important;
-  background: var(--glass-bg) !important;
+  background: color-mix(in srgb, var(--theme-surface-card-bg, var(--glass-bg)) 84%, transparent) !important;
   border-radius: 12px !important;
   display: inline-block !important;
   border: 1px solid rgba(249, 115, 22, 0.2) !important;
@@ -909,29 +907,16 @@
 }
 
 .achievement-unlock-modal .swal2-confirm {
-  background: var(--color-primary) !important;
-  color: white !important;
-  border: none !important;
-  padding: 0.85rem 2.25rem !important;
-  border-radius: 30px !important;
-  font-size: 1.05rem !important;
-  font-weight: 700 !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  margin: 0 !important;
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important;
   min-width: 170px !important;
 }
 
 .achievement-unlock-modal .swal2-confirm:hover {
-  background: var(--color-primary-hover) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4) !important;
 }
 
 .achievement-unlock-modal .swal2-confirm:focus {
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3) !important;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.22) !important;
 }
 
 /* Garantir que o modal seja visível acima de tudo */
@@ -960,13 +945,11 @@
 
 /* ===== MODAL DE LEVEL UP ===== */
 .level-up-modal.swal2-popup {
-  background: var(--color-bg) !important;
-  border: 2px solid var(--color-secondary) !important;
-  border-radius: 20px !important;
+  --lk-swal-accent: var(--color-secondary);
+  border-radius: 24px !important;
   padding: 2rem 3rem !important;
   max-width: 650px !important;
   width: 90% !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
 }
 
 .level-up-modal .swal2-title {
@@ -1044,7 +1027,7 @@
   font-weight: 600 !important;
   margin-top: 1rem !important;
   padding: 0.65rem 1rem !important;
-  background: var(--glass-bg) !important;
+  background: color-mix(in srgb, var(--theme-surface-card-bg, var(--glass-bg)) 84%, transparent) !important;
   border-radius: 12px !important;
   display: inline-block !important;
   border: 1px solid rgba(129, 140, 248, 0.2) !important;
@@ -1055,22 +1038,11 @@
 }
 
 .level-up-modal .swal2-confirm {
-  background: var(--color-secondary) !important;
-  color: white !important;
-  border: none !important;
-  padding: 0.85rem 2.25rem !important;
-  border-radius: 30px !important;
-  font-size: 1.05rem !important;
-  font-weight: 700 !important;
-  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3) !important;
   min-width: 170px !important;
-  transition: all 0.3s ease !important;
 }
 
 .level-up-modal .swal2-confirm:hover {
-  background: var(--color-secondary-hover) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(129, 140, 248, 0.4) !important;
 }
 
 /* Responsivo para modais */
@@ -1202,14 +1174,12 @@
 
 /* ===== MODAL DE RECOMPENSA DE INDICAÇÃO ===== */
 .referral-reward-modal.swal2-popup {
-  background: var(--color-bg) !important;
-  border: 2px solid #10b981 !important;
-  border-radius: 20px !important;
+  --lk-swal-accent: #10b981;
+  border-radius: 24px !important;
   padding: 2rem 3rem !important;
   max-width: 550px !important;
   width: 90% !important;
   overflow: visible !important;
-  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3) !important;
 }
 
 .referral-reward-modal .swal2-title {
@@ -1279,21 +1249,11 @@
 }
 
 .referral-reward-modal .swal2-confirm {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 12px !important;
-  padding: 0.9rem 2rem !important;
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+  min-width: 160px !important;
 }
 
 .referral-reward-modal .swal2-confirm:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
 }
 
 @media (max-width: 480px) {

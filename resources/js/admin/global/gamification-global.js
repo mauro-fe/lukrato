@@ -200,7 +200,7 @@ import {
                         icon: 'success',
                         confirmButtonText: 'Continuar!',
                         customClass: {
-                            popup: 'achievement-unlock-modal',
+                            popup: 'lk-swal-popup achievement-unlock-modal',
                             confirmButton: 'btn btn-primary',
                             container: 'swal2-achievement-container'
                         },
@@ -245,7 +245,7 @@ import {
                         icon: 'success',
                         confirmButtonText: 'Continuar!',
                         customClass: {
-                            popup: 'achievement-unlock-modal',
+                            popup: 'lk-swal-popup achievement-unlock-modal',
                             confirmButton: 'btn btn-primary'
                         },
                         showClass: {
@@ -307,7 +307,7 @@ import {
                 icon: 'success',
                 confirmButtonText: 'Vamos lá!',
                 customClass: {
-                    popup: 'level-up-modal',
+                    popup: 'lk-swal-popup level-up-modal',
                     confirmButton: 'btn btn-primary'
                 },
                 showClass: {
@@ -350,7 +350,7 @@ import {
                 icon: 'success',
                 confirmButtonText: 'Vamos lá!',
                 customClass: {
-                    popup: 'level-up-modal',
+                    popup: 'lk-swal-popup level-up-modal',
                     confirmButton: 'btn btn-primary'
                 },
                 showClass: {
@@ -639,7 +639,7 @@ import {
                     icon: 'success',
                     confirmButtonText: buttonText,
                     customClass: {
-                        popup: 'referral-reward-modal',
+                        popup: 'lk-swal-popup referral-reward-modal',
                         confirmButton: 'btn btn-primary'
                     },
                     showClass: {
@@ -812,7 +812,7 @@ import {
                 icon: 'success',
                 confirmButtonText: 'Continuar!',
                 customClass: {
-                    popup: 'achievement-unlock-modal',
+                    popup: 'lk-swal-popup achievement-unlock-modal',
                     confirmButton: 'btn btn-primary'
                 },
                 showClass: {

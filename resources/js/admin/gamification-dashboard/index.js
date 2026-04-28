@@ -286,7 +286,7 @@ function showAchievementDetail(achievement) {
         `,
         icon: isUnlocked ? 'success' : 'info',
         confirmButtonText: 'Fechar',
-        customClass: { popup: 'achievement-modal', confirmButton: 'btn btn-primary' },
+        customClass: { popup: 'lk-swal-popup achievement-modal', confirmButton: 'btn btn-primary' },
         didOpen: () => { if (window.lucide) lucide.createIcons(); }
     });
 }
@@ -333,7 +333,7 @@ async function showAllAchievements() {
             html: html,
             width: '800px',
             confirmButtonText: 'Fechar',
-            customClass: { popup: 'achievements-modal', confirmButton: 'btn btn-primary' },
+            customClass: { popup: 'lk-swal-popup achievements-modal', confirmButton: 'btn btn-primary' },
             didOpen: () => { if (window.lucide) lucide.createIcons(); }
         });
     } catch (error) {

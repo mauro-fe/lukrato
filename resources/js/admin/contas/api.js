@@ -112,13 +112,13 @@ export const ContasAPI = {
             STATE.instituicoes = Array.isArray(data) ? data : getApiPayload(data, []);
             Modules.Render.renderInstituicoesSelect();
         } catch (error) {
-            console.error('Erro ao carregar instituicoes:', error);
+            console.error('Erro ao carregar instituições:', error);
 
-            let message = 'Erro ao carregar institui\u00e7\u00f5es financeiras';
+            let message = 'Erro ao carregar instituições financeiras';
             if (error.name === 'AbortError' || error.message?.includes('demorou')) {
-                message = 'A conex\u00e3o est\u00e1 lenta. Tente novamente.';
+                message = 'A conexão está lenta. Tente novamente.';
             } else if (!navigator.onLine) {
-                message = 'Sem conex\u00e3o com a internet';
+                message = 'Sem conexão com a internet';
             }
 
             Utils.showToast(getErrorMessage(error, message), 'error');
@@ -137,7 +137,7 @@ export const ContasAPI = {
                 return null;
             }
 
-            console.error('Erro ao criar instituicao:', error);
+            console.error('Erro ao criar instituição:', error);
             throw error;
         }
     },
@@ -167,9 +167,9 @@ export const ContasAPI = {
             }
 
             Modules.Modal.closeNovaInstituicaoModal();
-            Utils.showToast('Institui\u00e7\u00e3o criada com sucesso!', 'success');
+            Utils.showToast('Instituição criada com sucesso!', 'success');
         } catch (error) {
-            Utils.showToast(getErrorMessage(error, 'Erro ao criar instituicao'), 'error');
+            Utils.showToast(getErrorMessage(error, 'Erro ao criar instituição'), 'error');
         }
     },
 
@@ -209,9 +209,9 @@ export const ContasAPI = {
 
             let message = 'Erro ao carregar contas';
             if (error.name === 'AbortError' || error.message?.includes('demorou')) {
-                message = 'A conex\u00e3o est\u00e1 lenta. Tente novamente.';
+                message = 'A conexão está lenta. Tente novamente.';
             } else if (!navigator.onLine) {
-                message = 'Sem conex\u00e3o com a internet';
+                message = 'Sem conexão com a internet';
             }
 
             STATE.lastLoadError = message;
@@ -269,7 +269,7 @@ export const ContasAPI = {
     async editConta(contaId) {
         const conta = STATE.contas.find((item) => item.id === contaId);
         if (!conta) {
-            console.error('Conta nao encontrada:', contaId);
+            console.error('Conta não encontrada:', contaId);
             return;
         }
 
@@ -304,7 +304,7 @@ export const ContasAPI = {
 
         const result = await Swal.fire({
             title: 'Arquivar conta?',
-            html: `Deseja realmente arquivar <strong>${nomeConta}</strong>?<br><small class="text-muted">A conta ficar\u00e1 oculta, mas pode ser restaurada depois.</small>`,
+            html: `Deseja realmente arquivar <strong>${nomeConta}</strong>?<br><small>A conta ficará oculta, mas pode ser restaurada depois.</small>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e67e22',
@@ -315,7 +315,7 @@ export const ContasAPI = {
             focusCancel: true,
             buttonsStyling: true,
             customClass: {
-                popup: 'swal-custom-popup',
+                popup: 'lk-swal-popup swal-custom-popup',
                 confirmButton: 'swal-confirm-btn',
                 cancelButton: 'swal-cancel-btn'
             },
@@ -363,11 +363,11 @@ export const ContasAPI = {
 
                 if (!result.success && result.errors?.requires_confirmation) {
                     ContasAPI.showDeleteConfirmation(
-                        `${nomeConta} (tem lancamentos vinculados)`,
+                        `${nomeConta} (tem lançamentos vinculados)`,
                         async () => {
                             await ContasAPI.forceDeleteConta(contaId);
                         },
-                        'Esta conta possui lancamentos vinculados. Ao exclui-la, todos os lancamentos tambem serao removidos. Deseja continuar?'
+                        'Esta conta possui lançamentos vinculados. Ao excluí-la, todos os lançamentos também serão removidos. Deseja continuar?'
                     );
                     return;
                 }
@@ -376,7 +376,7 @@ export const ContasAPI = {
                     throw new Error(result.message || 'Erro ao excluir conta');
                 }
 
-                Utils.showToast('Conta excluida com sucesso!', 'success');
+                Utils.showToast('Conta excluída com sucesso!', 'success');
                 await ContasAPI.loadContas({ silent: true });
             } catch (error) {
                 console.error('Erro ao excluir conta:', error);
@@ -391,7 +391,7 @@ export const ContasAPI = {
                 method: 'DELETE',
             });
 
-            Utils.showToast('Conta e lancamentos excluidos com sucesso!', 'success');
+            Utils.showToast('Conta e lançamentos excluídos com sucesso!', 'success');
             await ContasAPI.loadContas({ silent: true });
         } catch (error) {
             console.error('Erro ao excluir conta:', error);
@@ -412,7 +412,7 @@ export const ContasAPI = {
         if (customMessage) {
             messageEl.textContent = customMessage;
         } else {
-            messageEl.innerHTML = `Tem certeza que deseja excluir <strong>${nomeConta}</strong>?<br>Esta acao nao pode ser desfeita.`;
+            messageEl.innerHTML = `Tem certeza que deseja excluir <strong>${nomeConta}</strong>?<br>Esta ação não pode ser desfeita.`;
         }
 
         overlay.style.display = 'flex';

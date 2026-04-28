@@ -313,6 +313,7 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
                         <div class="lk-sg-hero__copy">
                             <span class="lk-sg-hero__eyebrow">Feedback</span>
                             <h3 class="lk-sg-hero__title">Envie seu feedback</h3>
+                            <p class="lk-sg-hero__subtitle">Compartilhe sugestões, elogios ou pontos de atrito para orientar as próximas melhorias.</p>
                         </div>
                     </div>
                     <div class="lk-sg-grid">
@@ -329,7 +330,7 @@ import { getRuntimeConfig, onRuntimeConfigUpdate } from './runtime-config.js';
                     </div>
                     <div class="lk-sg-section lk-sg-section--panel lk-sg-section--message">
                         <label class="lk-sg-label" for="lkSuggestionText">Mensagem</label>
-                        <textarea id="lkSuggestionText" class="lk-sg-textarea" placeholder="Descreva sua sugestão, crítica ou elogio..." maxlength="2000" rows="4"></textarea>
+                        <textarea id="lkSuggestionText" class="lk-sg-textarea" placeholder="Conte o contexto, o que você esperava e como podemos melhorar." maxlength="2000" rows="5"></textarea>
                     </div>
                     </div>
                 </div>

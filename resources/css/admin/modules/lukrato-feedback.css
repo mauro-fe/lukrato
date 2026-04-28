@@ -7,9 +7,19 @@
 
 /* Base popup styling */
 .lk-swal-popup {
+    --lk-swal-accent: var(--color-primary, #e67e22);
+    --lk-swal-surface: var(--surface-modal-bg, var(--theme-surface-card-bg, var(--color-bg)));
+    --lk-swal-border: var(--surface-modal-border, var(--theme-surface-card-border, rgba(255, 255, 255, 0.08)));
+    --lk-swal-shadow: var(--surface-modal-shadow, 0 28px 72px rgba(2, 12, 24, 0.32));
     font-family: inherit;
-    border-radius: 16px !important;
+    border-radius: 24px !important;
     padding: 24px !important;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--lk-swal-accent) 10%, transparent), transparent 28%),
+        var(--lk-swal-surface) !important;
+    border: 1px solid var(--lk-swal-border) !important;
+    box-shadow: var(--lk-swal-shadow) !important;
+    color: var(--color-text, #e2e8f0) !important;
 }
 
 .lk-swal-popup .swal2-title {
@@ -20,6 +30,59 @@
 .lk-swal-popup .swal2-html-container {
     font-size: 0.95rem;
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.lk-swal-popup .swal2-actions {
+    width: 100%;
+    margin-top: 16px !important;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.lk-swal-popup :is(.swal2-input, .swal2-select, .swal2-textarea) {
+    width: 100%;
+    margin: 14px 0 0;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--lk-swal-accent) 10%, var(--lk-swal-border));
+    background: color-mix(in srgb, var(--lk-swal-surface) 84%, rgba(255, 255, 255, 0.03));
+    color: var(--color-text, #e2e8f0);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    font: inherit;
+}
+
+.lk-swal-popup .swal2-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.lk-swal-popup :is(.swal2-input, .swal2-select, .swal2-textarea)::placeholder {
+    color: var(--color-text-muted, #94a3b8);
+}
+
+.lk-swal-popup :is(.swal2-input, .swal2-select, .swal2-textarea):focus {
+    outline: none;
+    border-color: var(--lk-swal-accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--lk-swal-accent) 20%, transparent);
+}
+
+.lk-swal-popup .swal2-validation-message {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--color-danger, #ef4444) 12%, transparent);
+    color: var(--color-text, #e2e8f0);
+    border: 1px solid color-mix(in srgb, var(--color-danger, #ef4444) 22%, transparent);
+}
+
+.lk-swal-popup .swal2-input-label {
+    margin-top: 14px;
+    color: var(--color-text-muted, #94a3b8);
+    font-size: 0.8rem;
+    text-align: left;
 }
 
 /* Upgrade prompt */
@@ -105,23 +168,150 @@
 
 /* Button styling */
 .lk-swal-popup .swal2-confirm {
-    border-radius: 8px !important;
-    padding: 10px 24px !important;
-    font-weight: 500 !important;
+    min-height: 46px;
+    border-radius: 14px !important;
+    padding: 11px 18px !important;
+    font-weight: 600 !important;
+    border: 1px solid transparent !important;
+    background: linear-gradient(
+        135deg,
+        var(--lk-swal-accent),
+        color-mix(in srgb, var(--lk-swal-accent) 78%, #000)
+    ) !important;
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--lk-swal-accent) 24%, transparent) !important;
 }
 
 .lk-swal-popup .swal2-cancel {
-    border-radius: 8px !important;
-    padding: 10px 24px !important;
-    font-weight: 500 !important;
+    min-height: 46px;
+    border-radius: 14px !important;
+    padding: 11px 18px !important;
+    font-weight: 600 !important;
+    border: 1px solid var(--lk-swal-border) !important;
+    background: color-mix(in srgb, var(--color-surface-muted, rgba(255, 255, 255, 0.06)) 88%, transparent) !important;
+    color: var(--color-text-muted, #94a3b8) !important;
+}
+
+.lk-swal-popup .swal2-confirm:hover {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--lk-swal-accent) 92%, #000),
+        color-mix(in srgb, var(--lk-swal-accent) 72%, #000)
+    ) !important;
+    box-shadow: 0 16px 28px color-mix(in srgb, var(--lk-swal-accent) 28%, transparent) !important;
+}
+
+.lk-swal-popup .swal2-cancel:hover {
+    background: color-mix(in srgb, var(--lk-swal-accent) 10%, transparent) !important;
+    border-color: color-mix(in srgb, var(--lk-swal-accent) 30%, var(--lk-swal-border)) !important;
+    color: var(--color-text, #e2e8f0) !important;
+}
+
+.lk-swal-confirm.swal2-popup {
+    max-width: 500px !important;
+}
+
+.lk-swal-confirm--danger {
+    --lk-swal-accent: var(--color-danger, #ef4444);
+}
+
+.lk-swal-confirm .swal2-html-container {
+    overflow: visible !important;
+    text-align: left !important;
+}
+
+.lk-swal-card {
+    display: grid;
+    gap: 16px;
+    text-align: left;
+}
+
+.lk-swal-card__hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.lk-swal-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--lk-swal-accent) 84%, #ffffff 16%),
+        color-mix(in srgb, var(--lk-swal-accent) 72%, #020617 28%)
+    );
+    box-shadow: 0 16px 30px color-mix(in srgb, var(--lk-swal-accent) 22%, transparent);
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.lk-swal-card__icon i,
+.lk-swal-card__icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.lk-swal-card__copy {
+    min-width: 0;
+}
+
+.lk-swal-card__eyebrow {
+    display: inline-flex;
+    margin-bottom: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--lk-swal-accent) 68%, #ffffff 32%);
+}
+
+.lk-swal-card__title {
+    margin: 0;
+    font-size: 1.34rem;
+    font-weight: 700;
+    line-height: 1.12;
+    color: var(--color-text, #e2e8f0);
+}
+
+.lk-swal-card__text {
+    margin: 8px 0 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--color-text-muted, #94a3b8);
+}
+
+.lk-swal-card__body {
+    padding: 16px;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--theme-surface-card-bg, var(--color-surface-muted, rgba(255, 255, 255, 0.04))) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lk-swal-accent) 14%, var(--lk-swal-border));
+}
+
+.lk-swal-card__body > :first-child {
+    margin-top: 0;
+}
+
+.lk-swal-card__body > :last-child {
+    margin-bottom: 0;
 }
 
 .lk-swal-btn-danger {
-    background: #ef4444 !important;
+    background: linear-gradient(
+        135deg,
+        var(--color-danger, #ef4444),
+        color-mix(in srgb, var(--color-danger, #ef4444) 78%, #000)
+    ) !important;
 }
 
 .lk-swal-btn-danger:hover {
-    background: #dc2626 !important;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-danger, #ef4444) 92%, #000),
+        color-mix(in srgb, var(--color-danger, #ef4444) 72%, #000)
+    ) !important;
 }
 
 /* Danger/Error popup */
@@ -142,16 +332,15 @@
 
 /* Dark theme adjustments */
 [data-theme="dark"] .lk-swal-popup {
-    background: #1e293b;
-    color: #f1f5f9;
+    color: var(--color-text, #f1f5f9) !important;
 }
 
 [data-theme="dark"] .lk-swal-popup .swal2-title {
-    color: #f1f5f9;
+    color: var(--color-text, #f1f5f9);
 }
 
 [data-theme="dark"] .lk-swal-popup .swal2-html-container {
-    color: #94a3b8;
+    color: var(--color-text-muted, #94a3b8);
 }
 
 [data-theme="dark"] .lk-swal-limit .limit-progress-bar {
@@ -160,6 +349,28 @@
 
 [data-theme="dark"] .lk-swal-upgrade .upgrade-context-msg {
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+}
+
+@media (max-width: 560px) {
+    .lk-swal-popup {
+        width: calc(100vw - 24px) !important;
+        padding: 20px !important;
+        border-radius: 22px !important;
+    }
+
+    .lk-swal-popup .swal2-actions {
+        justify-content: stretch;
+    }
+
+    .lk-swal-popup .swal2-confirm,
+    .lk-swal-popup .swal2-cancel {
+        flex: 1 1 0;
+        margin: 0 !important;
+    }
+
+    .lk-swal-card__title {
+        font-size: 1.2rem;
+    }
 }
 
 /* Animations */

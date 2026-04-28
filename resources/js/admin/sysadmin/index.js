@@ -376,7 +376,7 @@ function viewUser(userId) {
                         ${subscriptionHtml}
                     </div>
                 `,
-                customClass: { popup: 'sysadmin-swal user-details-popup' },
+                customClass: { popup: 'lk-swal-popup sysadmin-swal user-details-popup' },
                 showCloseButton: true,
                 showConfirmButton: false,
                 width: '600px'
@@ -434,7 +434,7 @@ function editUser(userId) {
             Swal.fire({
                 title: '<i data-lucide="user-pen"></i> Editar Usuário',
                 html: formHtml,
-                customClass: { popup: 'sysadmin-swal' },
+                customClass: { popup: 'lk-swal-popup sysadmin-swal' },
                 showCancelButton: true,
                 confirmButtonText: '<i data-lucide="save"></i> Salvar',
                 cancelButtonText: '<i data-lucide="x"></i> Cancelar',
@@ -542,7 +542,7 @@ function openGrantAccessModal() {
                 </div>
             </div>
         `,
-        customClass: { popup: 'sysadmin-swal' },
+        customClass: { popup: 'lk-swal-popup sysadmin-swal' },
         showCancelButton: true,
         confirmButtonText: '<i data-lucide="check"></i> Liberar Acesso',
         cancelButtonText: '<i data-lucide="x"></i> Cancelar',
@@ -606,7 +606,7 @@ function openRevokeAccessModal() {
                 </div>
             </div>
         `,
-        customClass: { popup: 'sysadmin-swal' },
+        customClass: { popup: 'lk-swal-popup sysadmin-swal' },
         showCancelButton: true,
         confirmButtonText: '<i data-lucide="ban"></i> Remover Acesso',
         cancelButtonText: '<i data-lucide="x"></i> Cancelar',

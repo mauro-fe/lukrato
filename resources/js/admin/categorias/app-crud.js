@@ -211,9 +211,9 @@ export function createCategoriasCrud({
                         <p>Esta categoria ainda possui itens vinculados.</p>
                         <ul class="swal2-html-container" style="text-align:left; margin:1rem 0 0;">
                             <li>${counts.subcategorias || 0} subcategoria(s)</li>
-                            <li>${counts.lancamentos || 0} lancamento(s)</li>
+                            <li>${counts.lancamentos || 0} lançamento(s)</li>
                         </ul>
-                        <p>Se continuar, as subcategorias serao removidas e os lancamentos ficarao sem categoria.</p>
+                        <p>Se continuar, as subcategorias serão removidas e os lançamentos ficarão sem categoria.</p>
                     `,
                     icon: 'warning',
                     showCancelButton: true,

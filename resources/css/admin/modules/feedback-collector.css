@@ -303,13 +303,16 @@
 
 /* --- Suggestion Modal (lk-swal-suggestion) --- */
 .lk-swal-suggestion.swal2-popup {
-    max-width: 540px !important;
-    padding: 24px !important;
+    width: min(680px, calc(100vw - 32px)) !important;
+    max-width: 680px !important;
+    padding: 26px !important;
     border-radius: 28px !important;
-    background: color-mix(in srgb, var(--color-bg) 92%, #102033 8%) !important;
-    border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
-    box-shadow: 0 28px 72px rgba(2, 12, 24, 0.36);
-    color: var(--text-color);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--color-primary, #e67e22) 10%, transparent), transparent 30%),
+        var(--surface-modal-bg, var(--theme-surface-card-bg, var(--color-bg))) !important;
+    border: 1px solid var(--surface-modal-border, var(--theme-surface-card-border, rgba(255,255,255,0.08)));
+    box-shadow: var(--surface-modal-shadow, 0 28px 72px rgba(2, 12, 24, 0.36));
+    color: var(--color-text, #e2e8f0);
 }
 
 .lk-swal-suggestion .swal2-title {
@@ -325,36 +328,36 @@
 
 .lk-sg-modal {
     display: grid;
-    gap: 14px;
+    gap: 16px;
     text-align: left;
 }
 
 .lk-sg-hero {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
 }
 
 .lk-sg-hero__icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
     background: linear-gradient(
         180deg,
         color-mix(in srgb, var(--color-primary, #e67e22) 84%, #ffc27a 16%),
-        color-mix(in srgb, var(--color-primary, #e67e22) 76%, #b95a06 24%)
+        color-mix(in srgb, var(--color-primary, #e67e22) 72%, #020617 28%)
     );
-    box-shadow: 0 14px 28px color-mix(in srgb, var(--color-primary, #e67e22) 24%, transparent);
+    box-shadow: 0 16px 30px color-mix(in srgb, var(--color-primary, #e67e22) 24%, transparent);
     flex-shrink: 0;
 }
 
 .lk-sg-hero__icon i,
 .lk-sg-hero__icon svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     color: #fff;
 }
 
@@ -364,7 +367,7 @@
 
 .lk-sg-hero__eyebrow {
     display: inline-flex;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -374,23 +377,24 @@
 
 .lk-sg-hero__title {
     margin: 0;
-    font-size: 1.22rem;
+    font-size: 1.34rem;
     font-weight: 700;
     line-height: 1.1;
     color: var(--color-text, #e2e8f0);
 }
 
 .lk-sg-hero__subtitle {
-    margin: 6px 0 0;
-    font-size: 0.82rem;
-    line-height: 1.45;
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
     color: var(--color-text-muted, #94a3b8);
 }
 
 .lk-sg-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: minmax(0, 1.14fr) minmax(220px, 0.86fr);
+    gap: 14px;
+    align-items: stretch;
 }
 
 .lk-sg-section {
@@ -398,11 +402,12 @@
 }
 
 .lk-sg-section--panel {
-    padding: 14px;
-    border-radius: 18px;
-    background: color-mix(in srgb, var(--color-surface-muted, rgba(255,255,255,0.05)) 88%, transparent);
-    border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    padding: 16px;
+    min-height: 100%;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--theme-surface-card-bg, var(--color-surface-muted, rgba(255,255,255,0.05))) 86%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-primary, #e67e22) 10%, var(--theme-surface-card-border, rgba(255,255,255,0.08)));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .lk-sg-section--message {
@@ -421,31 +426,33 @@
 
 .lk-sg-chips {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(2, minmax(126px, 1fr));
+    gap: 10px;
 }
 
 .lk-sg-chip {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    justify-content: center;
-    min-height: 40px;
-    padding: 9px 12px;
-    border: 1px solid var(--glass-border, rgba(255,255,255,0.12));
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--color-surface-muted, rgba(255,255,255,0.05)) 92%, transparent);
+    gap: 7px;
+    justify-content: flex-start;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid color-mix(in srgb, var(--color-primary, #e67e22) 8%, var(--glass-border, rgba(255,255,255,0.12)));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--theme-surface-card-bg, var(--color-surface-muted, rgba(255,255,255,0.05))) 84%, transparent);
     color: var(--color-text, #e2e8f0);
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .lk-sg-chip svg,
 .lk-sg-chip i {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
     opacity: 0.6;
 }
 
@@ -475,7 +482,8 @@
 
 .lk-sg-rating-shell {
     display: grid;
-    gap: 8px;
+    gap: 10px;
+    align-content: start;
 }
 
 .lk-swal-suggestion .lk-star-rating {
@@ -490,19 +498,19 @@
 }
 
 .lk-sg-rating-hint {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     color: var(--color-text-muted, #64748b);
 }
 
 .lk-sg-textarea {
     width: 100%;
-    min-height: 108px;
-    padding: 14px;
-    border: 1px solid var(--glass-border, rgba(255,255,255,0.12));
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--color-bg, #0f172a) 82%, var(--color-surface-muted, rgba(255,255,255,0.05)) 18%);
+    min-height: 128px;
+    padding: 15px;
+    border: 1px solid color-mix(in srgb, var(--color-primary, #e67e22) 10%, var(--glass-border, rgba(255,255,255,0.12)));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--surface-modal-bg, var(--color-bg, #0f172a)) 84%, var(--theme-surface-card-bg, rgba(255,255,255,0.05)) 16%);
     color: var(--color-text, #e2e8f0);
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-family: inherit;
     resize: vertical;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
@@ -515,13 +523,13 @@
 .lk-sg-textarea:focus {
     outline: none;
     border-color: var(--color-primary, #e67e22);
-    box-shadow: 0 0 0 3px var(--ring, rgba(230,126,34,0.22));
+    box-shadow: 0 0 0 4px var(--ring, rgba(230,126,34,0.22));
 }
 
 .lk-swal-suggestion .swal2-actions {
     width: 100%;
-    margin-top: 2px !important;
-    gap: 8px;
+    margin-top: 4px !important;
+    gap: 10px;
     justify-content: flex-end;
 }
 
@@ -529,10 +537,10 @@
     display: inline-flex !important;
     align-items: center;
     gap: 6px;
-    border-radius: 12px !important;
-    padding: 11px 18px !important;
+    border-radius: 14px !important;
+    padding: 12px 18px !important;
     font-weight: 600 !important;
-    font-size: 0.82rem !important;
+    font-size: 0.84rem !important;
     box-shadow: 0 12px 24px color-mix(in srgb, var(--color-primary, #e67e22) 22%, transparent);
 }
 
@@ -542,12 +550,12 @@
 }
 
 .lk-swal-suggestion .swal2-cancel {
-    border-radius: 12px !important;
-    padding: 11px 18px !important;
-    font-size: 0.82rem !important;
+    border-radius: 14px !important;
+    padding: 12px 18px !important;
+    font-size: 0.84rem !important;
     background: color-mix(in srgb, var(--color-surface-muted, rgba(255,255,255,0.05)) 90%, transparent) !important;
     color: var(--color-text-muted, #94a3b8) !important;
-    border: 1px solid var(--glass-border, rgba(255,255,255,0.12)) !important;
+    border: 1px solid var(--surface-modal-border, var(--glass-border, rgba(255,255,255,0.12))) !important;
 }
 
 .lk-swal-suggestion .swal2-cancel:hover {
@@ -556,17 +564,19 @@
 
 /* Light theme overrides for suggestion modal */
 [data-theme="light"] .lk-swal-suggestion.swal2-popup {
-    background: #ffffff !important;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--color-primary, #e67e22) 8%, transparent), transparent 30%),
+        #ffffff !important;
     box-shadow: 0 28px 64px rgba(15, 23, 42, 0.14);
 }
 
 [data-theme="light"] .lk-sg-textarea {
-    background: var(--color-bg, #f8fafc);
+    background: color-mix(in srgb, #ffffff 76%, var(--color-bg, #f8fafc) 24%);
 }
 
 [data-theme="light"] .lk-sg-chip {
-    background: rgba(0,0,0,0.04);
-    border-color: rgba(0,0,0,0.1);
+    background: color-mix(in srgb, #ffffff 82%, rgba(15, 23, 42, 0.04) 18%);
+    border-color: rgba(15, 23, 42, 0.1);
 }
 
 @media (max-width: 560px) {

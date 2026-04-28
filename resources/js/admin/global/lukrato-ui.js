@@ -71,10 +71,14 @@ import { apiFetch as sharedApiFetch, getApiPayload, getErrorMessage } from '../s
         } = opts;
 
         if (window.LKFeedback?.confirm) {
-            const result = await window.LKFeedback.confirm(title, text || html || '', {
-                confirmText,
-                cancelText,
+            const result = await window.LKFeedback.confirm(text || '', {
+                title,
+                html,
+                confirmButtonText: confirmText,
+                cancelButtonText: cancelText,
                 icon,
+                confirmButtonColor: confirmColor,
+                isDanger: danger,
             });
             return !!result?.isConfirmed;
         }
