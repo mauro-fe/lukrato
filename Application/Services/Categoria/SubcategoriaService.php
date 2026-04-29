@@ -9,6 +9,8 @@ use Application\Contracts\SubcategoriaServiceInterface;
 use Application\DTO\Requests\CreateSubcategoriaDTO;
 use Application\DTO\Requests\UpdateSubcategoriaDTO;
 use Application\Models\Categoria;
+use Application\Models\FaturaCartaoItem;
+use Application\Models\Lancamento;
 use Application\Repositories\CategoriaRepository;
 use Application\Services\Plan\PlanLimitService;
 use Application\Validators\SubcategoriaValidator;
@@ -146,6 +148,14 @@ class SubcategoriaService implements SubcategoriaServiceInterface
         }
 
         // Lançamentos que usam esta subcategoria terão subcategoria_id = NULL (SET NULL na FK)
+        Lancamento::where('user_id', $userId)
+            ->where('subcategoria_id', $subcategoria->id)
+            ->update(['subcategoria_id' => null]);
+
+        FaturaCartaoItem::where('user_id', $userId)
+            ->where('subcategoria_id', $subcategoria->id)
+            ->update(['subcategoria_id' => null]);
+
         $subcategoria->delete();
     }
 

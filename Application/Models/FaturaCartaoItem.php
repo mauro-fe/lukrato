@@ -27,6 +27,7 @@ class FaturaCartaoItem extends Model
         'mes_referencia',
         'ano_referencia',
         'categoria_id',
+        'subcategoria_id',
         'eh_parcelado',
         'parcela_atual',
         'total_parcelas',
@@ -46,6 +47,7 @@ class FaturaCartaoItem extends Model
         'fatura_id' => 'integer',
         'lancamento_id' => 'integer',
         'categoria_id' => 'integer',
+        'subcategoria_id' => 'integer',
         'valor' => 'decimal:2',
         'data_compra' => 'date',
         'data_vencimento' => 'date',
@@ -116,6 +118,11 @@ class FaturaCartaoItem extends Model
     public function categoria()
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
+    }
+
+    public function subcategoria()
+    {
+        return $this->belongsTo(Categoria::class, 'subcategoria_id');
     }
 
     /**

@@ -18,6 +18,7 @@ class FaturaCartaoItemTest extends TestCase
             'fatura_id' => '13',
             'lancamento_id' => '17',
             'categoria_id' => '19',
+            'subcategoria_id' => '21',
             'item_pai_id' => '23',
             'recorrencia_pai_id' => '29',
         ]);
@@ -27,6 +28,7 @@ class FaturaCartaoItemTest extends TestCase
         $this->assertSame(13, $item->fatura_id);
         $this->assertSame(17, $item->lancamento_id);
         $this->assertSame(19, $item->categoria_id);
+        $this->assertSame(21, $item->subcategoria_id);
         $this->assertSame(23, $item->item_pai_id);
         $this->assertSame(29, $item->recorrencia_pai_id);
     }

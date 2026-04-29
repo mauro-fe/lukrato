@@ -183,6 +183,7 @@ class FaturaCreationService
                 'data_compra' => $dados['data_compra'],
                 'data_vencimento' => $vencimento['data'],
                 'categoria_id' => $dados['categoria_id'] ?? null,
+                'subcategoria_id' => $dados['subcategoria_id'] ?? null,
                 'parcela_atual' => $parcelaAtual,
                 'total_parcelas' => $numeroParcelas,
                 'mes_referencia' => $mesCompetencia,

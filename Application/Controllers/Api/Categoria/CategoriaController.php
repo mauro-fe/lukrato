@@ -10,6 +10,7 @@ use Application\DTO\Requests\CreateCategoriaDTO;
 use Application\DTO\Requests\UpdateCategoriaDTO;
 use Application\Enums\CategoriaTipo;
 use Application\Models\Categoria;
+use Application\Models\FaturaCartaoItem;
 use Application\Models\Lancamento;
 use Application\Repositories\CategoriaRepository;
 use Application\Services\AI\Helpers\UserCategoryLoader;
@@ -180,9 +181,20 @@ class CategoriaController extends ApiController
             return Response::errorResponse('Categorias padrão não podem ser excluídas.', 403);
         }
 
-        $subcategoriasCount = $categoria->subcategorias()->count();
+        $subcategoriaIds = $categoria->subcategorias()->pluck('id')->map(static fn($id): int => (int) $id)->all();
+        $subcategoriasCount = count($subcategoriaIds);
         $lancamentosCount = $categoria->lancamentos()->count();
-        $totalVinculados = $subcategoriasCount + $lancamentosCount;
+        $faturaItensCount = FaturaCartaoItem::where('user_id', $userId)
+            ->where(function ($query) use ($categoria, $subcategoriaIds) {
+                $query->where('categoria_id', $categoria->id)
+                    ->orWhere('subcategoria_id', $categoria->id);
+
+                if ($subcategoriaIds !== []) {
+                    $query->orWhereIn('subcategoria_id', $subcategoriaIds);
+                }
+            })
+            ->count();
+        $totalVinculados = $subcategoriasCount + $lancamentosCount + $faturaItensCount;
 
         if ($totalVinculados > 0 && !$force) {
             return Response::errorResponse('Esta categoria possui itens vinculados. Confirme para excluir.', 422, [
@@ -190,6 +202,7 @@ class CategoriaController extends ApiController
                 'counts' => [
                     'subcategorias' => $subcategoriasCount,
                     'lancamentos' => $lancamentosCount,
+                    'itens_fatura' => $faturaItensCount,
                     'total' => $totalVinculados,
                 ],
             ]);
@@ -204,6 +217,19 @@ class CategoriaController extends ApiController
                 ->update(['categoria_id' => null, 'subcategoria_id' => null]);
         }
 
+        if ($faturaItensCount > 0) {
+            FaturaCartaoItem::where('user_id', $userId)
+                ->where(function ($query) use ($categoria, $subcategoriaIds) {
+                    $query->where('categoria_id', $categoria->id)
+                        ->orWhere('subcategoria_id', $categoria->id);
+
+                    if ($subcategoriaIds !== []) {
+                        $query->orWhereIn('subcategoria_id', $subcategoriaIds);
+                    }
+                })
+                ->update(['categoria_id' => null, 'subcategoria_id' => null]);
+        }
+
         $categoria->delete();
         UserCategoryLoader::invalidate($userId);
 
@@ -211,6 +237,7 @@ class CategoriaController extends ApiController
             'deleted' => true,
             'removed_subcategorias' => $subcategoriasCount,
             'unlinked_lancamentos' => $lancamentosCount,
+            'unlinked_fatura_itens' => $faturaItensCount,
         ]);
     }
 

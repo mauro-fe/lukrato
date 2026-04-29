@@ -214,7 +214,8 @@ export function initImportacoesIndexPage() {
 
         const previewManager = createImportacoesPreviewManager({
             previewRowsBody,
-            isContaOfxPreviewActive: () => isContaOfxPreviewActive(),
+            canReviewCategories: () => canReviewCategories(),
+            getImportTarget: () => context.state.selectedImportTarget,
             loadCategories: () => api.loadCategories(),
             loadSubcategories: (categoriaId) => api.loadSubcategories(categoriaId),
             onPreviewRowUpdate,
@@ -447,11 +448,18 @@ export function initImportacoesIndexPage() {
             return Boolean(parsePositiveInt(context.state.selectedAccountId ?? null));
         }
 
-        function isContaOfxPreviewActive(
+        function canReviewCategories(
+            importTarget = context.state.selectedImportTarget,
+        ) {
+            const normalizedTarget = normalizeImportTarget(importTarget, 'conta');
+            return normalizedTarget === 'conta' || normalizedTarget === 'cartao';
+        }
+
+        function canSuggestCategories(
             importTarget = context.state.selectedImportTarget,
             sourceType = context.state.selectedSourceType,
         ) {
-            return normalizeImportTarget(importTarget, 'conta') === 'conta'
+            return canReviewCategories(importTarget)
                 && normalizeSourceType(sourceType, 'ofx') === 'ofx';
         }
 
@@ -819,7 +827,7 @@ export function initImportacoesIndexPage() {
             const errorsCount = Array.isArray(state.previewErrors) ? state.previewErrors.length : 0;
             const pendingCount = Number(previewSummary.uncategorizedRows || 0);
             const hasRows = Number(previewSummary.totalRows || 0) > 0;
-            const canCategorize = isContaOfxPreviewActive();
+            const canCategorize = canSuggestCategories();
 
             let badgeStatus = 'idle';
             let badgeLabel = 'Aguardando preview';
@@ -1616,7 +1624,7 @@ export function initImportacoesIndexPage() {
                 ...summarizeRows(nextRows),
             }, normalized.summary.fileName);
 
-            if (isContaOfxPreviewActive(normalized.importTarget, payload.source_type)) {
+            if (canReviewCategories(normalized.importTarget)) {
                 try {
                     await ensureCategoryOptionsLoaded();
                     await prefetchSubcategoryOptions(nextRows);
@@ -1761,7 +1769,7 @@ export function initImportacoesIndexPage() {
         }
 
         async function handleCategorizePreview() {
-            if (!isContaOfxPreviewActive() || context.state.previewStatus !== 'preview_ready') {
+            if (!canSuggestCategories() || context.state.previewStatus !== 'preview_ready') {
                 return;
             }
 
@@ -2331,7 +2339,7 @@ export function initImportacoesIndexPage() {
             }
 
             if (previewTools) {
-                previewTools.hidden = !hasRows || !isContaOfxPreviewActive();
+                previewTools.hidden = !hasRows || !canReviewCategories();
             }
 
             if (confirmStrip) {
@@ -2340,7 +2348,7 @@ export function initImportacoesIndexPage() {
 
             if (categorizePreviewButton) {
                 categorizePreviewButton.disabled = !hasRows
-                    || !isContaOfxPreviewActive()
+                    || !canSuggestCategories()
                     || state.previewStatus !== 'preview_ready';
                 categorizePreviewButton.textContent = previewSummary.categorizationApplied
                     ? 'Reaplicar categorização'
@@ -2355,7 +2363,7 @@ export function initImportacoesIndexPage() {
 
             if (pendingOnlyToggle) {
                 pendingOnlyToggle.checked = state.showOnlyPendingCategories === true;
-                pendingOnlyToggle.disabled = !hasRows || !isContaOfxPreviewActive() || interactionsLocked;
+                pendingOnlyToggle.disabled = !hasRows || !canReviewCategories() || interactionsLocked;
             }
 
             if (previewTableWrap) {
@@ -2425,7 +2433,7 @@ export function initImportacoesIndexPage() {
                         : 'Preview com bloqueios.';
 
                     previewNextStep.textContent = state.previewCanConfirm
-                        ? ((previewSummary.categorizationApplied !== true && isContaOfxPreviewActive())
+                        ? ((previewSummary.categorizationApplied !== true && canSuggestCategories())
                             ? 'Preview pronto. Você pode confirmar agora ou categorizar antes.'
                             : ((previewSummary.uncategorizedRows || 0) > 0
                                 ? `${previewSummary.uncategorizedRows} linha(s) ainda sem categoria.`

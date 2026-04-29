@@ -101,6 +101,8 @@ export function initDOM() {
 export const STATE = {
     parcelamentos: [],
     cartoes: [],
+    categorias: [],
+    subcategoriasCache: new Map(),
     faturaAtual: null,
     currentDetailId: null,
     sortColumn: 'data_compra',

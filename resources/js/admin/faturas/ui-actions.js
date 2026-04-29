@@ -9,6 +9,11 @@
 import { CONFIG, DOM, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
+import {
+    bindEditCategoriaChange,
+    getSelectedCategoriaPayload,
+    populateEditCategoriaControls,
+} from './item-category-controls.js';
 
 let deleteItemScopeModal = null;
 let deleteItemScopeResolver = null;
@@ -272,7 +277,7 @@ export const ActionMethods = {
         }
     },
 
-    async editarItemFatura(faturaId, itemId, descricaoAtual, valorAtual) {
+    async editarItemFatura(faturaId, itemId, descricaoAtual, valorAtual, categoriaIdAtual = null, subcategoriaIdAtual = null) {
         // Usar modal Bootstrap ao invés de SweetAlert2
         const modalEl = DOM.modalEditarItemFatura || document.getElementById('modalEditarItemFatura');
         if (!modalEl) {
@@ -281,12 +286,14 @@ export const ActionMethods = {
         }
 
         window.LK?.modalSystem?.prepareBootstrapModal(modalEl, { scope: 'page' });
+        bindEditCategoriaChange();
 
         // Preencher os campos do formulário
         document.getElementById('editItemFaturaId').value = faturaId;
         document.getElementById('editItemId').value = itemId;
         document.getElementById('editItemDescricao').value = descricaoAtual;
         document.getElementById('editItemValor').value = valorAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        await populateEditCategoriaControls(categoriaIdAtual, subcategoriaIdAtual);
 
         // Abrir o modal
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
@@ -302,6 +309,7 @@ export const ActionMethods = {
         const itemId = document.getElementById('editItemId').value;
         const novaDescricao = document.getElementById('editItemDescricao').value.trim();
         const novoValorStr = document.getElementById('editItemValor').value;
+        const { categoriaId, subcategoriaId } = getSelectedCategoriaPayload();
 
         // Validações
         if (!novaDescricao) {
@@ -347,7 +355,9 @@ export const ActionMethods = {
             // Chamar API para atualizar o item da fatura
             await Modules.API.atualizarItemFatura(faturaId, itemId, {
                 descricao: novaDescricao,
-                valor: novoValor
+                valor: novoValor,
+                categoria_id: categoriaId,
+                subcategoria_id: subcategoriaId
             });
 
             await Swal.fire({

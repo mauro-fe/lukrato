@@ -77,7 +77,8 @@ function resolveTypeTone(row) {
 
 export function createImportacoesPreviewManager({
     previewRowsBody,
-    isContaOfxPreviewActive,
+    canReviewCategories,
+    getImportTarget = () => '',
     loadCategories,
     loadSubcategories,
     onPreviewRowUpdate,
@@ -173,6 +174,10 @@ export function createImportacoesPreviewManager({
     };
 
     const getAvailableCategoriesForRow = (row) => {
+        if (String(getImportTarget() || '').trim().toLowerCase() === 'cartao') {
+            return categoryOptions.filter((item) => item.tipo === 'despesa' || item.tipo === 'ambas' || item.tipo === '');
+        }
+
         const bucketType = String(row?.type || '').trim().toLowerCase();
         if (!bucketType || !['receita', 'despesa'].includes(bucketType)) {
             return [...categoryOptions];
@@ -286,7 +291,7 @@ export function createImportacoesPreviewManager({
 
     const buildStatusBadge = (row) => {
         const badge = document.createElement('span');
-        const reviewState = resolveReviewState(row, isContaOfxPreviewActive());
+        const reviewState = resolveReviewState(row, canReviewCategories());
         badge.className = 'imp-preview-status-pill';
         badge.dataset.review = reviewState.key;
         badge.textContent = reviewState.label;
@@ -302,7 +307,7 @@ export function createImportacoesPreviewManager({
     };
 
     const buildCategorySelect = (row) => {
-        if (!isContaOfxPreviewActive()) {
+        if (!canReviewCategories()) {
             return buildFallbackCell(row?.categoriaNome || '-');
         }
 
@@ -368,7 +373,7 @@ export function createImportacoesPreviewManager({
     };
 
     const buildSubcategorySelect = (row) => {
-        if (!isContaOfxPreviewActive()) {
+        if (!canReviewCategories()) {
             return buildFallbackCell(row?.subcategoriaNome || '-');
         }
 
@@ -439,7 +444,7 @@ export function createImportacoesPreviewManager({
 
         rows.forEach((row) => {
             const tr = document.createElement('tr');
-            const reviewState = resolveReviewState(row, isContaOfxPreviewActive());
+            const reviewState = resolveReviewState(row, canReviewCategories());
             tr.dataset.review = reviewState.key;
             tr.dataset.source = resolveSourceKey(row);
 
@@ -489,7 +494,7 @@ export function createImportacoesPreviewManager({
     };
 
     const buildRowOverrides = (rows) => {
-        if (!isContaOfxPreviewActive()) {
+        if (!canReviewCategories()) {
             return {};
         }
 

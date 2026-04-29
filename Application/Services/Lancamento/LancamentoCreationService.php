@@ -135,7 +135,7 @@ class LancamentoCreationService
 
             // 3. Estorno de cartão
             if ($ehEstornoCartao) {
-                return $this->createEstorno($userId, $payload, $cartaoCreditoId, $categoriaId);
+                return $this->createEstorno($userId, $payload, $cartaoCreditoId, $categoriaId, $subcategoriaId);
             }
 
             // 4. Construir DTO
@@ -199,7 +199,7 @@ class LancamentoCreationService
     /**
      * Processa estorno de cartão de crédito
      */
-    public function createEstorno(int $userId, array $payload, int $cartaoCreditoId, int $categoriaId): ServiceResultDTO
+    public function createEstorno(int $userId, array $payload, int $cartaoCreditoId, ?int $categoriaId, ?int $subcategoriaId = null): ServiceResultDTO
     {
         $usage = $this->limitService->assertCanCreate($userId, $payload['data']);
 
@@ -215,6 +215,7 @@ class LancamentoCreationService
         $resultado = $this->cartaoService->criarEstornoCartao($userId, [
             'cartao_credito_id' => $cartaoCreditoId,
             'categoria_id'      => $categoriaId,
+            'subcategoria_id'   => $subcategoriaId,
             'valor'             => LancamentoValidator::sanitizeValor($payload['valor']),
             'data'              => $payload['data'],
             'descricao'         => mb_substr(trim($payload['descricao'] ?? ''), 0, 190),
@@ -246,6 +247,7 @@ class LancamentoCreationService
         $resultado = $this->cartaoService->criarLancamentoCartao($userId, [
             'cartao_credito_id' => $cartaoCreditoId,
             'categoria_id'      => $categoriaId,
+            'subcategoria_id'   => $dto->subcategoriaId,
             'valor'             => $dto->valor,
             'data'              => $dto->data,
             'descricao'         => $dto->descricao,

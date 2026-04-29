@@ -60,6 +60,7 @@ class FaturaItemPaymentStateService
                 'data_competencia' => $dataCompra,
                 'descricao' => $item->descricao ?: 'Pagamento de fatura',
                 'categoria_id' => $item->categoria_id,
+                'subcategoria_id' => $item->subcategoria_id,
                 'conta_id' => $item->cartaoCredito->conta_id,
                 'cartao_credito_id' => $item->cartao_credito_id,
                 'pago' => true,

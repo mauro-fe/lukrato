@@ -357,10 +357,17 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   flex-direction: column;
   overflow: hidden;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-modal-bg) 92%, transparent), color-mix(in srgb, var(--surface-modal-bg) 98%, transparent));
-  border: 1px solid var(--lk-customize-border);
-  border-radius: calc(var(--surface-modal-radius) + 4px);
-  box-shadow: var(--surface-modal-shadow), 0 28px 72px rgba(0, 0, 0, 0.28);
+    linear-gradient(120deg, color-mix(in srgb, var(--surface-modal-bg) 98%, #fff 12%), color-mix(in srgb, var(--surface-modal-bg) 92%, #fff 4%) 80%, color-mix(in srgb, var(--surface-modal-bg) 98%, transparent)),
+    color-mix(in srgb, #fff 8%, var(--surface-modal-bg) 92%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--lk-customize-accent) 10%, var(--lk-customize-border));
+  border-radius: calc(var(--surface-modal-radius) + 8px);
+  box-shadow:
+    0 8px 32px 0 rgba(0,0,0,0.32),
+    0 1.5px 8px 0 color-mix(in srgb, var(--lk-customize-accent) 10%, transparent),
+    0 0 0 1.5px color-mix(in srgb, var(--lk-customize-accent) 8%, transparent),
+    var(--surface-modal-shadow);
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
   transform: translateY(8px) scale(0.98);
   transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
@@ -382,8 +389,8 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   padding: var(--spacing-6) var(--spacing-6) var(--spacing-5);
   border-bottom: 1px solid var(--lk-customize-border);
   background:
-    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--lk-customize-accent) 16%, transparent), transparent 42%),
-    linear-gradient(180deg, color-mix(in srgb, var(--lk-customize-accent) 8%, transparent), transparent 76%),
+    linear-gradient(90deg, color-mix(in srgb, var(--lk-customize-accent) 18%, transparent) 0%, transparent 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--lk-customize-accent) 10%, transparent) 0%, transparent 100%),
     transparent;
 }
 
@@ -557,8 +564,12 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   min-width: 0;
   border: 1px solid var(--lk-customize-border);
   border-radius: calc(var(--radius-lg) + 2px);
-  background: color-mix(in srgb, var(--lk-customize-panel-bg) 96%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  border: 1.5px solid color-mix(in srgb, var(--lk-customize-accent) 8%, var(--lk-customize-border));
+  border-radius: calc(var(--radius-lg) + 4px);
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--lk-customize-panel-bg) 98%, #fff 8%), color-mix(in srgb, var(--lk-customize-panel-bg) 92%, #fff 2%) 80%, color-mix(in srgb, var(--lk-customize-panel-bg) 98%, transparent)),
+    color-mix(in srgb, #fff 4%, var(--lk-customize-panel-bg) 96%, transparent);
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.10), 0 0.5px 2px 0 color-mix(in srgb, var(--lk-customize-accent) 6%, transparent), inset 0 1px 0 rgba(255,255,255,0.04);
   overflow: hidden;
 }
 

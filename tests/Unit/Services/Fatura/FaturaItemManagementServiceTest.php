@@ -18,10 +18,12 @@ class FaturaItemManagementServiceTest extends TestCase
     protected function tearDown(): void
     {
         if ($this->cleanupUserIds !== []) {
+            DB::table('lancamentos')->whereIn('user_id', $this->cleanupUserIds)->delete();
             DB::table('faturas_cartao_itens')->whereIn('user_id', $this->cleanupUserIds)->delete();
             DB::table('faturas')->whereIn('user_id', $this->cleanupUserIds)->delete();
             DB::table('cartoes_credito')->whereIn('user_id', $this->cleanupUserIds)->delete();
             DB::table('contas')->whereIn('user_id', $this->cleanupUserIds)->delete();
+            DB::table('categorias')->whereIn('user_id', $this->cleanupUserIds)->delete();
             DB::table('usuarios')->whereIn('id', $this->cleanupUserIds)->delete();
         }
 
@@ -88,6 +90,65 @@ class FaturaItemManagementServiceTest extends TestCase
         $this->assertFalse($result['success']);
         $this->assertSame('Não é possível excluir um item já pago. Desfaça o pagamento primeiro.', $result['message']);
         $this->assertSame(1, DB::table('faturas_cartao_itens')->where('id', $itemId)->count());
+    }
+
+    public function testAtualizarItemPermiteDefinirCategoriaESubcategoria(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $service = new FaturaItemManagementService();
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId, 1000);
+        $faturaId = $this->createFatura($userId, $cartaoId, 120);
+        $categoriaId = $this->createCategoria($userId, 'Transporte');
+        $subcategoriaId = $this->createSubcategoria($userId, $categoriaId, 'Aplicativo');
+        $itemId = $this->createFaturaItem($userId, $cartaoId, $faturaId, [
+            'descricao' => 'Uber',
+            'valor' => 120,
+        ]);
+
+        $updated = $service->atualizarItem($faturaId, $itemId, $userId, [
+            'categoria_id' => $categoriaId,
+            'subcategoria_id' => $subcategoriaId,
+        ]);
+
+        $this->assertTrue($updated);
+
+        $item = DB::table('faturas_cartao_itens')->where('id', $itemId)->first();
+        $this->assertSame($categoriaId, (int) ($item->categoria_id ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($item->subcategoria_id ?? 0));
+    }
+
+    public function testAtualizarCategoriaSincronizaLancamentoVinculado(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $service = new FaturaItemManagementService();
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId, 1000);
+        $faturaId = $this->createFatura($userId, $cartaoId, 120);
+        $categoriaId = $this->createCategoria($userId, 'Transporte');
+        $subcategoriaId = $this->createSubcategoria($userId, $categoriaId, 'Aplicativo');
+        $lancamentoId = $this->createLancamento($userId, $contaId, $cartaoId);
+        $itemId = $this->createFaturaItem($userId, $cartaoId, $faturaId, [
+            'descricao' => 'Uber pago',
+            'valor' => 120,
+            'pago' => 1,
+            'lancamento_id' => $lancamentoId,
+        ]);
+
+        $updated = $service->atualizarItem($faturaId, $itemId, $userId, [
+            'categoria_id' => $categoriaId,
+            'subcategoria_id' => $subcategoriaId,
+        ]);
+
+        $this->assertTrue($updated);
+
+        $lancamento = DB::table('lancamentos')->where('id', $lancamentoId)->first();
+        $this->assertSame($categoriaId, (int) ($lancamento->categoria_id ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($lancamento->subcategoria_id ?? 0));
     }
 
     private function ensureDatabaseAvailable(): void
@@ -164,6 +225,51 @@ class FaturaItemManagementServiceTest extends TestCase
         ]);
     }
 
+    private function createCategoria(int $userId, string $nome): int
+    {
+        return (int) DB::table('categorias')->insertGetId([
+            'user_id' => $userId,
+            'parent_id' => null,
+            'nome' => $nome,
+            'icone' => 'tag',
+            'tipo' => 'despesa',
+            'is_seeded' => 0,
+            'ordem' => 0,
+        ]);
+    }
+
+    private function createSubcategoria(int $userId, int $categoriaId, string $nome): int
+    {
+        return (int) DB::table('categorias')->insertGetId([
+            'user_id' => $userId,
+            'parent_id' => $categoriaId,
+            'nome' => $nome,
+            'icone' => 'tag',
+            'tipo' => 'despesa',
+            'is_seeded' => 0,
+            'ordem' => 0,
+        ]);
+    }
+
+    private function createLancamento(int $userId, int $contaId, int $cartaoId): int
+    {
+        return (int) DB::table('lancamentos')->insertGetId([
+            'user_id' => $userId,
+            'tipo' => 'despesa',
+            'data' => '2026-04-01',
+            'categoria_id' => null,
+            'subcategoria_id' => null,
+            'conta_id' => $contaId,
+            'cartao_credito_id' => $cartaoId,
+            'descricao' => 'Pagamento item',
+            'valor' => '120.00',
+            'pago' => 1,
+            'data_pagamento' => '2026-04-02',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
     /**
      * @param array<string, mixed> $overrides
      */
@@ -182,6 +288,7 @@ class FaturaItemManagementServiceTest extends TestCase
             'mes_referencia' => 4,
             'ano_referencia' => 2026,
             'categoria_id' => null,
+            'subcategoria_id' => null,
             'eh_parcelado' => 0,
             'parcela_atual' => 1,
             'total_parcelas' => 1,

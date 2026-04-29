@@ -1,6 +1,6 @@
 <!-- ==================== MODAL: EDITAR ITEM DA FATURA ==================== -->
 <div class="modal fade" id="modalEditarItemFatura" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content modern-modal">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -24,6 +24,20 @@
                         <label for="editItemValor" class="form-label">Valor (R$)</label>
                         <input type="text" class="form-control" id="editItemValor"
                             placeholder="0,00" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editItemCategoria" class="form-label">Categoria</label>
+                        <select class="form-select" id="editItemCategoria">
+                            <option value="">Sem categoria</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="editItemSubcategoriaGroup" style="display: none;">
+                        <label for="editItemSubcategoria" class="form-label">Subcategoria</label>
+                        <select class="form-select" id="editItemSubcategoria">
+                            <option value="">Sem subcategoria</option>
+                        </select>
                     </div>
                 </form>
             </div>

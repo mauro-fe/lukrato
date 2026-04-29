@@ -1,1 +1,0 @@
-function t(e){return encodeURIComponent(String(e))}function n(){return"api/v1/reports"}function r(){return`${n()}/insights`}function o(){return`${n()}/insights-teaser`}function s(){return`${n()}/comparatives`}function i(e){return`${n()}/card-details/${t(e)}`}function p(){return`${n()}/export`}export{s as a,o as b,r as c,n as d,i as e,p as r};

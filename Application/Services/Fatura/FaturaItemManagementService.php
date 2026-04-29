@@ -6,7 +6,9 @@ namespace Application\Services\Fatura;
 
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
+use Application\Models\Lancamento;
 use Application\Services\Infrastructure\LogService;
+use Application\Validators\LancamentoValidator;
 use Exception;
 use Illuminate\Database\Capsule\Manager as DB;
 use InvalidArgumentException;
@@ -41,7 +43,22 @@ class FaturaItemManagementService
                 $item->valor = $novoValor;
             }
 
+            if (array_key_exists('categoria_id', $dados) || array_key_exists('subcategoria_id', $dados)) {
+                [$categoriaId, $subcategoriaId] = $this->resolveCategoriaPayload($dados, $item, $usuarioId);
+                $item->categoria_id = $categoriaId;
+                $item->subcategoria_id = $subcategoriaId;
+            }
+
             $item->save();
+
+            if ((array_key_exists('categoria_id', $dados) || array_key_exists('subcategoria_id', $dados)) && $item->lancamento_id) {
+                Lancamento::forUser($usuarioId)
+                    ->where('id', $item->lancamento_id)
+                    ->update([
+                        'categoria_id' => $item->categoria_id,
+                        'subcategoria_id' => $item->subcategoria_id,
+                    ]);
+            }
 
             if ($diferencaValor !== 0 && $item->fatura) {
                 $item->fatura->valor_total = FaturaCartaoItem::where('fatura_id', $faturaId)->sum('valor');
@@ -59,6 +76,8 @@ class FaturaItemManagementService
                 'fatura_id' => $faturaId,
                 'usuario_id' => $usuarioId,
                 'descricao' => $dados['descricao'] ?? null,
+                'categoria_id' => $item->categoria_id,
+                'subcategoria_id' => $item->subcategoria_id,
                 'valor_antigo' => $valorAntigo,
                 'valor_novo' => $dados['valor'] ?? null
             ]);
@@ -98,6 +117,8 @@ class FaturaItemManagementService
                 'total_parcelas' => $item->total_parcelas,
                 'mes_referencia' => $item->mes_referencia,
                 'ano_referencia' => $item->ano_referencia,
+                'categoria_id' => $item->categoria_id,
+                'subcategoria_id' => $item->subcategoria_id,
             ];
         } catch (Exception $e) {
             LogService::error("Erro ao buscar item", [
@@ -304,5 +325,56 @@ class FaturaItemManagementService
         $fatura->valor_total = $novoTotal;
         $fatura->save();
         $fatura->atualizarStatus();
+    }
+
+    /**
+     * @param array<string, mixed> $dados
+     * @return array{0:?int,1:?int}
+     */
+    private function resolveCategoriaPayload(array $dados, FaturaCartaoItem $item, int $usuarioId): array
+    {
+        $categoriaId = array_key_exists('categoria_id', $dados)
+            ? $this->normalizeOptionalId($dados['categoria_id'])
+            : $this->normalizeOptionalId($item->categoria_id);
+
+        $subcategoriaId = array_key_exists('subcategoria_id', $dados)
+            ? $this->normalizeOptionalId($dados['subcategoria_id'])
+            : $this->normalizeOptionalId($item->subcategoria_id);
+
+        if (array_key_exists('categoria_id', $dados) && !array_key_exists('subcategoria_id', $dados)) {
+            $subcategoriaId = null;
+        }
+
+        if (array_key_exists('categoria_id', $dados) && $categoriaId === null) {
+            $subcategoriaId = null;
+        }
+
+        $errors = [];
+        $categoriaId = LancamentoValidator::validateCategoriaOwnership($categoriaId, $usuarioId, $errors);
+
+        if ($subcategoriaId !== null) {
+            if ($categoriaId === null) {
+                $errors['subcategoria_id'] = 'Selecione uma categoria antes da subcategoria.';
+            } else {
+                $subcategoriaId = LancamentoValidator::validateSubcategoriaOwnership($subcategoriaId, $categoriaId, $usuarioId, $errors);
+            }
+        }
+
+        if ($errors !== []) {
+            throw new InvalidArgumentException(implode(' ', array_values($errors)));
+        }
+
+        return [$categoriaId, $subcategoriaId];
+    }
+
+    private function normalizeOptionalId(mixed $value): ?int
+    {
+        if (!is_scalar($value) || $value === '') {
+            return null;
+        }
+
+        $normalized = (int) $value;
+
+        return $normalized > 0 ? $normalized : null;
     }
 }

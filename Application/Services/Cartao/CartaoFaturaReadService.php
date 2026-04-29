@@ -86,6 +86,7 @@ class CartaoFaturaReadService
                 'total_parcelas' => $item->total_parcelas ?? 1,
                 'pago' => $item->pago,
                 'categoria_id' => $item->categoria_id,
+                'subcategoria_id' => $item->subcategoria_id,
                 'mes_referencia' => $item->mes_referencia,
                 'ano_referencia' => $item->ano_referencia,
                 'recorrente' => (bool) $item->recorrente,

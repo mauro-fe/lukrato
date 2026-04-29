@@ -277,6 +277,7 @@ class RecorrenciaCartaoService
             'data_compra' => ($dataCompra ?? now())->format('Y-m-d'),
             'data_vencimento' => (string) $vencimento['data'],
             'categoria_id' => $itemPai->categoria_id,
+            'subcategoria_id' => $itemPai->subcategoria_id,
             'parcela_atual' => 1,
             'total_parcelas' => 1,
             'mes_referencia' => (int) $competencia['mes'],
@@ -415,6 +416,7 @@ class RecorrenciaCartaoService
                 'recorrencia_fim' => $item->recorrencia_fim?->format('Y-m-d'),
                 'cartao_credito_id' => $item->cartao_credito_id,
                 'categoria_id' => $item->categoria_id,
+                'subcategoria_id' => $item->subcategoria_id,
                 'data_compra' => $item->data_compra?->format('Y-m-d'),
                 'total_meses_cobrado' => $totalFilhos + 1, // +1 conta o próprio pai
             ];

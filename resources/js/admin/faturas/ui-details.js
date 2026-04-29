@@ -196,7 +196,9 @@ export const DetailsMethods = {
                 const itemId = parseInt(e.currentTarget.dataset.lancamentoId, 10);
                 const descricao = e.currentTarget.dataset.descricao || '';
                 const valor = parseFloat(e.currentTarget.dataset.valor) || 0;
-                await this.editarItemFatura(faturaId, itemId, descricao, valor);
+                const categoriaId = parseInt(e.currentTarget.dataset.categoriaId, 10) || null;
+                const subcategoriaId = parseInt(e.currentTarget.dataset.subcategoriaId, 10) || null;
+                await this.editarItemFatura(faturaId, itemId, descricao, valor, categoriaId, subcategoriaId);
             });
         });
 
@@ -371,6 +373,7 @@ export const DetailsMethods = {
                         <tr>
                             <th>#</th>
                             <th class="th-sortable" data-sort="descricao">Descrição ${sortIcon('descricao')}</th>
+                            <th>Categoria</th>
                             <th class="th-sortable" data-sort="data_compra">Data Compra ${sortIcon('data_compra')}</th>
                             <th class="th-sortable" data-sort="valor">Valor ${sortIcon('valor')}</th>
                             <th>Ação</th>
@@ -386,7 +389,7 @@ export const DetailsMethods = {
         } else {
             html += `
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 2rem;">
+                    <td colspan="6" style="text-align: center; padding: 2rem;">
                         <p style="color: #6b7280;">Nenhuma parcela encontrada</p>
                     </td>
                 </tr>
@@ -447,6 +450,46 @@ export const DetailsMethods = {
         return sorted;
     },
 
+    getCategoriaMeta(parcela) {
+        const categoria = parcela?.categoria || null;
+        const subcategoria = parcela?.subcategoria || null;
+        const categoriaNome = typeof categoria === 'object'
+            ? String(categoria?.nome || '').trim()
+            : String(categoria || '').trim();
+        const subcategoriaNome = typeof subcategoria === 'object'
+            ? String(subcategoria?.nome || '').trim()
+            : String(subcategoria || '').trim();
+        const icon = typeof categoria === 'object' && categoria?.icone
+            ? String(categoria.icone)
+            : 'tag';
+
+        return {
+            categoriaNome,
+            subcategoriaNome,
+            icon,
+            hasCategoria: categoriaNome !== '',
+        };
+    },
+
+    renderCategoriaBadge(parcela) {
+        const meta = this.getCategoriaMeta(parcela);
+        if (!meta.hasCategoria) {
+            return '<span class="fatura-category-empty">Sem categoria</span>';
+        }
+
+        const subcategoria = meta.subcategoriaNome
+            ? `<span class="fatura-category-sub">${Utils.escapeHtml(meta.subcategoriaNome)}</span>`
+            : '';
+
+        return `
+            <span class="fatura-category-pill">
+                <i data-lucide="${Utils.escapeHtml(meta.icon)}" style="color:${getCategoryIconColor(meta.icon)}"></i>
+                <span>${Utils.escapeHtml(meta.categoriaNome)}</span>
+                ${subcategoria}
+            </span>
+        `;
+    },
+
     renderParcelaCard(parcela, index, descricaoFatura) {
         const isPaga = parcela.pago;
         const isEstorno = parcela.tipo === 'estorno';
@@ -462,13 +505,7 @@ export const DetailsMethods = {
         // Remover o contador de parcelas (X/Y) da descrição
         descricaoItem = descricaoItem.replace(/\s*\(\d+\/\d+\)\s*$/, '');
 
-        // Se tiver categoria, mostrar o nome da categoria
-        let categoriaInfo = '';
-        if (parcela.categoria) {
-            const iconeCategoria = parcela.categoria.icone || 'tag';
-            const nomeCategoria = parcela.categoria.nome || parcela.categoria;
-            categoriaInfo = `<i data-lucide="${iconeCategoria}" style="width:14px;height:14px;display:inline-block;vertical-align:middle;color:${getCategoryIconColor(iconeCategoria)}"></i> ${Utils.escapeHtml(nomeCategoria)}`;
-        }
+        const categoriaInfo = this.renderCategoriaBadge(parcela);
 
         // Card especial para estornos
         if (isEstorno) {
@@ -532,12 +569,10 @@ export const DetailsMethods = {
                 
                 <!-- Detalhes expandíveis -->
                 <div class="parcela-card-detalhes" id="detalhes-${cardId}" style="display: none;">
-                    ${categoriaInfo ? `
                     <div class="parcela-card-info">
                         <span class="parcela-card-label">Categoria</span>
                         <span class="parcela-card-value">${categoriaInfo}</span>
                     </div>
-                    ` : ''}
                     <div class="parcela-card-info">
                         <span class="parcela-card-label">Mês/Ano</span>
                         <span class="parcela-card-value">${mesAno}</span>
@@ -575,14 +610,9 @@ export const DetailsMethods = {
         // Remover o contador de parcelas (X/Y) da descrição
         descricaoItem = descricaoItem.replace(/\s*\(\d+\/\d+\)\s*$/, '');
 
-        // Se tiver categoria, mostrar o nome da categoria
-        if (parcela.categoria) {
-            const nomeCategoria = parcela.categoria.nome || parcela.categoria;
-            descricaoItem = nomeCategoria;
-        }
-
         // Formatar data de compra
         const dataCompraFormatada = parcela.data_compra ? Utils.formatDate(parcela.data_compra) : '-';
+        const categoriaInfo = this.renderCategoriaBadge(parcela);
 
         // Estornos aparecem diferente
         if (isEstorno) {
@@ -593,6 +623,9 @@ export const DetailsMethods = {
                     </td>
                     <td data-label="Descrição" class="td-descricao">
                         <div class="parcela-desc" style="color: #10b981;">${Utils.escapeHtml(descricaoItem)}</div>
+                    </td>
+                    <td data-label="Categoria" class="td-categoria">
+                        ${categoriaInfo}
                     </td>
                     <td data-label="Data Compra">
                         <span style="color: #10b981; font-size: 0.85rem;">${dataCompraFormatada}</span>
@@ -628,6 +661,9 @@ export const DetailsMethods = {
                 <td data-label="Descrição" class="td-descricao">
                     <div class="parcela-desc">${Utils.escapeHtml(descricaoItem)}${parcela.recorrente ? ' <span class="badge-recorrente" style="display:inline-flex;align-items:center;background:rgba(230,126,34,0.15);border-radius:6px;padding:1px 6px;margin-left:6px;"><i data-lucide="refresh-cw" style="width:12px;height:12px;color:var(--primary, #e67e22);"></i></span>' : ''}</div>
                 </td>
+                <td data-label="Categoria" class="td-categoria">
+                    ${categoriaInfo}
+                </td>
                 <td data-label="Data Compra">
                     <span style="font-size: 0.85rem; color: #9ca3af;">${dataCompraFormatada}</span>
                 </td>
@@ -659,6 +695,8 @@ export const DetailsMethods = {
                         data-lancamento-id="${parcela.id}"
                         data-descricao="${Utils.escapeHtml(parcela.descricao || '')}"
                         data-valor="${parcela.valor_parcela || 0}"
+                        data-categoria-id="${parcela.categoria_id || ''}"
+                        data-subcategoria-id="${parcela.subcategoria_id || ''}"
                         title="Editar item">
                         <i data-lucide="pencil"></i>
                     </button>

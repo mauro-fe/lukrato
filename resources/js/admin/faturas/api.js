@@ -1,7 +1,7 @@
 /**
  * LUKRATO — Faturas / API
  */
-import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { CONFIG, Utils, Modules } from './state.js';
 import {
     resolveCardFaturaPayEndpoint,
     resolveCardFaturaUndoPaymentEndpoint,
@@ -10,6 +10,7 @@ import {
     resolveFaturaItemParcelamentoEndpoint,
     resolveFaturaItemToggleEndpoint,
 } from '../api/endpoints/faturas.js';
+import { resolveCategorySubcategoriesEndpoint } from '../api/endpoints/finance.js';
 
 export const FaturasAPI = {
     async listarParcelamentos(filters = {}) {
@@ -116,6 +117,14 @@ export const FaturasAPI = {
      */
     async listarContas() {
         return await Utils.apiRequest(`${CONFIG.ENDPOINTS.contas}?with_balances=1`);
+    },
+
+    async listarCategorias() {
+        return await Utils.apiRequest(CONFIG.ENDPOINTS.categorias);
+    },
+
+    async listarSubcategorias(categoriaId) {
+        return await Utils.apiRequest(resolveCategorySubcategoriesEndpoint(categoriaId));
     }
 };
 

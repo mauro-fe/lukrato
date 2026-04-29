@@ -381,6 +381,7 @@ function ensureSqliteTestSchema(Capsule $capsule): void
             $table->unsignedTinyInteger('mes_referencia')->nullable();
             $table->unsignedSmallInteger('ano_referencia')->nullable();
             $table->unsignedInteger('categoria_id')->nullable();
+            $table->unsignedInteger('subcategoria_id')->nullable();
             $table->boolean('eh_parcelado')->default(false);
             $table->unsignedInteger('parcela_atual')->default(1);
             $table->unsignedInteger('total_parcelas')->default(1);

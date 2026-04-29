@@ -242,6 +242,70 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertTrue($preview['can_confirm']);
     }
 
+    public function testPreviewEnrichesCardOfxRowsWithSuggestedCategoriesWhenRequested(): void
+    {
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-20',
+                        'amount' => 103.68,
+                        'type' => 'despesa',
+                        'description' => 'Openai *Chatgpt Subscr',
+                    ]),
+                ];
+            }
+        };
+
+        $categorizationService = new class extends ImportRowCategorizationService {
+            public int $calls = 0;
+
+            public function enrichRows(array $rows, ?int $userId = null): array
+            {
+                $this->calls++;
+
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-20',
+                        'amount' => 103.68,
+                        'type' => 'despesa',
+                        'description' => 'Openai *Chatgpt Subscr',
+                        'row_key' => 'card-preview-row-1',
+                        'categoria_id' => 21,
+                        'subcategoria_id' => 22,
+                        'categoria_nome' => 'Assinaturas',
+                        'subcategoria_nome' => 'Software',
+                        'categoria_sugerida_id' => 21,
+                        'subcategoria_sugerida_id' => 22,
+                        'categoria_sugerida_nome' => 'Assinaturas',
+                        'subcategoria_sugerida_nome' => 'Software',
+                        'categoria_source' => 'rule',
+                        'categoria_confidence' => 'rule',
+                    ]),
+                ];
+            }
+        };
+
+        $service = new ImportPreviewService([$parser], null, $categorizationService);
+        $profile = ImportProfileConfigDTO::fromArray(['conta_id' => 9, 'source_type' => 'ofx']);
+
+        $preview = $service->preview('ofx', '<OFX>', $profile, 'fatura.ofx', 'cartao', 77, 55, true);
+
+        $this->assertSame(1, $categorizationService->calls);
+        $this->assertSame('cartao', $preview['import_target']);
+        $this->assertSame('card-preview-row-1', $preview['rows'][0]['row_key'] ?? null);
+        $this->assertSame(21, $preview['rows'][0]['categoria_id'] ?? null);
+        $this->assertSame(22, $preview['rows'][0]['subcategoria_id'] ?? null);
+        $this->assertSame('rule', $preview['rows'][0]['categoria_source'] ?? null);
+        $this->assertTrue($preview['can_confirm']);
+    }
+
     public function testPreviewBlocksCardOfxWhenAccountTargetIsSelected(): void
     {
         $service = new ImportPreviewService([new OfxImportParser()]);
@@ -881,6 +945,8 @@ class ImportPreviewServiceTest extends TestCase
         $userId = $this->createUser();
         $contaId = $this->createConta($userId);
         $cartaoId = $this->createCartao($userId, $contaId);
+        $categoriaId = $this->createCategoria($userId, 'Alimentacao');
+        $subcategoriaId = $this->createSubcategoria($userId, $categoriaId, 'Restaurante');
         $profile = ImportProfileConfigDTO::fromArray([
             'conta_id' => $contaId,
             'source_type' => 'csv',
@@ -895,9 +961,9 @@ class ImportPreviewServiceTest extends TestCase
         ]);
 
         $csv = implode("\n", [
-            'data;descricao;valor',
-            '05/03/2026;Restaurante;220,90',
-            '06/03/2026;Estorno parcial;-40,00',
+            'data;descricao;valor;categoria;subcategoria',
+            '05/03/2026;Restaurante;220,90;Alimentacao;Restaurante',
+            '06/03/2026;Estorno parcial;-40,00;Alimentacao;Restaurante',
         ]);
 
         $service = new ImportExecutionService(new ImportPreviewService([new CsvImportParser()]));
@@ -919,6 +985,85 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame(0, DB::table('lancamentos')->where('user_id', $userId)->count());
         $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'despesa')->count());
         $this->assertSame(1, DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'estorno')->count());
+        $itemDespesa = DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'despesa')->first();
+        $this->assertSame($categoriaId, (int) ($itemDespesa->categoria_id ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($itemDespesa->subcategoria_id ?? 0));
+        $itemEstorno = DB::table('faturas_cartao_itens')->where('user_id', $userId)->where('tipo', 'estorno')->first();
+        $this->assertSame($categoriaId, (int) ($itemEstorno->categoria_id ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($itemEstorno->subcategoria_id ?? 0));
+    }
+
+    public function testExecutionServiceConfirmAppliesCategoryOverridesToCardInvoiceItems(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId);
+        $categoriaId = $this->createCategoria($userId, 'Transporte');
+        $subcategoriaId = $this->createSubcategoria($userId, $categoriaId, 'Aplicativo');
+
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-03',
+                        'amount' => 23.5,
+                        'type' => 'despesa',
+                        'description' => 'Uber Trip',
+                        'memo' => 'Compra cartao',
+                        'external_id' => 'CARD-CAT-1',
+                        'raw' => ['fitid' => 'CARD-CAT-1'],
+                    ]),
+                ];
+            }
+        };
+
+        $previewService = new ImportPreviewService([$parser]);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $preview = $previewService->preview('ofx', '<OFX></OFX>', $profile, 'fatura-card.ofx', 'cartao', $cartaoId, $userId);
+        $rowKey = (string) ($preview['rows'][0]['row_key'] ?? '');
+
+        $service = new ImportExecutionService($previewService);
+        $result = $service->confirmExecution(
+            $userId,
+            'ofx',
+            '<OFX></OFX>',
+            $profile,
+            'fatura-card.ofx',
+            'cartao',
+            $cartaoId,
+            [
+                $rowKey => [
+                    'categoria_id' => $categoriaId,
+                    'subcategoria_id' => $subcategoriaId,
+                    'user_edited' => true,
+                ],
+            ]
+        );
+
+        $this->assertTrue($result->success);
+
+        $item = DB::table('faturas_cartao_itens')->where('user_id', $userId)->first();
+        $this->assertNotNull($item);
+        $this->assertSame($categoriaId, (int) ($item->categoria_id ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($item->subcategoria_id ?? 0));
+
+        $raw = json_decode((string) DB::table('importacao_itens')->where('user_id', $userId)->value('raw_json'), true);
+        $this->assertIsArray($raw);
+        $this->assertSame('cartao', $raw['import_target'] ?? null);
+        $this->assertSame($categoriaId, (int) ($raw['categoria_id'] ?? 0));
+        $this->assertSame($subcategoriaId, (int) ($raw['subcategoria_id'] ?? 0));
     }
 
     public function testExecutionServiceBlocksCardOfxWhenTargetIsConta(): void

@@ -117,6 +117,63 @@ class ImportRowCategorizationService
     }
 
     /**
+     * @param array<int, NormalizedImportRowDTO> $rows
+     * @return array<int, NormalizedImportRowDTO>
+     */
+    public function resolveNamedCategories(array $rows, ?int $userId = null, string $importTarget = 'conta'): array
+    {
+        if ($userId === null || $userId <= 0) {
+            return $rows;
+        }
+
+        $normalizedImportTarget = strtolower(trim($importTarget));
+        $resolvedRows = [];
+
+        foreach ($rows as $row) {
+            if (!$row instanceof NormalizedImportRowDTO) {
+                continue;
+            }
+
+            $payload = $row->toArray();
+            $raw = is_array($payload['raw'] ?? null) ? $payload['raw'] : [];
+            $categoriaNomeRaw = self::normalizeText($raw['categoria'] ?? null);
+            $subcategoriaNomeRaw = self::normalizeText($raw['subcategoria'] ?? null);
+
+            if ($row->categoriaId !== null || $categoriaNomeRaw === null) {
+                $resolvedRows[] = $row;
+                continue;
+            }
+
+            $categoriaTipo = $normalizedImportTarget === 'cartao' ? 'despesa' : $row->type;
+            $categoria = $this->findRootCategoryByName($categoriaNomeRaw, $userId, $categoriaTipo);
+            if (!$categoria) {
+                $resolvedRows[] = $row;
+                continue;
+            }
+
+            $subcategoria = $subcategoriaNomeRaw !== null
+                ? $this->findSubcategoryByName($subcategoriaNomeRaw, (int) $categoria->id, $userId)
+                : null;
+
+            $payload['categoria_id'] = (int) $categoria->id;
+            $payload['categoria_nome'] = self::normalizeText($categoria->nome);
+            $payload['subcategoria_id'] = $subcategoria ? (int) $subcategoria->id : null;
+            $payload['subcategoria_nome'] = $subcategoria ? self::normalizeText($subcategoria->nome) : null;
+            $payload['categoria_sugerida_id'] = $payload['categoria_sugerida_id'] ?? (int) $categoria->id;
+            $payload['subcategoria_sugerida_id'] = $payload['subcategoria_sugerida_id'] ?? ($subcategoria ? (int) $subcategoria->id : null);
+            $payload['categoria_sugerida_nome'] = $payload['categoria_sugerida_nome'] ?? self::normalizeText($categoria->nome);
+            $payload['subcategoria_sugerida_nome'] = $payload['subcategoria_sugerida_nome'] ?? ($subcategoria ? self::normalizeText($subcategoria->nome) : null);
+            $payload['categoria_source'] = $payload['categoria_source'] ?? 'csv';
+            $payload['categoria_confidence'] = $payload['categoria_confidence'] ?? 'csv';
+            $payload['categoria_editada'] = false;
+
+            $resolvedRows[] = NormalizedImportRowDTO::fromArray($payload);
+        }
+
+        return $resolvedRows;
+    }
+
+    /**
      * @param array<string, mixed> $row
      */
     public static function buildRowKeyFromPayload(array $row, int $index): string
@@ -164,6 +221,38 @@ class ImportRowCategorizationService
         }
 
         return self::$categoriaNameCache[$categoriaId];
+    }
+
+    private function findRootCategoryByName(string $nome, int $userId, string $tipo): ?Categoria
+    {
+        $query = Categoria::query()
+            ->whereNull('parent_id')
+            ->whereRaw('LOWER(nome) = ?', [mb_strtolower($nome)])
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            });
+
+        if (in_array($tipo, ['receita', 'despesa'], true)) {
+            $query->whereIn('tipo', [$tipo, 'ambas']);
+        }
+
+        return $query
+            ->orderByDesc('user_id')
+            ->first();
+    }
+
+    private function findSubcategoryByName(string $nome, int $categoriaId, int $userId): ?Categoria
+    {
+        return Categoria::query()
+            ->where('parent_id', $categoriaId)
+            ->whereRaw('LOWER(nome) = ?', [mb_strtolower($nome)])
+            ->where(function ($q) use ($userId) {
+                $q->whereNull('user_id')
+                    ->orWhere('user_id', $userId);
+            })
+            ->orderByDesc('user_id')
+            ->first();
     }
 
     private static function normalizePositiveInt(mixed $value): ?int

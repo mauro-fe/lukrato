@@ -61,7 +61,7 @@ class ImportExecutionService
             $userId
         );
 
-        if ($importTarget === 'conta' && $userId !== null && $userId > 0 && $rowOverrides !== []) {
+        if ($userId !== null && $userId > 0 && $rowOverrides !== []) {
             $preview = $this->applyRowOverridesToPreview($preview, $rowOverrides, $userId);
         }
 
@@ -352,6 +352,7 @@ class ImportExecutionService
             $persisted = $this->persistCardInvoiceItem($userId, $cartao, $normalized);
             if (($persisted['success'] ?? false) === true) {
                 $imported++;
+                $this->learnFromImportedRow($userId, $normalized);
 
                 $faturaId = is_numeric($persisted['fatura_id'] ?? null) ? (int) $persisted['fatura_id'] : null;
                 if ($faturaId !== null) {
@@ -375,6 +376,12 @@ class ImportExecutionService
                         'fatura_item_id' => is_numeric($persisted['fatura_item_id'] ?? null)
                             ? (int) $persisted['fatura_item_id']
                             : null,
+                        'categoria_id' => $normalized['categoria_id'] ?? null,
+                        'subcategoria_id' => $normalized['subcategoria_id'] ?? null,
+                        'categoria_nome' => $normalized['categoria_nome'] ?? null,
+                        'subcategoria_nome' => $normalized['subcategoria_nome'] ?? null,
+                        'categoria_editada' => $normalized['categoria_editada'] ?? false,
+                        'categoria_learning_source' => $normalized['categoria_learning_source'] ?? null,
                     ]
                 );
                 continue;
@@ -485,6 +492,8 @@ class ImportExecutionService
                     (int) $vencimento['mes'],
                     (int) $vencimento['ano']
                 );
+                $categoriaId = $this->parsePositiveId($row['categoria_id'] ?? null);
+                $subcategoriaId = $this->parsePositiveId($row['subcategoria_id'] ?? null);
 
                 if (($row['type'] ?? 'despesa') === 'receita') {
                     $item = FaturaCartaoItem::query()->create([
@@ -499,6 +508,8 @@ class ImportExecutionService
                         'data_vencimento' => (string) $vencimento['data'],
                         'mes_referencia' => (int) $competencia['mes'],
                         'ano_referencia' => (int) $competencia['ano'],
+                        'categoria_id' => $categoriaId,
+                        'subcategoria_id' => $subcategoriaId,
                         'eh_parcelado' => false,
                         'parcela_atual' => 1,
                         'total_parcelas' => 1,
@@ -541,6 +552,8 @@ class ImportExecutionService
                     'data_vencimento' => (string) $vencimento['data'],
                     'mes_referencia' => (int) $competencia['mes'],
                     'ano_referencia' => (int) $competencia['ano'],
+                    'categoria_id' => $categoriaId,
+                    'subcategoria_id' => $subcategoriaId,
                     'eh_parcelado' => false,
                     'parcela_atual' => 1,
                     'total_parcelas' => 1,

@@ -131,6 +131,20 @@ class FaturaFormatterService
                 'tipo' => $item->tipo ?? 'despesa',
                 'recorrente' => (bool) $item->recorrente,
                 'recorrencia_freq' => $item->recorrencia_freq,
+                'categoria_id' => $item->categoria_id ? (int) $item->categoria_id : null,
+                'subcategoria_id' => $item->subcategoria_id ? (int) $item->subcategoria_id : null,
+                'categoria' => $item->categoria ? [
+                    'id' => (int) $item->categoria->id,
+                    'nome' => $item->categoria->nome,
+                    'icone' => $item->categoria->icone,
+                    'tipo' => $item->categoria->tipo,
+                ] : null,
+                'subcategoria' => $item->subcategoria ? [
+                    'id' => (int) $item->subcategoria->id,
+                    'nome' => $item->subcategoria->nome,
+                    'icone' => $item->subcategoria->icone,
+                    'tipo' => $item->subcategoria->tipo,
+                ] : null,
             ];
         })->values()->toArray();
 

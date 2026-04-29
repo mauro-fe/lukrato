@@ -95,6 +95,10 @@ class ImportPreviewService
             $rows = $this->rowCategorizationService->assignRowKeys($rows);
         }
 
+        if ($rows !== [] && $userId !== null && $userId > 0) {
+            $rows = $this->rowCategorizationService->resolveNamedCategories($rows, $userId, $importTarget);
+        }
+
         if (
             $rows !== []
             && !$targetMismatch
@@ -246,9 +250,11 @@ class ImportPreviewService
 
     private function shouldCategorizeRows(string $sourceType, string $importTarget, ?int $userId): bool
     {
+        $normalizedTarget = $this->normalizeImportTarget($importTarget);
+
         return $userId !== null
             && $userId > 0
             && strtolower(trim($sourceType)) === 'ofx'
-            && $this->normalizeImportTarget($importTarget) === 'conta';
+            && in_array($normalizedTarget, ['conta', 'cartao'], true);
     }
 }

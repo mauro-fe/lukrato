@@ -162,8 +162,13 @@ class FaturaApiWorkflowService
         }
 
         $payload ??= [];
-        if (empty($payload['descricao']) && !isset($payload['valor'])) {
-            return $this->failure('Informe a descrição ou valor para atualizar');
+        if (
+            empty($payload['descricao'])
+            && !isset($payload['valor'])
+            && !array_key_exists('categoria_id', $payload)
+            && !array_key_exists('subcategoria_id', $payload)
+        ) {
+            return $this->failure('Informe a descrição, valor ou categoria para atualizar');
         }
 
         if (isset($payload['valor']) && (!is_numeric($payload['valor']) || (float) $payload['valor'] <= 0)) {

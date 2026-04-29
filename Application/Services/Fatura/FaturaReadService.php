@@ -116,7 +116,8 @@ class FaturaReadService
                     $query->orderBy('ano_referencia')
                         ->orderBy('mes_referencia')
                         ->orderBy('data_compra')
-                        ->orderBy('parcela_atual');
+                        ->orderBy('parcela_atual')
+                        ->with(['categoria', 'subcategoria']);
                 }])
                 ->first();
 

@@ -149,6 +149,7 @@ class CartaoPostSaleService
             $descricao = $data['descricao'] ?? 'Estorno';
             $dataEstorno = $data['data'] ?? date('Y-m-d');
             $categoriaId = $data['categoria_id'] ?? null;
+            $subcategoriaId = $data['subcategoria_id'] ?? null;
 
             $cartao = CartaoCredito::where('id', $cartaoId)
                 ->where('user_id', $userId)
@@ -227,6 +228,7 @@ class CartaoPostSaleService
                 'mes_referencia' => $mesReferencia,
                 'ano_referencia' => $anoReferencia,
                 'categoria_id' => $categoriaId,
+                'subcategoria_id' => $subcategoriaId,
                 'eh_parcelado' => false,
                 'parcela_atual' => 1,
                 'total_parcelas' => 1,
