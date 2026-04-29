@@ -8,6 +8,7 @@ use Application\Container\ApplicationContainer;
 use Application\DTO\Importacao\ImportProfileConfigDTO;
 use Application\DTO\ServiceResultDTO;
 use Application\Enums\LogCategory;
+use Application\Enums\LogLevel;
 use Application\Models\CartaoCredito;
 use Application\Models\Fatura;
 use Application\Models\FaturaCartaoItem;
@@ -978,6 +979,7 @@ class ImportExecutionService
         }
 
         $hasRelevantCardHistory = false;
+        $historyContexts = [];
         foreach ($items as $item) {
             $raw = json_decode((string) ($item->raw_json ?? ''), true);
             if (!is_array($raw)) {
@@ -996,43 +998,90 @@ class ImportExecutionService
 
             $hasRelevantCardHistory = true;
             $faturaItemId = $this->parsePositiveId($raw['fatura_item_id'] ?? null);
-            if ($faturaItemId !== null && $this->cardInvoiceItemExists($userId, $cartaoId, $faturaItemId)) {
+            $historyContexts[] = [
+                'importacao_item_id' => (int) ($item->id ?? 0),
+                'raw_import_target' => $rawTarget,
+                'raw_cartao_id' => $rawCartaoId,
+                'raw_fatura_id' => $this->parsePositiveId($raw['fatura_id'] ?? null),
+                'raw_fatura_item_id' => $faturaItemId,
+            ];
+
+            $linkedItem = $faturaItemId !== null
+                ? $this->findCardInvoiceItem($userId, $cartaoId, $faturaItemId)
+                : null;
+            if ($linkedItem !== null) {
+                $this->logCardInvoiceDuplicateDecision(
+                    LogLevel::WARNING,
+                    'linked_fatura_item',
+                    $userId,
+                    $contaId,
+                    $cartaoId,
+                    $rowHash,
+                    $row,
+                    ['history' => end($historyContexts) ?: []],
+                    $linkedItem
+                );
+
                 return true;
             }
         }
 
-        if ($hasRelevantCardHistory && $this->matchingCardInvoiceItemExists($userId, $cartaoId, $row)) {
+        $matchingItem = $hasRelevantCardHistory ? $this->findMatchingCardInvoiceItem($userId, $cartaoId, $row) : null;
+        if ($matchingItem !== null) {
+            $this->logCardInvoiceDuplicateDecision(
+                LogLevel::WARNING,
+                'matching_fatura_item',
+                $userId,
+                $contaId,
+                $cartaoId,
+                $rowHash,
+                $row,
+                ['histories' => $historyContexts],
+                $matchingItem
+            );
+
             return true;
         }
 
         if ($hasRelevantCardHistory) {
             $this->releaseStaleCardInvoiceHistory($items, $rowHash);
+            $this->logCardInvoiceDuplicateDecision(
+                LogLevel::INFO,
+                'stale_history_released',
+                $userId,
+                $contaId,
+                $cartaoId,
+                $rowHash,
+                $row,
+                ['histories' => $historyContexts],
+                null
+            );
         }
 
         return false;
     }
 
-    private function cardInvoiceItemExists(int $userId, int $cartaoId, int $faturaItemId): bool
+    private function findCardInvoiceItem(int $userId, int $cartaoId, int $faturaItemId): ?FaturaCartaoItem
     {
         return FaturaCartaoItem::query()
             ->where('id', $faturaItemId)
             ->where('user_id', $userId)
             ->where('cartao_credito_id', $cartaoId)
             ->whereNull('cancelado_em')
-            ->exists();
+            ->first();
     }
 
     /**
      * @param array<string, mixed> $row
      */
-    private function matchingCardInvoiceItemExists(int $userId, int $cartaoId, array $row): bool
+    private function findMatchingCardInvoiceItem(int $userId, int $cartaoId, array $row): ?FaturaCartaoItem
     {
         $amount = round((float) ($row['amount'] ?? 0), 2);
         $date = trim((string) ($row['date'] ?? ''));
         $description = mb_substr(trim((string) ($row['description'] ?? '')), 0, 190);
 
         if ($amount <= 0 || $date === '' || $description === '') {
-            return false;
+            return null;
         }
 
         $isRefund = ($row['type'] ?? 'despesa') === 'receita';
@@ -1047,7 +1096,7 @@ class ImportExecutionService
             ->where('valor', $invoiceAmount)
             ->where('tipo', $isRefund ? 'estorno' : 'despesa')
             ->whereNull('cancelado_em')
-            ->exists();
+            ->first();
     }
 
     /**
@@ -1070,6 +1119,60 @@ class ImportExecutionService
                     'updated_at' => date('Y-m-d H:i:s'),
                 ]);
         }
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @param array<string, mixed> $extraContext
+     */
+    private function logCardInvoiceDuplicateDecision(
+        LogLevel $level,
+        string $reason,
+        int $userId,
+        int $contaId,
+        int $cartaoId,
+        string $rowHash,
+        array $row,
+        array $extraContext,
+        ?FaturaCartaoItem $invoiceItem
+    ): void {
+        LogService::persist(
+            level: $level,
+            category: LogCategory::FATURA,
+            message: 'Importacao de fatura: decisao de duplicidade',
+            context: array_merge([
+                'action' => 'import_card_invoice_duplicate_decision',
+                'decision_reason' => $reason,
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'cartao_id' => $cartaoId,
+                'row_hash' => $rowHash,
+                'row' => [
+                    'date' => $row['date'] ?? null,
+                    'amount' => $row['amount'] ?? null,
+                    'type' => $row['type'] ?? null,
+                    'description' => $row['description'] ?? null,
+                    'external_id' => $row['external_id'] ?? null,
+                ],
+                'matched_invoice_item' => $invoiceItem === null ? null : [
+                    'id' => (int) $invoiceItem->id,
+                    'fatura_id' => (int) $invoiceItem->fatura_id,
+                    'cartao_credito_id' => (int) $invoiceItem->cartao_credito_id,
+                    'descricao' => (string) $invoiceItem->descricao,
+                    'valor' => (string) $invoiceItem->valor,
+                    'tipo' => (string) $invoiceItem->tipo,
+                    'data_compra' => $invoiceItem->data_compra instanceof \DateTimeInterface
+                        ? $invoiceItem->data_compra->format('Y-m-d')
+                        : (string) $invoiceItem->data_compra,
+                    'categoria_id' => $invoiceItem->categoria_id === null ? null : (int) $invoiceItem->categoria_id,
+                    'subcategoria_id' => $invoiceItem->subcategoria_id === null ? null : (int) $invoiceItem->subcategoria_id,
+                    'cancelado_em' => $invoiceItem->cancelado_em instanceof \DateTimeInterface
+                        ? $invoiceItem->cancelado_em->format(DATE_ATOM)
+                        : $invoiceItem->cancelado_em,
+                ],
+            ], $extraContext),
+            userId: $userId
+        );
     }
 
     private function decorateItemRowHash(string $baseRowHash, string $status, int $loteId, int $rowIndex): string
