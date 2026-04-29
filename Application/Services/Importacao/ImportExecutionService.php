@@ -328,7 +328,7 @@ class ImportExecutionService
             }
 
             $rowHash = $this->generateRowHash($userId, $contaId, $normalized, 'cartao', (int) $cartao->id);
-            if ($this->isDuplicate($userId, $contaId, $rowHash)) {
+            if ($this->isDuplicateCardInvoiceItem($userId, $contaId, (int) $cartao->id, $rowHash, $normalized)) {
                 $duplicated++;
                 $duplicateHash = $this->decorateItemRowHash($rowHash, 'duplicate', (int) $lote->id, (int) $index);
                 $this->persistItem(
@@ -954,6 +954,122 @@ class ImportExecutionService
             ->where('row_hash', $rowHash)
             ->where('status', 'imported')
             ->exists();
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function isDuplicateCardInvoiceItem(
+        int $userId,
+        int $contaId,
+        int $cartaoId,
+        string $rowHash,
+        array $row
+    ): bool {
+        $items = ImportacaoItem::query()
+            ->where('user_id', $userId)
+            ->where('conta_id', $contaId)
+            ->where('row_hash', $rowHash)
+            ->where('status', 'imported')
+            ->get(['id', 'raw_json']);
+
+        if ($items->isEmpty()) {
+            return false;
+        }
+
+        $hasRelevantCardHistory = false;
+        foreach ($items as $item) {
+            $raw = json_decode((string) ($item->raw_json ?? ''), true);
+            if (!is_array($raw)) {
+                $raw = [];
+            }
+
+            $rawTarget = $this->normalizeImportTarget((string) ($raw['import_target'] ?? 'cartao'));
+            if ($rawTarget !== 'cartao') {
+                continue;
+            }
+
+            $rawCartaoId = $this->parsePositiveId($raw['cartao_id'] ?? null);
+            if ($rawCartaoId !== null && $rawCartaoId !== $cartaoId) {
+                continue;
+            }
+
+            $hasRelevantCardHistory = true;
+            $faturaItemId = $this->parsePositiveId($raw['fatura_item_id'] ?? null);
+            if ($faturaItemId !== null && $this->cardInvoiceItemExists($userId, $cartaoId, $faturaItemId)) {
+                return true;
+            }
+        }
+
+        if ($hasRelevantCardHistory && $this->matchingCardInvoiceItemExists($userId, $cartaoId, $row)) {
+            return true;
+        }
+
+        if ($hasRelevantCardHistory) {
+            $this->releaseStaleCardInvoiceHistory($items, $rowHash);
+        }
+
+        return false;
+    }
+
+    private function cardInvoiceItemExists(int $userId, int $cartaoId, int $faturaItemId): bool
+    {
+        return FaturaCartaoItem::query()
+            ->where('id', $faturaItemId)
+            ->where('user_id', $userId)
+            ->where('cartao_credito_id', $cartaoId)
+            ->whereNull('cancelado_em')
+            ->exists();
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function matchingCardInvoiceItemExists(int $userId, int $cartaoId, array $row): bool
+    {
+        $amount = round((float) ($row['amount'] ?? 0), 2);
+        $date = trim((string) ($row['date'] ?? ''));
+        $description = mb_substr(trim((string) ($row['description'] ?? '')), 0, 190);
+
+        if ($amount <= 0 || $date === '' || $description === '') {
+            return false;
+        }
+
+        $isRefund = ($row['type'] ?? 'despesa') === 'receita';
+        $invoiceDescription = $isRefund ? mb_substr('Estorno - ' . $description, 0, 190) : $description;
+        $invoiceAmount = $this->faturaSupportService->moneyString($isRefund ? -$amount : $amount);
+
+        return FaturaCartaoItem::query()
+            ->where('user_id', $userId)
+            ->where('cartao_credito_id', $cartaoId)
+            ->where('data_compra', $date)
+            ->where('descricao', $invoiceDescription)
+            ->where('valor', $invoiceAmount)
+            ->where('tipo', $isRefund ? 'estorno' : 'despesa')
+            ->whereNull('cancelado_em')
+            ->exists();
+    }
+
+    /**
+     * @param iterable<ImportacaoItem> $items
+     */
+    private function releaseStaleCardInvoiceHistory(iterable $items, string $rowHash): void
+    {
+        foreach ($items as $item) {
+            $itemId = (int) ($item->id ?? 0);
+            if ($itemId <= 0) {
+                continue;
+            }
+
+            ImportacaoItem::query()
+                ->where('id', $itemId)
+                ->where('row_hash', $rowHash)
+                ->update([
+                    'row_hash' => hash('sha256', implode('|', [$rowHash, 'stale-card-invoice-item', $itemId])),
+                    'message' => 'Histórico liberado para reimportação: item de fatura não encontrado.',
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+        }
     }
 
     private function decorateItemRowHash(string $baseRowHash, string $status, int $loteId, int $rowIndex): string

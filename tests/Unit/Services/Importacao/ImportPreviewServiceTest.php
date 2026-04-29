@@ -1120,6 +1120,32 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame(2, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
     }
 
+    public function testExecutionServiceReimportsCardRowsWhenImportedHistoryHasNoInvoiceItems(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $service = new ImportExecutionService(new ImportPreviewService([new OfxImportParser()]));
+        $contents = $this->sampleOfxCard();
+
+        $first = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'fatura-1.ofx', 'cartao', $cartaoId);
+        DB::table('faturas_cartao_itens')->where('user_id', $userId)->delete();
+        $second = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'fatura-2.ofx', 'cartao', $cartaoId);
+
+        $this->assertTrue($first->success);
+        $this->assertTrue($second->success);
+        $this->assertSame(2, $second->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(0, $second->data['summary']['duplicate_rows'] ?? null);
+        $this->assertSame(2, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
+    }
+
     public function testProfileConfigServicePersistsAndLoadsByConta(): void
     {
         $this->ensureDatabaseAvailable();
