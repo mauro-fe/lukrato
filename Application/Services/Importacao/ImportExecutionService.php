@@ -1010,19 +1010,24 @@ class ImportExecutionService
                 ? $this->findCardInvoiceItem($userId, $cartaoId, $faturaItemId)
                 : null;
             if ($linkedItem !== null) {
-                $this->logCardInvoiceDuplicateDecision(
-                    LogLevel::WARNING,
-                    'linked_fatura_item',
-                    $userId,
-                    $contaId,
-                    $cartaoId,
-                    $rowHash,
-                    $row,
-                    ['history' => end($historyContexts) ?: []],
-                    $linkedItem
-                );
+                if ($this->cardInvoiceItemMatchesRow($linkedItem, $row)) {
+                    $this->logCardInvoiceDuplicateDecision(
+                        LogLevel::WARNING,
+                        'linked_fatura_item',
+                        $userId,
+                        $contaId,
+                        $cartaoId,
+                        $rowHash,
+                        $row,
+                        ['history' => end($historyContexts) ?: []],
+                        $linkedItem
+                    );
 
-                return true;
+                    return true;
+                }
+
+                $historyContexts[array_key_last($historyContexts)]['linked_item_mismatch'] = true;
+                $historyContexts[array_key_last($historyContexts)]['linked_item'] = $this->formatInvoiceItemForLog($linkedItem);
             }
         }
 
@@ -1074,7 +1079,49 @@ class ImportExecutionService
     /**
      * @param array<string, mixed> $row
      */
+    private function cardInvoiceItemMatchesRow(FaturaCartaoItem $item, array $row): bool
+    {
+        $expected = $this->expectedCardInvoiceRowData($row);
+        if ($expected === null) {
+            return false;
+        }
+
+        $itemDate = $item->data_compra instanceof \DateTimeInterface
+            ? $item->data_compra->format('Y-m-d')
+            : substr((string) $item->data_compra, 0, 10);
+
+        return $itemDate === $expected['date']
+            && (string) $item->descricao === $expected['description']
+            && (string) $item->valor === $expected['amount']
+            && (string) $item->tipo === $expected['type'];
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
     private function findMatchingCardInvoiceItem(int $userId, int $cartaoId, array $row): ?FaturaCartaoItem
+    {
+        $expected = $this->expectedCardInvoiceRowData($row);
+        if ($expected === null) {
+            return null;
+        }
+
+        return FaturaCartaoItem::query()
+            ->where('user_id', $userId)
+            ->where('cartao_credito_id', $cartaoId)
+            ->where('data_compra', $expected['date'])
+            ->where('descricao', $expected['description'])
+            ->where('valor', $expected['amount'])
+            ->where('tipo', $expected['type'])
+            ->whereNull('cancelado_em')
+            ->first();
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return array{date:string,description:string,amount:string,type:string}|null
+     */
+    private function expectedCardInvoiceRowData(array $row): ?array
     {
         $amount = round((float) ($row['amount'] ?? 0), 2);
         $date = trim((string) ($row['date'] ?? ''));
@@ -1085,18 +1132,13 @@ class ImportExecutionService
         }
 
         $isRefund = ($row['type'] ?? 'despesa') === 'receita';
-        $invoiceDescription = $isRefund ? mb_substr('Estorno - ' . $description, 0, 190) : $description;
-        $invoiceAmount = $this->faturaSupportService->moneyString($isRefund ? -$amount : $amount);
 
-        return FaturaCartaoItem::query()
-            ->where('user_id', $userId)
-            ->where('cartao_credito_id', $cartaoId)
-            ->where('data_compra', $date)
-            ->where('descricao', $invoiceDescription)
-            ->where('valor', $invoiceAmount)
-            ->where('tipo', $isRefund ? 'estorno' : 'despesa')
-            ->whereNull('cancelado_em')
-            ->first();
+        return [
+            'date' => $date,
+            'description' => $isRefund ? mb_substr('Estorno - ' . $description, 0, 190) : $description,
+            'amount' => $this->faturaSupportService->moneyString($isRefund ? -$amount : $amount),
+            'type' => $isRefund ? 'estorno' : 'despesa',
+        ];
     }
 
     /**
@@ -1139,7 +1181,7 @@ class ImportExecutionService
         LogService::persist(
             level: $level,
             category: LogCategory::FATURA,
-            message: 'Importacao de fatura: decisao de duplicidade',
+            message: 'Importação de fatura: decisão de duplicidade',
             context: array_merge([
                 'action' => 'import_card_invoice_duplicate_decision',
                 'decision_reason' => $reason,
@@ -1155,24 +1197,34 @@ class ImportExecutionService
                     'external_id' => $row['external_id'] ?? null,
                 ],
                 'matched_invoice_item' => $invoiceItem === null ? null : [
-                    'id' => (int) $invoiceItem->id,
-                    'fatura_id' => (int) $invoiceItem->fatura_id,
-                    'cartao_credito_id' => (int) $invoiceItem->cartao_credito_id,
-                    'descricao' => (string) $invoiceItem->descricao,
-                    'valor' => (string) $invoiceItem->valor,
-                    'tipo' => (string) $invoiceItem->tipo,
-                    'data_compra' => $invoiceItem->data_compra instanceof \DateTimeInterface
-                        ? $invoiceItem->data_compra->format('Y-m-d')
-                        : (string) $invoiceItem->data_compra,
-                    'categoria_id' => $invoiceItem->categoria_id === null ? null : (int) $invoiceItem->categoria_id,
-                    'subcategoria_id' => $invoiceItem->subcategoria_id === null ? null : (int) $invoiceItem->subcategoria_id,
-                    'cancelado_em' => $invoiceItem->cancelado_em instanceof \DateTimeInterface
-                        ? $invoiceItem->cancelado_em->format(DATE_ATOM)
-                        : $invoiceItem->cancelado_em,
+                    ...$this->formatInvoiceItemForLog($invoiceItem),
                 ],
             ], $extraContext),
             userId: $userId
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formatInvoiceItemForLog(FaturaCartaoItem $invoiceItem): array
+    {
+        return [
+            'id' => (int) $invoiceItem->id,
+            'fatura_id' => (int) $invoiceItem->fatura_id,
+            'cartao_credito_id' => (int) $invoiceItem->cartao_credito_id,
+            'descricao' => (string) $invoiceItem->descricao,
+            'valor' => (string) $invoiceItem->valor,
+            'tipo' => (string) $invoiceItem->tipo,
+            'data_compra' => $invoiceItem->data_compra instanceof \DateTimeInterface
+                ? $invoiceItem->data_compra->format('Y-m-d')
+                : (string) $invoiceItem->data_compra,
+            'categoria_id' => $invoiceItem->categoria_id === null ? null : (int) $invoiceItem->categoria_id,
+            'subcategoria_id' => $invoiceItem->subcategoria_id === null ? null : (int) $invoiceItem->subcategoria_id,
+            'cancelado_em' => $invoiceItem->cancelado_em instanceof \DateTimeInterface
+                ? $invoiceItem->cancelado_em->format(DATE_ATOM)
+                : $invoiceItem->cancelado_em,
+        ];
     }
 
     private function decorateItemRowHash(string $baseRowHash, string $status, int $loteId, int $rowIndex): string

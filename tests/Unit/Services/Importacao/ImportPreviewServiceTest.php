@@ -1146,6 +1146,52 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame(2, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
     }
 
+    public function testExecutionServiceReimportsCardRowWhenHistoryPointsToDifferentInvoiceItem(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $cartaoId = $this->createCartao($userId, $contaId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $service = new ImportExecutionService(new ImportPreviewService([new OfxImportParser()]));
+        $contents = $this->sampleOfxCard();
+
+        $first = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'fatura-1.ofx', 'cartao', $cartaoId);
+        $firstInvoiceItemId = (int) DB::table('faturas_cartao_itens')
+            ->where('user_id', $userId)
+            ->where('descricao', 'Restaurante')
+            ->value('id');
+        $differentInvoiceItemId = (int) DB::table('faturas_cartao_itens')
+            ->where('user_id', $userId)
+            ->where('descricao', 'Estorno - Estorno parcial')
+            ->value('id');
+        $history = DB::table('importacao_itens')
+            ->where('user_id', $userId)
+            ->where('description', 'Restaurante')
+            ->first();
+        $raw = json_decode((string) ($history->raw_json ?? ''), true);
+        $this->assertIsArray($raw);
+
+        $raw['fatura_item_id'] = $differentInvoiceItemId;
+        DB::table('importacao_itens')
+            ->where('id', (int) $history->id)
+            ->update(['raw_json' => json_encode($raw)]);
+        DB::table('faturas_cartao_itens')->where('id', $firstInvoiceItemId)->delete();
+
+        $second = $service->confirmExecution($userId, 'ofx', $contents, $profile, 'fatura-2.ofx', 'cartao', $cartaoId);
+
+        $this->assertTrue($first->success);
+        $this->assertTrue($second->success);
+        $this->assertSame(1, $second->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(1, $second->data['summary']['duplicate_rows'] ?? null);
+        $this->assertSame(2, DB::table('faturas_cartao_itens')->where('user_id', $userId)->count());
+    }
+
     public function testProfileConfigServicePersistsAndLoadsByConta(): void
     {
         $this->ensureDatabaseAvailable();
