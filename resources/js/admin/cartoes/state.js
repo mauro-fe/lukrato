@@ -4,8 +4,7 @@
  */
 
 import { buildAssetUrl, getBaseUrl, getCSRFToken as getSharedCSRFToken, refreshCSRFToken } from '../shared/api.js';
-import { formatMoney, parseMoney, escapeHtml, debounce } from '../shared/utils.js';
-import { refreshIcons } from '../shared/ui.js';
+import { formatMoney, escapeHtml, debounce } from '../shared/utils.js';
 
 export { formatMoney as fmtMoney, escapeHtml, debounce };
 
@@ -364,7 +363,7 @@ export const Utils = {
             value = value.replace(/[^\d]/g, '');
 
             // Converte para número (centavos)
-            let number = parseInt(value) || 0;
+            const number = parseInt(value) || 0;
 
             // Converte centavos para reais e formata
             const reais = number / 100;

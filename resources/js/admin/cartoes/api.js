@@ -151,7 +151,7 @@ export const CartoesAPI = {
                 const payload = getApiPayload(data, {});
                 const meses = payload?.meses || getApiPayload(payload, []) || [];
                 cartao.temFaturaPendente = Array.isArray(meses) && meses.length > 0;
-            } catch (error) {
+            } catch {
                 cartao.temFaturaPendente = false;
             }
         });

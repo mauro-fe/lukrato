@@ -41,7 +41,7 @@ export function parseMoney(str) {
  */
 export function formatMoneyInput(value, isNegative = false) {
     const reais = value / 100;
-    let formatted = reais
+    const formatted = reais
         .toFixed(2)
         .replace('.', ',')
         .replace(/\B(?=(\d{3})+(?!\d))/g, '.');

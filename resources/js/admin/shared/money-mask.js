@@ -23,7 +23,7 @@ export function applyMoneyMask(input) {
     const isNegative = value.startsWith('-');
     value = value.replace('-', '');
 
-    let number = parseInt(value) || 0;
+    const number = parseInt(value) || 0;
 
     const formatted = formatMoneyInput(number, isNegative);
     input.value = formatted;
@@ -55,7 +55,7 @@ export function setupMoneyMask(inputOrSelector, opts = {}) {
         const isNegative = allowNegative && value.startsWith('-');
         value = value.replace('-', '');
 
-        let number = parseInt(value) || 0;
+        const number = parseInt(value) || 0;
         const formatted = formatMoneyInput(number, isNegative);
         e.target.value = formatted;
 

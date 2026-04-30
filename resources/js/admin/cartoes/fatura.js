@@ -3,7 +3,7 @@
  * Extracted from cartoes-manager.js (monolith → modules)
  */
 
-import { CONFIG, STATE, Utils, Modules } from './state.js';
+import { Utils, Modules } from './state.js';
 import { apiGet, apiPost, buildAppUrl, getApiPayload, getErrorMessage } from '../shared/api.js';
 import { refreshIcons } from '../shared/ui.js';
 import {
@@ -65,7 +65,7 @@ export const FaturaModal = {
 
         // Gerenciar seleção de parcelas (aguardar renderização completa)
         requestAnimationFrame(() => {
-            FaturaModal.setupParcelaSelection(modal, fatura);
+            FaturaModal.setupParcelaSelection(modal);
         });
 
         // Botão pagar parcelas selecionadas
@@ -77,7 +77,7 @@ export const FaturaModal = {
     /**
      * Configurar seleção de parcelas
      */
-    setupParcelaSelection(modal, fatura) {
+    setupParcelaSelection(modal) {
         const selectAll = modal.querySelector('#selectAllParcelas');
         const checkboxes = modal.querySelectorAll('.parcela-checkbox');
         const totalElement = modal.querySelector('#totalSelecionado');
@@ -133,12 +133,6 @@ export const FaturaModal = {
      */
     async pagarParcelasSelecionadas(fatura) {
         const checkboxes = document.querySelectorAll('.parcela-checkbox:checked');
-
-
-
-        // Log detalhado de cada checkbox
-        checkboxes.forEach((cb, index) => {
-        });
 
         if (checkboxes.length === 0) {
             await Swal.fire({
@@ -411,7 +405,6 @@ export const FaturaModal = {
                 } else {
                     console.error('❌ notifyMultipleAchievements não está disponível');
                 }
-            } else {
             }
 
             Utils.showToast('success', `Fatura paga com sucesso! ${resultadoPayload?.itens_pagos ?? ''} parcela(s) quitada(s).`);
