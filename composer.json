@@ -48,6 +48,8 @@
       "@composer test:core-router",
       "@composer test:architecture"
     ],
+    "test:backend:full": "@php vendor/bin/phpunit",
+    "guard:backend": "@composer test:backend:full",
     "install-pdf": [
       "composer require tecnickcom/tcpdf",
       "composer require dompdf/dompdf"
