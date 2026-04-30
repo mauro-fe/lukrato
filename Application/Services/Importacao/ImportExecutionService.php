@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Services\Importacao;
 
 use Application\Container\ApplicationContainer;
+use Application\Casts\MoneyDecimalCast;
 use Application\DTO\Importacao\ImportProfileConfigDTO;
 use Application\DTO\ServiceResultDTO;
 use Application\Enums\LogCategory;
@@ -188,68 +189,43 @@ class ImportExecutionService
             }
 
             $rowHash = $this->generateRowHash($userId, $contaId, $normalized, 'conta', null);
-            if ($this->isDuplicate($userId, $contaId, $rowHash)) {
-                $duplicated++;
-                $duplicateHash = $this->decorateItemRowHash($rowHash, 'duplicate', (int) $lote->id, (int) $index);
-                $this->persistItem(
-                    (int) $lote->id,
-                    $userId,
-                    $contaId,
-                    $normalized,
-                    $duplicateHash,
-                    'duplicate',
-                    null,
-                    'Linha ignorada por duplicidade.',
-                    $this->buildContaImportMeta($normalized)
-                );
-                continue;
-            }
-
-            $result = $this->lancamentoCreationService->createFromPayload($userId, [
-                'tipo' => $normalized['type'],
-                'data' => $normalized['date'],
-                'valor' => $normalized['amount'],
-                'descricao' => $normalized['description'],
-                'observacao' => $this->buildObservacao($normalized['memo'] ?? null, $preview['source_type'] ?? $sourceType),
-                'conta_id' => $contaId,
-                'categoria_id' => $normalized['categoria_id'] ?? null,
-                'subcategoria_id' => $normalized['subcategoria_id'] ?? null,
-                'pago' => true,
-            ]);
-
-            if ($result->success) {
-                $imported++;
-                $lancamentoId = $this->extractLancamentoId($result->data);
-                $this->learnFromImportedRow($userId, $normalized);
-                $this->persistItem(
-                    (int) $lote->id,
+            try {
+                $outcome = $this->processContaRow(
                     $userId,
                     $contaId,
                     $normalized,
                     $rowHash,
-                    'imported',
-                    $lancamentoId,
-                    null,
-                    $this->buildContaImportMeta($normalized)
+                    (int) $lote->id,
+                    (int) $index,
+                    (string) ($preview['source_type'] ?? $sourceType)
                 );
+            } catch (\Throwable $e) {
+                $outcome = $this->handleRowProcessingException(
+                    $e,
+                    'conta',
+                    $userId,
+                    $contaId,
+                    $normalized,
+                    $rowHash,
+                    (int) $lote->id,
+                    (int) $index,
+                    null
+                );
+            }
+
+            if (($outcome['status'] ?? '') === 'imported') {
+                $imported++;
+                continue;
+            }
+
+            if (($outcome['status'] ?? '') === 'duplicate') {
+                $duplicated++;
                 continue;
             }
 
             $errors++;
-            $errorMessage = $result->message !== '' ? $result->message : 'Falha ao criar lançamento.';
+            $errorMessage = (string) ($outcome['message'] ?? ImportSecurityPolicy::clientProcessingErrorMessage());
             $errorMessages[] = $errorMessage;
-            $errorHash = $this->decorateItemRowHash($rowHash, 'error', (int) $lote->id, (int) $index);
-            $this->persistItem(
-                (int) $lote->id,
-                $userId,
-                $contaId,
-                $normalized,
-                $errorHash,
-                'error',
-                null,
-                $errorMessage,
-                $this->buildContaImportMeta($normalized)
-            );
         }
 
         $status = $this->finalizeBatch($lote, $imported, $duplicated, $errors, $errorMessages);
@@ -329,84 +305,49 @@ class ImportExecutionService
             }
 
             $rowHash = $this->generateRowHash($userId, $contaId, $normalized, 'cartao', (int) $cartao->id);
-            if ($this->isDuplicateCardInvoiceItem($userId, $contaId, (int) $cartao->id, $rowHash, $normalized)) {
-                $duplicated++;
-                $duplicateHash = $this->decorateItemRowHash($rowHash, 'duplicate', (int) $lote->id, (int) $index);
-                $this->persistItem(
-                    (int) $lote->id,
+            try {
+                $outcome = $this->processCartaoRow(
                     $userId,
                     $contaId,
+                    $cartao,
                     $normalized,
-                    $duplicateHash,
-                    'duplicate',
-                    null,
-                    'Linha ignorada por duplicidade.',
-                    [
-                        'import_target' => 'cartao',
-                        'cartao_id' => (int) $cartao->id,
-                        'cartao_nome' => (string) ($cartao->nome_cartao ?? ''),
-                    ]
-                );
-                continue;
-            }
-
-            $persisted = $this->persistCardInvoiceItem($userId, $cartao, $normalized);
-            if (($persisted['success'] ?? false) === true) {
-                $imported++;
-                $this->learnFromImportedRow($userId, $normalized);
-
-                $faturaId = is_numeric($persisted['fatura_id'] ?? null) ? (int) $persisted['fatura_id'] : null;
-                if ($faturaId !== null) {
-                    $faturasAfetadas[$faturaId] = true;
-                }
-
-                $this->persistItem(
+                    $rowHash,
                     (int) $lote->id,
+                    (int) $index
+                );
+            } catch (\Throwable $e) {
+                $outcome = $this->handleRowProcessingException(
+                    $e,
+                    'cartao',
                     $userId,
                     $contaId,
                     $normalized,
                     $rowHash,
-                    'imported',
-                    null,
-                    null,
-                    [
-                        'import_target' => 'cartao',
-                        'cartao_id' => (int) $cartao->id,
-                        'cartao_nome' => (string) ($cartao->nome_cartao ?? ''),
-                        'fatura_id' => $faturaId,
-                        'fatura_item_id' => is_numeric($persisted['fatura_item_id'] ?? null)
-                            ? (int) $persisted['fatura_item_id']
-                            : null,
-                        'categoria_id' => $normalized['categoria_id'] ?? null,
-                        'subcategoria_id' => $normalized['subcategoria_id'] ?? null,
-                        'categoria_nome' => $normalized['categoria_nome'] ?? null,
-                        'subcategoria_nome' => $normalized['subcategoria_nome'] ?? null,
-                        'categoria_editada' => $normalized['categoria_editada'] ?? false,
-                        'categoria_learning_source' => $normalized['categoria_learning_source'] ?? null,
-                    ]
+                    (int) $lote->id,
+                    (int) $index,
+                    $cartao
                 );
+            }
+
+            if (($outcome['status'] ?? '') === 'imported') {
+                $imported++;
+
+                $faturaId = is_numeric($outcome['fatura_id'] ?? null) ? (int) $outcome['fatura_id'] : null;
+                if ($faturaId !== null) {
+                    $faturasAfetadas[$faturaId] = true;
+                }
+
+                continue;
+            }
+
+            if (($outcome['status'] ?? '') === 'duplicate') {
+                $duplicated++;
                 continue;
             }
 
             $errors++;
-            $errorMessage = trim((string) ($persisted['message'] ?? 'Falha ao persistir item de fatura.'));
+            $errorMessage = (string) ($outcome['message'] ?? ImportSecurityPolicy::clientProcessingErrorMessage());
             $errorMessages[] = $errorMessage;
-            $errorHash = $this->decorateItemRowHash($rowHash, 'error', (int) $lote->id, (int) $index);
-            $this->persistItem(
-                (int) $lote->id,
-                $userId,
-                $contaId,
-                $normalized,
-                $errorHash,
-                'error',
-                null,
-                $errorMessage,
-                [
-                    'import_target' => 'cartao',
-                    'cartao_id' => (int) $cartao->id,
-                    'cartao_nome' => (string) ($cartao->nome_cartao ?? ''),
-                ]
-            );
         }
 
         if ($faturasAfetadas !== []) {
@@ -429,6 +370,239 @@ class ImportExecutionService
                 'error_rows' => $errors,
             ],
         ]);
+    }
+
+    /**
+     * @param array<string, mixed> $normalized
+     * @return array{status:string,message?:string}
+     */
+    private function processContaRow(
+        int $userId,
+        int $contaId,
+        array $normalized,
+        string $rowHash,
+        int $loteId,
+        int $rowIndex,
+        string $sourceType
+    ): array {
+        return DB::transaction(function () use ($userId, $contaId, $normalized, $rowHash, $loteId, $rowIndex, $sourceType): array {
+            if ($this->isDuplicate($userId, $contaId, $rowHash)) {
+                $duplicateHash = $this->decorateItemRowHash($rowHash, 'duplicate', $loteId, $rowIndex);
+                $this->persistItem(
+                    $loteId,
+                    $userId,
+                    $contaId,
+                    $normalized,
+                    $duplicateHash,
+                    'duplicate',
+                    null,
+                    'Linha ignorada por duplicidade.',
+                    $this->buildContaImportMeta($normalized)
+                );
+
+                return ['status' => 'duplicate'];
+            }
+
+            $result = $this->lancamentoCreationService->createFromPayload($userId, [
+                'tipo' => $normalized['type'],
+                'data' => $normalized['date'],
+                'valor' => $normalized['amount'],
+                'descricao' => $normalized['description'],
+                'observacao' => $this->buildObservacao($normalized['memo'] ?? null, $sourceType),
+                'conta_id' => $contaId,
+                'categoria_id' => $normalized['categoria_id'] ?? null,
+                'subcategoria_id' => $normalized['subcategoria_id'] ?? null,
+                'pago' => true,
+            ]);
+
+            if ($result->success) {
+                $lancamentoId = $this->extractLancamentoId($result->data);
+                $this->learnFromImportedRow($userId, $normalized);
+                $this->persistItem(
+                    $loteId,
+                    $userId,
+                    $contaId,
+                    $normalized,
+                    $rowHash,
+                    'imported',
+                    $lancamentoId,
+                    null,
+                    $this->buildContaImportMeta($normalized)
+                );
+
+                return ['status' => 'imported'];
+            }
+
+            $errorMessage = $result->message !== '' ? $result->message : 'Falha ao criar lançamento.';
+            $errorHash = $this->decorateItemRowHash($rowHash, 'error', $loteId, $rowIndex);
+            $this->persistItem(
+                $loteId,
+                $userId,
+                $contaId,
+                $normalized,
+                $errorHash,
+                'error',
+                null,
+                $errorMessage,
+                $this->buildContaImportMeta($normalized)
+            );
+
+            return ['status' => 'error', 'message' => $errorMessage];
+        });
+    }
+
+    /**
+     * @param array<string, mixed> $normalized
+     * @return array{status:string,message?:string,fatura_id?:int,fatura_item_id?:int}
+     */
+    private function processCartaoRow(
+        int $userId,
+        int $contaId,
+        CartaoCredito $cartao,
+        array $normalized,
+        string $rowHash,
+        int $loteId,
+        int $rowIndex
+    ): array {
+        return DB::transaction(function () use ($userId, $contaId, $cartao, $normalized, $rowHash, $loteId, $rowIndex): array {
+            $cartaoMeta = [
+                'import_target' => 'cartao',
+                'cartao_id' => (int) $cartao->id,
+                'cartao_nome' => (string) ($cartao->nome_cartao ?? ''),
+            ];
+
+            if ($this->isDuplicateCardInvoiceItem($userId, $contaId, (int) $cartao->id, $rowHash, $normalized)) {
+                $duplicateHash = $this->decorateItemRowHash($rowHash, 'duplicate', $loteId, $rowIndex);
+                $this->persistItem(
+                    $loteId,
+                    $userId,
+                    $contaId,
+                    $normalized,
+                    $duplicateHash,
+                    'duplicate',
+                    null,
+                    'Linha ignorada por duplicidade.',
+                    $cartaoMeta
+                );
+
+                return ['status' => 'duplicate'];
+            }
+
+            $persisted = $this->persistCardInvoiceItem($userId, $cartao, $normalized);
+            if (($persisted['success'] ?? false) === true) {
+                $faturaId = is_numeric($persisted['fatura_id'] ?? null) ? (int) $persisted['fatura_id'] : null;
+                $faturaItemId = is_numeric($persisted['fatura_item_id'] ?? null) ? (int) $persisted['fatura_item_id'] : null;
+
+                $this->learnFromImportedRow($userId, $normalized);
+                $this->persistItem(
+                    $loteId,
+                    $userId,
+                    $contaId,
+                    $normalized,
+                    $rowHash,
+                    'imported',
+                    null,
+                    null,
+                    array_merge($cartaoMeta, [
+                        'fatura_id' => $faturaId,
+                        'fatura_item_id' => $faturaItemId,
+                        'categoria_id' => $normalized['categoria_id'] ?? null,
+                        'subcategoria_id' => $normalized['subcategoria_id'] ?? null,
+                        'categoria_nome' => $normalized['categoria_nome'] ?? null,
+                        'subcategoria_nome' => $normalized['subcategoria_nome'] ?? null,
+                        'categoria_editada' => $normalized['categoria_editada'] ?? false,
+                        'categoria_learning_source' => $normalized['categoria_learning_source'] ?? null,
+                    ])
+                );
+
+                return [
+                    'status' => 'imported',
+                    'fatura_id' => $faturaId,
+                    'fatura_item_id' => $faturaItemId,
+                ];
+            }
+
+            $errorMessage = trim((string) ($persisted['message'] ?? 'Falha ao persistir item de fatura.'));
+            $errorHash = $this->decorateItemRowHash($rowHash, 'error', $loteId, $rowIndex);
+            $this->persistItem(
+                $loteId,
+                $userId,
+                $contaId,
+                $normalized,
+                $errorHash,
+                'error',
+                null,
+                $errorMessage,
+                $cartaoMeta
+            );
+
+            return ['status' => 'error', 'message' => $errorMessage];
+        });
+    }
+
+    /**
+     * @param array<string, mixed> $normalized
+     * @return array{status:string,message:string}
+     */
+    private function handleRowProcessingException(
+        \Throwable $e,
+        string $importTarget,
+        int $userId,
+        int $contaId,
+        array $normalized,
+        string $rowHash,
+        int $loteId,
+        int $rowIndex,
+        ?CartaoCredito $cartao
+    ): array {
+        $message = ImportSecurityPolicy::clientProcessingErrorMessage();
+        LogService::captureException($e, $importTarget === 'cartao' ? LogCategory::CARTAO : LogCategory::LANCAMENTO, [
+            'action' => 'import_row_processing',
+            'import_target' => $importTarget,
+            'user_id' => $userId,
+            'conta_id' => $contaId,
+            'cartao_id' => $cartao !== null ? (int) $cartao->id : null,
+            'row_hash' => $rowHash,
+            'row' => [
+                'date' => $normalized['date'] ?? null,
+                'amount' => $normalized['amount'] ?? null,
+                'type' => $normalized['type'] ?? null,
+                'description' => $normalized['description'] ?? null,
+                'external_id' => $normalized['external_id'] ?? null,
+            ],
+        ], $userId);
+
+        $extraMeta = $importTarget === 'cartao' && $cartao !== null
+            ? [
+                'import_target' => 'cartao',
+                'cartao_id' => (int) $cartao->id,
+                'cartao_nome' => (string) ($cartao->nome_cartao ?? ''),
+            ]
+            : $this->buildContaImportMeta($normalized);
+
+        try {
+            $this->persistItem(
+                $loteId,
+                $userId,
+                $contaId,
+                $normalized,
+                $this->decorateItemRowHash($rowHash, 'exception', $loteId, $rowIndex),
+                'error',
+                null,
+                $message,
+                $extraMeta
+            );
+        } catch (\Throwable $persistException) {
+            LogService::captureException($persistException, LogCategory::GENERAL, [
+                'action' => 'import_row_error_tracking',
+                'import_target' => $importTarget,
+                'user_id' => $userId,
+                'conta_id' => $contaId,
+                'row_hash' => $rowHash,
+            ], $userId);
+        }
+
+        return ['status' => 'error', 'message' => $message];
     }
 
     /**
@@ -467,7 +641,7 @@ class ImportExecutionService
                     ];
                 }
 
-                $amount = round((float) ($row['amount'] ?? 0), 2);
+                $amount = $this->moneyFloat($row['amount'] ?? 0);
                 if ($amount <= 0) {
                     return [
                         'success' => false,
@@ -591,7 +765,11 @@ class ImportExecutionService
     {
         $date = trim((string) ($row['date'] ?? ''));
         $description = ImportSanitizer::sanitizeText((string) ($row['description'] ?? ''), 190);
-        $amount = (float) ($row['amount'] ?? 0);
+        try {
+            $amount = $this->moneyString($row['amount'] ?? null);
+        } catch (\InvalidArgumentException) {
+            throw new \InvalidArgumentException('Linha sem valor positivo para importação.');
+        }
         $type = strtolower(trim((string) ($row['type'] ?? 'despesa')));
 
         if ($date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
@@ -602,7 +780,7 @@ class ImportExecutionService
             throw new \InvalidArgumentException('Linha sem descrição válida para importação.');
         }
 
-        if ($amount <= 0) {
+        if ((float) $amount <= 0) {
             throw new \InvalidArgumentException('Linha sem valor positivo para importação.');
         }
 
@@ -626,7 +804,7 @@ class ImportExecutionService
         return [
             'date' => $date,
             'description' => $description,
-            'amount' => round($amount, 2),
+            'amount' => $amount,
             'type' => $type,
             'memo' => ($memo = ImportSanitizer::sanitizeText((string) ($row['memo'] ?? ''), 500, true)) !== '' ? $memo : null,
             'external_id' => ($externalId = ImportSanitizer::sanitizeText((string) ($row['external_id'] ?? ''), 120)) !== '' ? $externalId : null,
@@ -939,7 +1117,7 @@ class ImportExecutionService
             $cartaoId ?? 0,
             $row['date'] ?? '',
             $row['description'] ?? '',
-            number_format((float) ($row['amount'] ?? 0), 2, '.', ''),
+            $this->moneyString($row['amount'] ?? 0),
             $row['type'] ?? '',
             $externalId,
         ]);
@@ -1123,7 +1301,7 @@ class ImportExecutionService
      */
     private function expectedCardInvoiceRowData(array $row): ?array
     {
-        $amount = round((float) ($row['amount'] ?? 0), 2);
+        $amount = $this->moneyFloat($row['amount'] ?? 0);
         $date = trim((string) ($row['date'] ?? ''));
         $description = mb_substr(trim((string) ($row['description'] ?? '')), 0, 190);
 
@@ -1238,12 +1416,22 @@ class ImportExecutionService
 
     private function decimalAttribute(\Illuminate\Database\Eloquent\Model $model, string $attribute): float
     {
-        return (float) ($model->getRawOriginal($attribute) ?? 0);
+        return $this->moneyFloat($model->getRawOriginal($attribute) ?? 0);
     }
 
     private function moneyAttribute(\Illuminate\Database\Eloquent\Model $model, string $attribute): string
     {
-        return $this->faturaSupportService->moneyString($model->getRawOriginal($attribute) ?? 0);
+        return $this->moneyString($model->getRawOriginal($attribute) ?? 0);
+    }
+
+    private function moneyString(mixed $value): string
+    {
+        return MoneyDecimalCast::normalize($value) ?? '0.00';
+    }
+
+    private function moneyFloat(mixed $value): float
+    {
+        return (float) $this->moneyString($value);
     }
 
     /**

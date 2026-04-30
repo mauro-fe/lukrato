@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Cartao;
 
+use Application\Casts\MoneyDecimalCast;
 use Application\Models\Fatura;
 use Application\Services\Infrastructure\LogService;
 
@@ -48,6 +49,6 @@ class CartaoFaturaSupportService
 
     public function moneyString(float|int|string|null $valor): string
     {
-        return number_format((float) ($valor ?? 0), 2, '.', '');
+        return MoneyDecimalCast::normalize($valor) ?? '0.00';
     }
 }

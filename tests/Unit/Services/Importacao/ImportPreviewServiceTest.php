@@ -6,6 +6,7 @@ namespace Tests\Unit\Services\Importacao;
 
 use Application\DTO\Importacao\ImportProfileConfigDTO;
 use Application\DTO\Importacao\NormalizedImportRowDTO;
+use Application\DTO\ServiceResultDTO;
 use Application\Services\Importacao\Contracts\ImportParserInterface;
 use Application\Services\Importacao\ImportExecutionService;
 use Application\Services\Importacao\ImportHistoryService;
@@ -14,6 +15,7 @@ use Application\Services\Importacao\ImportProfileConfigService;
 use Application\Services\Importacao\ImportRowCategorizationService;
 use Application\Services\Importacao\Parsers\CsvImportParser;
 use Application\Services\Importacao\Parsers\OfxImportParser;
+use Application\Services\Lancamento\LancamentoCreationService;
 use Illuminate\Database\Capsule\Manager as DB;
 use PHPUnit\Framework\TestCase;
 
@@ -731,6 +733,86 @@ class ImportPreviewServiceTest extends TestCase
         $this->assertSame(0, $second->data['summary']['imported_rows'] ?? null);
         $this->assertSame(2, $second->data['summary']['duplicate_rows'] ?? null);
         $this->assertSame(2, DB::table('lancamentos')->where('user_id', $userId)->count());
+    }
+
+    public function testExecutionServiceRecordsRowErrorWhenLancamentoCreationThrows(): void
+    {
+        $this->ensureDatabaseAvailable();
+
+        $userId = $this->createUser();
+        $contaId = $this->createConta($userId);
+        $profile = ImportProfileConfigDTO::fromArray([
+            'conta_id' => $contaId,
+            'source_type' => 'ofx',
+        ]);
+
+        $parser = new class implements ImportParserInterface {
+            public function supports(string $sourceType): bool
+            {
+                return $sourceType === 'ofx';
+            }
+
+            public function parse(string $contents, ImportProfileConfigDTO $profile): array
+            {
+                return [
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-01',
+                        'amount' => 45.9,
+                        'type' => 'despesa',
+                        'description' => 'Linha valida',
+                    ]),
+                    NormalizedImportRowDTO::fromArray([
+                        'date' => '2026-04-02',
+                        'amount' => 15.1,
+                        'type' => 'despesa',
+                        'description' => 'Linha com falha',
+                    ]),
+                ];
+            }
+        };
+
+        $creationService = new class($contaId) extends LancamentoCreationService {
+            public function __construct(private readonly int $contaId) {}
+
+            public function createFromPayload(int $userId, array $payload): ServiceResultDTO
+            {
+                if (($payload['descricao'] ?? '') === 'Linha com falha') {
+                    throw new \RuntimeException('Falha simulada na criacao.');
+                }
+
+                $lancamentoId = (int) DB::table('lancamentos')->insertGetId([
+                    'user_id' => $userId,
+                    'tipo' => $payload['tipo'],
+                    'data' => $payload['data'],
+                    'data_competencia' => $payload['data'],
+                    'conta_id' => $this->contaId,
+                    'descricao' => $payload['descricao'],
+                    'observacao' => $payload['observacao'] ?? '',
+                    'valor' => $payload['valor'],
+                    'pago' => 1,
+                    'data_pagamento' => $payload['data'],
+                    'afeta_caixa' => 1,
+                    'afeta_competencia' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                return ServiceResultDTO::ok('Criado', [
+                    'lancamento' => ['id' => $lancamentoId],
+                ]);
+            }
+        };
+
+        $service = new ImportExecutionService(new ImportPreviewService([$parser]), $creationService);
+        $result = $service->confirmExecution($userId, 'ofx', '<OFX></OFX>', $profile, 'parcial.ofx');
+
+        $this->assertTrue($result->success);
+        $this->assertSame('processed_with_errors', $result->data['status'] ?? null);
+        $this->assertSame(1, $result->data['summary']['imported_rows'] ?? null);
+        $this->assertSame(1, $result->data['summary']['error_rows'] ?? null);
+        $this->assertSame(1, DB::table('lancamentos')->where('user_id', $userId)->count());
+        $this->assertSame(1, DB::table('importacao_itens')->where('user_id', $userId)->where('status', 'imported')->count());
+        $this->assertSame(1, DB::table('importacao_itens')->where('user_id', $userId)->where('status', 'error')->count());
     }
 
     public function testExecutionServiceConfirmAppliesOverridesPersistsCategoryMetadataAndLearns(): void

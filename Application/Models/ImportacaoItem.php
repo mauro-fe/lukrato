@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Models;
 
+use Application\Casts\MoneyDecimalCast;
 use Illuminate\Database\Eloquent\Model;
 
 class ImportacaoItem extends Model
@@ -32,7 +33,7 @@ class ImportacaoItem extends Model
         'user_id' => 'int',
         'conta_id' => 'int',
         'lancamento_id' => 'int',
-        'amount' => 'float',
+        'amount' => MoneyDecimalCast::class,
         'data' => 'date:Y-m-d',
     ];
 
@@ -46,4 +47,3 @@ class ImportacaoItem extends Model
         return $this->belongsTo(Lancamento::class, 'lancamento_id');
     }
 }
-

@@ -2,6 +2,7 @@
 
 namespace Application\Models;
 
+use Application\Casts\MoneyDecimalCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -164,7 +165,7 @@ class Lancamento extends Model
         'data'              => 'date:Y-m-d',
         'data_pagamento'    => 'date:Y-m-d',
         'data_competencia'  => 'date:Y-m-d',
-        'valor'             => 'decimal:2',
+        'valor'             => MoneyDecimalCast::class,
         'eh_transferencia'  => 'bool',
         'eh_saldo_inicial'  => 'bool',
         'cartao_credito_id' => 'int',
@@ -351,14 +352,8 @@ class Lancamento extends Model
 
     public function setValorAttribute($v): void
     {
-        if (is_string($v)) {
-            $s = trim($v);
-            $s = str_replace(['R$', ' ', '.'], ['', '', ''], $s);
-            $s = str_replace(',', '.', $s);
-            $v = is_numeric($s) ? (float)$s : 0.0;
-        }
         // Armazenar como string para evitar deprecation do BigNumber::of() com float
-        $this->attributes['valor'] = number_format((float)$v, 2, '.', '');
+        $this->attributes['valor'] = MoneyDecimalCast::normalize($v) ?? '0.00';
     }
 
     public function sinal(): int
