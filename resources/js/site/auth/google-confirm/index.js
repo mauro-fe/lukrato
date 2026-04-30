@@ -19,9 +19,9 @@ function findElements(root) {
 function createPageState(root) {
     return {
         loginUrl: root.dataset.loginUrl || '/login',
-        pendingUrl: resolveGooglePendingEndpoint(),
-        confirmUrl: resolveGoogleConfirmEndpoint(),
-        cancelUrl: resolveGoogleCancelEndpoint(),
+        pendingUrl: root.dataset.pendingUrl || resolveGooglePendingEndpoint(),
+        confirmUrl: root.dataset.confirmUrl || resolveGoogleConfirmEndpoint(),
+        cancelUrl: root.dataset.cancelUrl || resolveGoogleCancelEndpoint(),
     };
 }
 

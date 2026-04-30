@@ -2,6 +2,7 @@
 
 namespace Application\Models;
 
+use Application\Casts\MoneyDecimalCast;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -48,7 +49,7 @@ class FaturaCartaoItem extends Model
         'lancamento_id' => 'integer',
         'categoria_id' => 'integer',
         'subcategoria_id' => 'integer',
-        'valor' => 'decimal:2',
+        'valor' => MoneyDecimalCast::class,
         'data_compra' => 'date',
         'data_vencimento' => 'date',
         'data_pagamento' => 'date',

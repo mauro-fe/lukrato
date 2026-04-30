@@ -258,7 +258,11 @@ class ImportQueueServiceTest extends TestCase
 
             $normalizedStoredPath = str_replace('\\', '/', $storedPath);
             $normalizedLegacyStorage = str_replace('\\', '/', BASE_PATH . '/storage/importacoes/queue');
-            $normalizedPrivateBase = str_replace('\\', '/', dirname(BASE_PATH, 2) . '/lukrato-storage/importacoes/queue');
+            $configuredStoragePath = trim((string) ($_ENV['STORAGE_PATH'] ?? getenv('STORAGE_PATH') ?: ''));
+            $expectedPrivateBase = $configuredStoragePath !== ''
+                ? rtrim($configuredStoragePath, '/\\') . '/importacoes/queue'
+                : dirname(BASE_PATH, 2) . '/lukrato-storage/importacoes/queue';
+            $normalizedPrivateBase = str_replace('\\', '/', $expectedPrivateBase);
 
             $this->assertFileExists($storedPath);
             $this->assertStringNotContainsString($normalizedLegacyStorage, $normalizedStoredPath);

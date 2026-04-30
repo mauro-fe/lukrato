@@ -2,6 +2,7 @@
 
 namespace Application\Models;
 
+use Application\Casts\MoneyDecimalCast;
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Capsule\Manager as Manager;
 
@@ -55,8 +56,8 @@ class CartaoCredito extends Model
     protected $casts = [
         'user_id' => 'int',
         'conta_id' => 'int',
-        'limite_total' => 'decimal:2',
-        'limite_disponivel' => 'decimal:2',
+        'limite_total' => MoneyDecimalCast::class,
+        'limite_disponivel' => MoneyDecimalCast::class,
         'dia_vencimento' => 'int',
         'dia_fechamento' => 'int',
         'ativo' => 'bool',
@@ -203,7 +204,7 @@ class CartaoCredito extends Model
     {
         // Usa o accessor calculado que já considera despesas e estornos
         $totalUtilizado = (float) $this->limite_utilizado;
-        $novoLimiteDisponivel = (float) $this->limite_total - $totalUtilizado;
+        $novoLimiteDisponivel = (float) ($this->getRawOriginal('limite_total') ?? 0) - $totalUtilizado;
 
         // Decimal casts do Eloquent usam brick/math; enviar string evita warnings/deprecations.
         $this->limite_disponivel = number_format($novoLimiteDisponivel, 2, '.', '');

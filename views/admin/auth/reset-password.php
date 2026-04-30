@@ -1,7 +1,11 @@
 <?php
-$favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
-$forgotPasswordUrl = $forgotPasswordUrl ?? rtrim(BASE_URL, '/') . '/recuperar-senha';
-$loginUrl = $loginUrl ?? rtrim(BASE_URL, '/') . '/login';
+$siteBaseUrl = rtrim(BASE_URL, '/');
+$favicon = $siteBaseUrl . '/assets/img/icone.png?v=1';
+$logoUrl = $siteBaseUrl . '/assets/img/logo-top.png';
+$forgotPasswordUrl = $forgotPasswordUrl ?? $siteBaseUrl . '/recuperar-senha';
+$loginUrl = $loginUrl ?? $siteBaseUrl . '/login';
+$resetValidateEndpoint = $resetValidateEndpoint ?? $siteBaseUrl . '/api/v1/auth/password/reset/validate';
+$resetSubmitEndpoint = $resetSubmitEndpoint ?? $siteBaseUrl . '/api/v1/auth/password/reset';
 $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
 ?>
 <!DOCTYPE html>
@@ -12,7 +16,7 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
     <link rel="shortcut icon" type="image/png" sizes="32x32" href="<?= $favicon ?>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <meta name="base-url" content="<?= $siteBaseUrl . '/' ?>">
 
     <!-- CSRF Meta Tags para renovação automática -->
     <?= csrf_meta('reset_form') ?>
@@ -32,7 +36,7 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
     <title>Redefinir Senha - Lukrato</title>
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
-    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
+    <script src="<?= $siteBaseUrl ?>/assets/js/lucide.min.js"></script>
     <?= function_exists('vite_css') ? vite_css('auth-shared-style') : '' ?>
 </head>
 
@@ -43,12 +47,14 @@ $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST
         class="lukrato-auth"
         data-reset-password-root
         data-forgot-password-url="<?= htmlspecialchars($forgotPasswordUrl, ENT_QUOTES, 'UTF-8') ?>"
-        data-login-url="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">
+        data-login-url="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>"
+        data-reset-validate-endpoint="<?= htmlspecialchars($resetValidateEndpoint, ENT_QUOTES, 'UTF-8') ?>"
+        data-reset-submit-endpoint="<?= htmlspecialchars($resetSubmitEndpoint, ENT_QUOTES, 'UTF-8') ?>">
         <div class="login-wrapper">
             <section class="login-left">
                 <div class="brand">
                     <div class="imagem-logo">
-                        <img src="<?= ASSETS_URL ?>img/logo-top.png" alt="Lukrato">
+                        <img src="<?= htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Lukrato">
                     </div>
                 </div>
 

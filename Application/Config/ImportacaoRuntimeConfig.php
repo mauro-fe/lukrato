@@ -54,6 +54,11 @@ final class ImportacaoRuntimeConfig
         return trim((string) $this->value('IMPORTACOES_QUEUE_STORAGE_PATH', ''));
     }
 
+    public function storagePath(): string
+    {
+        return trim((string) $this->value('STORAGE_PATH', ''));
+    }
+
     public function queueSleepSeconds(): int
     {
         return max(1, $this->int('IMPORTACOES_QUEUE_SLEEP', self::DEFAULT_QUEUE_SLEEP_SECONDS));

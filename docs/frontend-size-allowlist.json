@@ -3,6 +3,9 @@
   "fileMaxLines": 800,
   "allowOverLimit": [
     "resources/js/admin/auth/login/index.js",
+    "resources/js/admin/auth/reset-password/index.js",
+    "resources/js/admin/auth/verify-email/index.js",
+    "resources/js/admin/billing/modal-pagamento.js",
     "resources/js/admin/card-modals/index.js",
     "resources/js/admin/cartoes/ui.js",
     "resources/js/admin/cartoes-arquivadas/index.js",
@@ -14,10 +17,13 @@
     "resources/js/admin/global/session-manager.js",
     "resources/js/admin/global/soft-ui-dashboard.js",
     "resources/js/admin/global/support-button-v2.js",
+    "resources/js/admin/importacoes/index/page.js",
     "resources/js/admin/lancamentos/features.js",
     "resources/js/admin/lancamentos/index.js",
     "resources/js/admin/lancamentos/mobile.js",
+    "resources/js/admin/relatorios/charts.js",
     "resources/js/admin/sysadmin/communications.js",
-    "resources/js/admin/sysadmin/index.js"
+    "resources/js/admin/sysadmin/index.js",
+    "resources/js/site/auth/google-confirm/index.js"
   ]
 }

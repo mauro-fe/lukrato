@@ -6,6 +6,9 @@
 $siteBaseUrl = rtrim(BASE_URL, '/');
 $favicon = $siteBaseUrl . '/assets/img/icone.png?v=1';
 $googleLoginUrl = $googleLoginUrl ?? $siteBaseUrl . '/login';
+$googlePendingUrl = $googlePendingUrl ?? $siteBaseUrl . '/api/v1/auth/google/pending';
+$googleConfirmUrl = $googleConfirmUrl ?? $siteBaseUrl . '/api/v1/auth/google/confirm';
+$googleCancelUrl = $googleCancelUrl ?? $siteBaseUrl . '/api/v1/auth/google/cancel';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
@@ -41,7 +44,10 @@ $googleLoginUrl = $googleLoginUrl ?? $siteBaseUrl . '/login';
         <div
             class="confirm-container"
             data-google-confirm-root
-            data-login-url="<?= htmlspecialchars($googleLoginUrl, ENT_QUOTES, 'UTF-8') ?>">
+            data-login-url="<?= htmlspecialchars($googleLoginUrl, ENT_QUOTES, 'UTF-8') ?>"
+            data-pending-url="<?= htmlspecialchars($googlePendingUrl, ENT_QUOTES, 'UTF-8') ?>"
+            data-confirm-url="<?= htmlspecialchars($googleConfirmUrl, ENT_QUOTES, 'UTF-8') ?>"
+            data-cancel-url="<?= htmlspecialchars($googleCancelUrl, ENT_QUOTES, 'UTF-8') ?>">
             <div class="confirm-brand">
                 <img src="<?= BASE_URL ?>assets/img/logo-top.png" alt="Lukrato" class="logo">
             </div>

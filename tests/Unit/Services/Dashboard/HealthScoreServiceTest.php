@@ -164,7 +164,7 @@ class HealthScoreServiceTest extends TestCase
         $this->metaRepo->shouldNotReceive('findByUser');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Formato de mês inválidos');
+        $this->expectExceptionMessage('Formato de mês inválido');
 
         $this->service->calculateUserHealthScore($userId, $invalidMonth);
     }

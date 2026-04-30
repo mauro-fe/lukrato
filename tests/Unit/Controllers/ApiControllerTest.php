@@ -24,6 +24,7 @@ class ApiControllerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use SessionIsolation;
+    use ApiControllerTestHelpers;
 
     private TestableApiController $controller;
 

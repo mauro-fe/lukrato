@@ -117,7 +117,7 @@ class PasswordResetService
         $reset = $this->resolveValidReset($token, $selector, $validator);
 
         if (!$reset) {
-            throw new ValidationException(['token' => 'Token invalido ou expirado.']);
+            throw new ValidationException(['token' => 'Token inválido ou expirado.']);
         }
 
         $usuario = Usuario::where('email', $reset->email)->first();

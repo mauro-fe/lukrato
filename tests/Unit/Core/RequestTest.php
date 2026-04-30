@@ -46,7 +46,7 @@ class RequestTest extends TestCase
         );
 
         $this->assertTrue($request->hasJsonError());
-        $this->assertSame('JSON inválido na requisicao.', $request->jsonError());
+        $this->assertSame('JSON inválido na requisição.', $request->jsonError());
         $this->assertNull($request->json());
     }
 

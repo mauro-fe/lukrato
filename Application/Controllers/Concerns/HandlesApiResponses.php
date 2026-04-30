@@ -74,7 +74,7 @@ trait HandlesApiResponses
         }
 
         throw new ValidationException([
-            'json' => $this->request->jsonError() ?? 'JSON invalido na requisicao.',
+            'json' => $this->request->jsonError() ?? 'JSON inválido na requisição.',
         ], 'Validation failed', 400);
     }
 

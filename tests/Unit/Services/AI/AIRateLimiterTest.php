@@ -9,12 +9,16 @@ use PHPUnit\Framework\TestCase;
 
 class AIRateLimiterTest extends TestCase
 {
+    private ?string $previousRedisEnabled = null;
+    private ?string $previousStoragePath = null;
     private string $storagePath;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->previousRedisEnabled = $_ENV['REDIS_ENABLED'] ?? null;
+        $this->previousStoragePath = $_ENV['STORAGE_PATH'] ?? null;
         $this->storagePath = sys_get_temp_dir() . '/lukrato-ai-rate-limit-' . bin2hex(random_bytes(6));
         $_ENV['REDIS_ENABLED'] = 'false';
         $_ENV['STORAGE_PATH'] = $this->storagePath;
@@ -23,7 +27,18 @@ class AIRateLimiterTest extends TestCase
     protected function tearDown(): void
     {
         $this->deleteDirectory($this->storagePath);
-        unset($_ENV['STORAGE_PATH'], $_ENV['REDIS_ENABLED']);
+
+        if ($this->previousRedisEnabled === null) {
+            unset($_ENV['REDIS_ENABLED']);
+        } else {
+            $_ENV['REDIS_ENABLED'] = $this->previousRedisEnabled;
+        }
+
+        if ($this->previousStoragePath === null) {
+            unset($_ENV['STORAGE_PATH']);
+        } else {
+            $_ENV['STORAGE_PATH'] = $this->previousStoragePath;
+        }
 
         parent::tearDown();
     }

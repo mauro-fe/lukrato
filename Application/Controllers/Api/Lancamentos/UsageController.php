@@ -24,7 +24,7 @@ class UsageController extends ApiController
 
         $month = $this->getStringQuery('month', date('Y-m'));
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
-            return Response::validationErrorResponse(['month' => 'Formato invalido (YYYY-MM)']);
+            return Response::validationErrorResponse(['month' => 'Formato inválido (YYYY-MM)']);
         }
 
         $usage = $this->limitService->usage($userId, $month);

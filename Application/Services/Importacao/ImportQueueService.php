@@ -362,6 +362,15 @@ class ImportQueueService
             return rtrim($configured, '/\\');
         }
 
+        $storagePath = $this->runtimeConfig->storagePath();
+        if ($storagePath !== '') {
+            if (!$this->isAbsolutePath($storagePath)) {
+                $storagePath = BASE_PATH . '/' . ltrim($storagePath, '/\\');
+            }
+
+            return rtrim($storagePath, '/\\') . '/importacoes/queue';
+        }
+
         $baseDirectory = dirname(BASE_PATH, 2);
         if ($baseDirectory === '' || $baseDirectory === '.' || $baseDirectory === DIRECTORY_SEPARATOR) {
             $baseDirectory = sys_get_temp_dir();
@@ -444,7 +453,12 @@ class ImportQueueService
 
     private function isAbsolutePath(string $path): bool
     {
-        return preg_match('/^[A-Za-z]:[\\\/]/', $path) === 1
+        return (
+            strlen($path) >= 3
+            && ctype_alpha($path[0])
+            && $path[1] === ':'
+            && ($path[2] === '\\' || $path[2] === '/')
+        )
             || str_starts_with($path, '/')
             || str_starts_with($path, '\\\\');
     }

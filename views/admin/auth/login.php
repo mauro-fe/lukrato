@@ -3,10 +3,13 @@
 <?php
 $activeTab = isset($activeTab) && $activeTab === 'register' ? 'register' : 'login';
 $registerErrorMessage = $registerErrorMessage ?? '';
-$favicon        = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
-$loginPageUrl = rtrim(BASE_URL, '/') . '/login';
-$forgotPasswordUrl = rtrim(BASE_URL, '/') . '/recuperar-senha';
-$verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verificar-email/aviso';
+$siteBaseUrl = rtrim(BASE_URL, '/');
+$favicon = $siteBaseUrl . '/assets/img/icone.png?v=1';
+$loginPageUrl = $siteBaseUrl . '/login';
+$forgotPasswordUrl = $siteBaseUrl . '/recuperar-senha';
+$verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? $siteBaseUrl . '/verificar-email/aviso';
+$googleLoginUrl = $googleLoginUrl ?? $siteBaseUrl . '/api/v1/auth/google/login';
+$googleRegisterUrl = $googleRegisterUrl ?? $siteBaseUrl . '/api/v1/auth/google/register';
 
 ?>
 
@@ -16,7 +19,7 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <meta name="base-url" content="<?= $siteBaseUrl . '/' ?>">
     <meta name="verify-email-notice-url" content="<?= htmlspecialchars($verifyEmailNoticeUrl, ENT_QUOTES, 'UTF-8') ?>">
     <?php if (!empty($intended)): ?>
         <meta name="intended-redirect" content="<?= htmlspecialchars($intended, ENT_QUOTES, 'UTF-8') ?>">
@@ -42,7 +45,7 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
     <title>Login / Cadastro - Lukrato</title>
     <!-- Lucide Icons + FA Brands -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/brands.min.css">
-    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
+    <script src="<?= $siteBaseUrl ?>/assets/js/lucide.min.js"></script>
     <?= function_exists('vite_css') ? vite_css('auth-login-style') : '' ?>
 
     <!-- Cloudflare Turnstile (carrega só se configurado) -->
@@ -181,7 +184,7 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
                                 <div class="auth-social-actions">
                                     <div class="auth-separator"><span>ou continue com</span></div>
 
-                                    <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                    <a href="<?= htmlspecialchars($googleLoginUrl, ENT_QUOTES, 'UTF-8') ?>"
                                         class="google-sign-in-button" data-google-auth="login">
                                         <svg class="google-icon" viewBox="0 0 48 48">
                                             <path fill="#EA4335"
@@ -302,7 +305,7 @@ $verifyEmailNoticeUrl = $verifyEmailNoticeUrl ?? rtrim(BASE_URL, '/') . '/verifi
                                 <div class="auth-social-actions auth-social-actions--register">
                                     <div class="auth-separator"><span>ou continue com</span></div>
 
-                                    <a href="<?= htmlspecialchars($loginPageUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                    <a href="<?= htmlspecialchars($googleRegisterUrl, ENT_QUOTES, 'UTF-8') ?>"
                                         class="google-sign-in-button" data-google-auth="register">
                                         <svg class="google-icon" viewBox="0 0 48 48">
                                             <path fill="#EA4335"

@@ -518,7 +518,7 @@ class ImportExecutionService
                         'data_pagamento' => $date,
                     ]);
 
-                    $novoTotal = max(0, (float) $fatura->valor_total - $amount);
+                    $novoTotal = max(0, $this->decimalAttribute($fatura, 'valor_total') - $amount);
                     $fatura->valor_total = $this->faturaSupportService->moneyString($novoTotal);
                     $fatura->save();
 
@@ -529,7 +529,7 @@ class ImportExecutionService
                     ];
                 }
 
-                $limiteDisponivel = (float) ($card->limite_disponivel ?? 0);
+                $limiteDisponivel = $this->decimalAttribute($card, 'limite_disponivel');
                 if ($limiteDisponivel > 0 && $amount > $limiteDisponivel) {
                     return [
                         'success' => false,
@@ -1092,7 +1092,7 @@ class ImportExecutionService
 
         return $itemDate === $expected['date']
             && (string) $item->descricao === $expected['description']
-            && (string) $item->valor === $expected['amount']
+            && $this->moneyAttribute($item, 'valor') === $expected['amount']
             && (string) $item->tipo === $expected['type'];
     }
 
@@ -1214,7 +1214,7 @@ class ImportExecutionService
             'fatura_id' => (int) $invoiceItem->fatura_id,
             'cartao_credito_id' => (int) $invoiceItem->cartao_credito_id,
             'descricao' => (string) $invoiceItem->descricao,
-            'valor' => (string) $invoiceItem->valor,
+            'valor' => $this->moneyAttribute($invoiceItem, 'valor'),
             'tipo' => (string) $invoiceItem->tipo,
             'data_compra' => $invoiceItem->data_compra instanceof \DateTimeInterface
                 ? $invoiceItem->data_compra->format('Y-m-d')
@@ -1234,6 +1234,16 @@ class ImportExecutionService
         }
 
         return hash('sha256', implode('|', [$baseRowHash, $status, $loteId, $rowIndex]));
+    }
+
+    private function decimalAttribute(\Illuminate\Database\Eloquent\Model $model, string $attribute): float
+    {
+        return (float) ($model->getRawOriginal($attribute) ?? 0);
+    }
+
+    private function moneyAttribute(\Illuminate\Database\Eloquent\Model $model, string $attribute): string
+    {
+        return $this->faturaSupportService->moneyString($model->getRawOriginal($attribute) ?? 0);
     }
 
     /**

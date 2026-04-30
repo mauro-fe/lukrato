@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <?php
-$favicon = rtrim(BASE_URL, '/') . '/assets/img/icone.png?v=1';
-$loginUrl = $loginUrl ?? rtrim(BASE_URL, '/') . '/login';
+$siteBaseUrl = rtrim(BASE_URL, '/');
+$favicon = $siteBaseUrl . '/assets/img/icone.png?v=1';
+$loginUrl = $loginUrl ?? $siteBaseUrl . '/login';
+$verifyEndpoint = $verifyEndpoint ?? $siteBaseUrl . '/api/v1/auth/email/verify';
+$noticeEndpoint = $noticeEndpoint ?? $siteBaseUrl . '/api/v1/auth/email/notice';
+$resendEndpoint = $resendEndpoint ?? $siteBaseUrl . '/api/v1/auth/email/resend';
 $currentFormAction = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
 $initialEmail = trim((string) ($email ?? ''));
 $initialMessage = trim((string) ($message ?? ''));
@@ -18,7 +22,7 @@ if ($initialMessage === '') {
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="base-url" content="<?= rtrim(BASE_URL, '/') . '/' ?>">
+    <meta name="base-url" content="<?= $siteBaseUrl . '/' ?>">
     <?= csrf_meta('verify_email_form') ?>
 
     <script>
@@ -34,7 +38,7 @@ if ($initialMessage === '') {
     </script>
 
     <title>Verifique seu Email - Lukrato</title>
-    <script src="<?= rtrim(BASE_URL, '/') ?>/assets/js/lucide.min.js"></script>
+    <script src="<?= $siteBaseUrl ?>/assets/js/lucide.min.js"></script>
     <?= function_exists('vite_css') ? vite_css('auth-verify-email-style') : '' ?>
 </head>
 
@@ -42,7 +46,10 @@ if ($initialMessage === '') {
     <div
         class="container"
         data-verify-email-root
-        data-login-url="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">
+        data-login-url="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>"
+        data-verify-endpoint="<?= htmlspecialchars($verifyEndpoint, ENT_QUOTES, 'UTF-8') ?>"
+        data-notice-endpoint="<?= htmlspecialchars($noticeEndpoint, ENT_QUOTES, 'UTF-8') ?>"
+        data-resend-endpoint="<?= htmlspecialchars($resendEndpoint, ENT_QUOTES, 'UTF-8') ?>">
         <div class="icon" aria-hidden="true">
             <i data-lucide="mail" style="width:64px;height:64px;" aria-hidden="true"></i>
         </div>

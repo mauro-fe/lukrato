@@ -41,7 +41,7 @@ class CartaoFaturaSupportService
 
     public function incrementarValorFatura(Fatura $fatura, float|int|string $valor): void
     {
-        $novoTotal = (float) $fatura->valor_total + (float) $valor;
+        $novoTotal = (float) ($fatura->getRawOriginal('valor_total') ?? 0) + (float) $valor;
         $fatura->valor_total = $this->moneyString($novoTotal);
         $fatura->save();
     }

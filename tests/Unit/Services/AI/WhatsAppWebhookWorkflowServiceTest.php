@@ -51,7 +51,7 @@ class WhatsAppWebhookWorkflowServiceTest extends TestCase
         ]);
 
         $this->assertSame(
-            "Escolha uma conta\n\n1. Conta Corrente\n2. Cartao Nubank\n\nResponda com o numero ou toque em uma opcao.",
+            "Escolha uma conta\n\n1. Conta Corrente\n2. Cartao Nubank\n\nResponda com o numero ou toque em uma opção.",
             $result
         );
     }

@@ -94,7 +94,7 @@ class Request
                 return [$decoded, $decoded, null];
             }
         } catch (\JsonException) {
-            return [[], null, 'JSON invalido na requisicao.'];
+            return [[], null, 'JSON inválido na requisição.'];
         }
 
         return [[], null, null];
@@ -113,13 +113,6 @@ class Request
 
     private function detectHeaders(array $server): array
     {
-        if (function_exists('getallheaders')) {
-            $headers = getallheaders();
-            if (is_array($headers) && $headers !== []) {
-                return $headers;
-            }
-        }
-
         $headers = [];
 
         foreach ($server as $key => $value) {
@@ -139,7 +132,18 @@ class Request
             }
         }
 
-        return $headers;
+        if ($headers !== []) {
+            return $headers;
+        }
+
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            if (is_array($headers) && $headers !== []) {
+                return $headers;
+            }
+        }
+
+        return [];
     }
 
     private function normalizeHeaders(array $headers): array

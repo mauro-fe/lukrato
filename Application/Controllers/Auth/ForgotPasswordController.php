@@ -101,7 +101,7 @@ class ForgotPasswordController extends WebController
 
         $reset = $this->service->getValidReset($token, $selector, $validator);
         if (!$reset) {
-            return $this->fail('Token invalido ou expirado.', 404, [
+            return $this->fail('Token inválido ou expirado.', 404, [
                 'redirect' => $this->runtimeConfig->forgotPasswordUrl(),
             ]);
         }

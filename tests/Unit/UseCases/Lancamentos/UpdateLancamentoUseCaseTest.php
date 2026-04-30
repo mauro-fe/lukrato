@@ -34,7 +34,7 @@ class UpdateLancamentoUseCaseTest extends TestCase
 
         $this->assertTrue($result->isError());
         $this->assertSame(422, $result->httpCode);
-        $this->assertSame('ID inválidos.', $result->message);
+        $this->assertSame('ID inválido.', $result->message);
     }
 
     public function testExecuteReturns404WhenLancamentoDoesNotExist(): void
@@ -53,7 +53,7 @@ class UpdateLancamentoUseCaseTest extends TestCase
 
         $this->assertTrue($result->isError());
         $this->assertSame(404, $result->httpCode);
-        $this->assertSame('Lancamento nao encontrado.', $result->message);
+        $this->assertSame('Lançamento não encontrado.', $result->message);
     }
 
     public function testExecuteReturns422WhenLancamentoIsTransferencia(): void
@@ -76,7 +76,7 @@ class UpdateLancamentoUseCaseTest extends TestCase
 
         $this->assertTrue($result->isError());
         $this->assertSame(422, $result->httpCode);
-        $this->assertSame('Transferencias nao podem ser editadas aqui.', $result->message);
+        $this->assertSame('Transferências não podem ser editadas aqui.', $result->message);
     }
 
     public function testExecuteReturnsSuccessWithUpdatedId(): void
@@ -115,7 +115,7 @@ class UpdateLancamentoUseCaseTest extends TestCase
 
         $this->assertFalse($result->isError());
         $this->assertSame(200, $result->httpCode);
-        $this->assertSame('Success', $result->message);
+        $this->assertSame('Sucesso', $result->message);
         $this->assertSame(12, $result->data['id'] ?? null);
     }
 }

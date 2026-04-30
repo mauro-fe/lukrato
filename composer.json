@@ -41,7 +41,7 @@
   },
   "scripts": {
     "test:core-router": "@php vendor/bin/phpunit tests/Unit/Core/RouterTest.php tests/Unit/Core/MiddlewareResolverTest.php tests/Unit/Core/RequestTest.php tests/Unit/Core/ResponseTest.php",
-    "test:architecture": "@php vendor/bin/phpunit tests/Unit/Controllers/ControllerLayeringTest.php tests/Unit/Controllers/ApiControllerTest.php tests/Unit/Controllers/WebControllerTest.php",
+    "test:architecture": "@php vendor/bin/phpunit tests/Unit/Controllers/ControllerLayeringTest.php tests/Unit/Controllers/ControllerDependencyCompositionGuardTest.php tests/Unit/Controllers/ApiControllerTest.php tests/Unit/Controllers/WebControllerTest.php tests/Unit/UseCases/UseCaseDependencyCompositionGuardTest.php tests/Unit/Architecture/ManualCompositionAllowlistTest.php",
     "test:routes": "@php vendor/bin/phpunit tests/Unit/Core/RouteIntegrityTest.php",
     "test:backend": [
       "@composer test:routes",

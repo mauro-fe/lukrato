@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Models;
 
+use Application\Casts\MoneyDecimalCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -35,7 +36,7 @@ class Fatura extends Model
     protected $casts = [
         'user_id' => 'integer',
         'cartao_credito_id' => 'integer',
-        'valor_total' => 'decimal:2',
+        'valor_total' => MoneyDecimalCast::class,
         'numero_parcelas' => 'integer',
         'data_compra' => 'date',
     ];
