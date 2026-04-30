@@ -1,3 +1,4 @@
+/* eslint-disable no-var, no-redeclare, prefer-const -- Legacy Soft UI theme script uses function-scoped declarations and inline handlers. */
 "use strict";
 (function () {
   var isWindows = navigator.platform.indexOf('Win') > -1 ? true : false;
@@ -6,22 +7,22 @@
     // if we are on windows OS we activate the perfectScrollbar function
     if (document.getElementsByClassName('main-content')[0]) {
       var mainpanel = document.querySelector('.main-content');
-      var ps = new PerfectScrollbar(mainpanel);
+      new PerfectScrollbar(mainpanel);
     };
 
     if (document.getElementsByClassName('sidenav')[0]) {
       var sidebar = document.querySelector('.sidenav');
-      var ps1 = new PerfectScrollbar(sidebar);
+      new PerfectScrollbar(sidebar);
     };
 
     if (document.getElementsByClassName('navbar-collapse')[0]) {
       var fixedplugin = document.querySelector('.navbar:not(.navbar-expand-lg) .navbar-collapse');
-      var ps2 = new PerfectScrollbar(fixedplugin);
+      new PerfectScrollbar(fixedplugin);
     };
 
     if (document.getElementsByClassName('fixed-plugin')[0]) {
       var fixedplugin = document.querySelector('.fixed-plugin');
-      var ps3 = new PerfectScrollbar(fixedplugin);
+      new PerfectScrollbar(fixedplugin);
     };
   };
 })();
@@ -33,8 +34,8 @@ if (document.getElementById('navbarBlur')) {
 
 // initialization of Tooltips
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-  return new bootstrap.Tooltip(tooltipTriggerEl)
+tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+  new bootstrap.Tooltip(tooltipTriggerEl)
 })
 
 // when input is focused add focused class for style
@@ -370,8 +371,8 @@ function debounce(func, wait, immediate) {
 document.addEventListener("DOMContentLoaded", function () {
   var toastElList = [].slice.call(document.querySelectorAll(".toast"));
 
-  var toastList = toastElList.map(function (toastEl) {
-    return new bootstrap.Toast(toastEl);
+  toastElList.forEach(function (toastEl) {
+    new bootstrap.Toast(toastEl);
   });
 
   var toastButtonList = [].slice.call(document.querySelectorAll(".toast-btn"));
@@ -393,7 +394,7 @@ document.addEventListener("DOMContentLoaded", function () {
 var total = document.querySelectorAll('.nav-pills');
 
 function initNavs() {
-  total.forEach(function (item, i) {
+  total.forEach(function (item, _i) {
     var moving_div = document.createElement('div');
     var first_li = item.querySelector('li:first-child .nav-link');
     var tab = first_li.cloneNode();
@@ -402,8 +403,6 @@ function initNavs() {
     moving_div.classList.add('moving-tab', 'position-absolute', 'nav-link');
     moving_div.appendChild(tab);
     item.appendChild(moving_div);
-
-    var list_length = item.getElementsByTagName("li").length;
 
     moving_div.style.padding = '0px';
     moving_div.style.width = item.querySelector('li:nth-child(1)').offsetWidth + 'px';
@@ -444,8 +443,8 @@ setTimeout(function () {
 
 // Tabs navigation resize
 
-window.addEventListener('resize', function (event) {
-  total.forEach(function (item, i) {
+window.addEventListener('resize', function (_event) {
+  total.forEach(function (item, _i) {
     var currentMovingTab = item.querySelector('.moving-tab');
     if (currentMovingTab) {
       currentMovingTab.remove();
@@ -494,14 +493,13 @@ window.addEventListener('resize', function (event) {
   });
 
   if (window.innerWidth < 991) {
-    total.forEach(function (item, i) {
+    total.forEach(function (item, _i) {
       if (!item.classList.contains('flex-column')) {
         item.classList.remove('flex-row');
         item.classList.add('flex-column', 'on-resize');
         let li = item.querySelector(".nav-link.active")?.parentElement;
         if (!li) return;
         let nodes = Array.from(li.closest('ul').children); // get array
-        let index = nodes.indexOf(li) + 1;
         let sum = 0;
         for (var j = 1; j <= nodes.indexOf(li); j++) {
           sum += item.querySelector('li:nth-child(' + j + ')').offsetHeight;
@@ -515,7 +513,7 @@ window.addEventListener('resize', function (event) {
       }
     });
   } else {
-    total.forEach(function (item, i) {
+    total.forEach(function (item, _i) {
       if (item.classList.contains('on-resize')) {
         item.classList.remove('flex-column', 'on-resize');
         item.classList.add('flex-row');
@@ -539,7 +537,7 @@ window.addEventListener('resize', function (event) {
 
 // Function to remove flex row on mobile devices
 if (window.innerWidth < 991) {
-  total.forEach(function (item, i) {
+  total.forEach(function (item, _i) {
     if (item.classList.contains('flex-row')) {
       item.classList.remove('flex-row');
       item.classList.add('flex-column', 'on-resize');
@@ -559,11 +557,11 @@ window.onload = function () {
   var inputs = document.querySelectorAll('input');
 
   for (var i = 0; i < inputs.length; i++) {
-    inputs[i].addEventListener('focus', function (e) {
+    inputs[i].addEventListener('focus', function () {
       this.parentElement.classList.add('is-focused');
     }, false);
 
-    inputs[i].onkeyup = function (e) {
+    inputs[i].onkeyup = function () {
       if (this.value != "") {
         this.parentElement.classList.add('is-filled');
       } else {
@@ -571,7 +569,7 @@ window.onload = function () {
       }
     };
 
-    inputs[i].addEventListener('focusout', function (e) {
+    inputs[i].addEventListener('focusout', function () {
       if (this.value != "") {
         this.parentElement.classList.add('is-filled');
       }
@@ -829,6 +827,16 @@ function darkMode(el) {
     el.removeAttribute("checked");
   }
 };
+
+Object.assign(window, {
+  focused,
+  defocused,
+  sidebarColor,
+  sidebarType,
+  navbarFixed,
+  navbarMinimize,
+  darkMode,
+});
 
 
 // side bullets

@@ -128,7 +128,7 @@
     const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'OPTION', 'CODE', 'PRE', 'KBD', 'SAMP', 'NOSCRIPT']);
 
     function normalizeLegacyIconName(name) {
-        var raw = String(name || '').trim();
+        const raw = String(name || '').trim();
         if (!raw) return raw;
         if (LEGACY_ICON_MAP[raw]) return LEGACY_ICON_MAP[raw];
         if (raw.indexOf('fa-') === 0) return raw.replace(/^fa-/, '');
@@ -136,11 +136,11 @@
     }
 
     function normalizeLegacyIconAttrs(root) {
-        var scope = root || document;
-        var icons = scope.querySelectorAll ? scope.querySelectorAll('i[data-lucide]') : [];
-        for (var i = 0; i < icons.length; i++) {
-            var current = icons[i].getAttribute('data-lucide');
-            var normalized = normalizeLegacyIconName(current);
+        const scope = root || document;
+        const icons = scope.querySelectorAll ? scope.querySelectorAll('i[data-lucide]') : [];
+        for (let i = 0; i < icons.length; i++) {
+            const current = icons[i].getAttribute('data-lucide');
+            const normalized = normalizeLegacyIconName(current);
             if (normalized && normalized !== current) {
                 icons[i].setAttribute('data-lucide', normalized);
             }
@@ -159,12 +159,12 @@
 
     function shouldSkipTextNode(textNode) {
         if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return true;
-        var parent = textNode.parentElement;
+        const parent = textNode.parentElement;
         if (!parent) return true;
         if (parent.closest('[data-lk-emoji-skip]')) return true;
         if (parent.closest('svg')) return true;
 
-        var current = parent;
+        let current = parent;
         while (current) {
             if (SKIP_TAGS.has(current.tagName)) return true;
             if (current.isContentEditable) return true;
@@ -175,7 +175,7 @@
     }
 
     function createEmojiIcon(iconName) {
-        var icon = document.createElement('i');
+        const icon = document.createElement('i');
         icon.setAttribute('data-lucide', iconName);
         icon.setAttribute('aria-hidden', 'true');
         icon.setAttribute('class', 'lk-emoji-icon');
@@ -186,24 +186,24 @@
     function replaceEmojiTextNode(textNode) {
         if (shouldSkipTextNode(textNode)) return false;
 
-        var original = textNode.nodeValue || '';
+        const original = textNode.nodeValue || '';
         if (!hasMappedEmoji(original)) return false;
 
-        var fragment = document.createDocumentFragment();
-        var changed = false;
-        var lastIndex = 0;
+        const fragment = document.createDocumentFragment();
+        let changed = false;
+        let lastIndex = 0;
 
         EMOJI_REGEX.lastIndex = 0;
-        var match;
+        let match;
         while ((match = EMOJI_REGEX.exec(original)) !== null) {
-            var idx = match.index;
-            var token = match[0];
+            const idx = match.index;
+            const token = match[0];
 
             if (idx > lastIndex) {
                 fragment.appendChild(document.createTextNode(original.slice(lastIndex, idx)));
             }
 
-            var iconName = EMOJI_ICON_MAP[normalizeEmojiToken(token)];
+            const iconName = EMOJI_ICON_MAP[normalizeEmojiToken(token)];
             if (iconName) {
                 fragment.appendChild(createEmojiIcon(iconName));
                 changed = true;
@@ -238,29 +238,29 @@
             return false;
         }
 
-        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
             acceptNode: function (node) {
                 if (!node.nodeValue || !hasMappedEmoji(node.nodeValue)) return NodeFilter.FILTER_REJECT;
                 return shouldSkipTextNode(node) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
             }
         });
 
-        var nodes = [];
-        var current;
+        const nodes = [];
+        let current;
         while ((current = walker.nextNode())) {
             nodes.push(current);
         }
 
-        var changed = false;
-        for (var i = 0; i < nodes.length; i++) {
+        let changed = false;
+        for (let i = 0; i < nodes.length; i++) {
             if (replaceEmojiTextNode(nodes[i])) changed = true;
         }
         return changed;
     }
 
     function stripSvgSizeAttrs() {
-        var svgs = document.querySelectorAll('svg.lucide');
-        for (var i = 0; i < svgs.length; i++) {
+        const svgs = document.querySelectorAll('svg.lucide');
+        for (let i = 0; i < svgs.length; i++) {
             if (svgs[i].hasAttribute('width')) svgs[i].removeAttribute('width');
             if (svgs[i].hasAttribute('height')) svgs[i].removeAttribute('height');
         }
@@ -270,12 +270,12 @@
         if (typeof lucide === 'undefined' || !lucide.createIcons) return;
         if (lucide._lkPatched) return;
 
-        var originalCreateIcons = lucide.createIcons.bind(lucide);
+        const originalCreateIcons = lucide.createIcons.bind(lucide);
 
         lucide.createIcons = function (opts) {
-            var existingSvgs = document.querySelectorAll('svg[data-lucide]');
-            var savedAttrs = [];
-            for (var i = 0; i < existingSvgs.length; i++) {
+            const existingSvgs = document.querySelectorAll('svg[data-lucide]');
+            const savedAttrs = [];
+            for (let i = 0; i < existingSvgs.length; i++) {
                 savedAttrs.push(existingSvgs[i].getAttribute('data-lucide'));
                 existingSvgs[i].removeAttribute('data-lucide');
             }
@@ -286,7 +286,7 @@
                 console.error('[Lucide] Error in createIcons:', err);
             }
 
-            for (var j = 0; j < existingSvgs.length; j++) {
+            for (let j = 0; j < existingSvgs.length; j++) {
                 if (existingSvgs[j].parentNode && savedAttrs[j]) {
                     existingSvgs[j].setAttribute('data-lucide', savedAttrs[j]);
                 }
@@ -320,20 +320,20 @@
         }
     }
 
-    var observerDebounce = null;
+    let observerDebounce = null;
 
     function setupObserver() {
         if (typeof MutationObserver === 'undefined') return;
 
-        var observer = new MutationObserver(function (mutations) {
-            var needsRefresh = false;
+        const observer = new MutationObserver(function (mutations) {
+            let needsRefresh = false;
 
-            for (var i = 0; i < mutations.length; i++) {
-                var mutation = mutations[i];
+            for (let i = 0; i < mutations.length; i++) {
+                const mutation = mutations[i];
 
                 if (mutation.type === 'childList') {
-                    for (var n = 0; n < mutation.addedNodes.length; n++) {
-                        var node = mutation.addedNodes[n];
+                    for (let n = 0; n < mutation.addedNodes.length; n++) {
+                        const node = mutation.addedNodes[n];
                         if (convertEmojisInNode(node)) needsRefresh = true;
 
                         if (node.nodeType === Node.ELEMENT_NODE) {
