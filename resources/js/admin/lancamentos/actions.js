@@ -1,5 +1,5 @@
 ﻿
-import { CONFIG, STATE, Utils, Notifications, Modules } from './state.js';
+import { STATE, Utils, Notifications, Modules } from './state.js';
 import {
     resolveLancamentoCancelRecurringEndpoint,
     resolveLancamentoPayEndpoint,

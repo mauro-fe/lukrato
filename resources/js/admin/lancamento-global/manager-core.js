@@ -284,7 +284,7 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
                 if (!dataCategorias) {
                     this.categorias = [];
                 } else {
-                    let categoriasData = dataCategorias.categorias || dataCategorias.data || dataCategorias;
+                    const categoriasData = dataCategorias.categorias || dataCategorias.data || dataCategorias;
                     this.categorias = Array.isArray(categoriasData)
                         ? sortByLabel(categoriasData, (categoria) => categoria?.nome || '')
                         : [];
@@ -294,7 +294,7 @@ export function attachLancamentoGlobalCoreMethods(ManagerClass, dependencies) {
                 if (!dataCartoes) {
                     this.cartoes = [];
                 } else {
-                    let cartoesData = dataCartoes.cartoes || dataCartoes.data || dataCartoes;
+                    const cartoesData = dataCartoes.cartoes || dataCartoes.data || dataCartoes;
                     this.cartoes = Array.isArray(cartoesData)
                         ? sortByLabel(cartoesData, (cartao) => cartao?.nome_cartao || cartao?.bandeira || '')
                         : [];

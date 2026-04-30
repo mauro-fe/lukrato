@@ -1,5 +1,5 @@
 ﻿import '../../../css/admin/lancamentos/index.css';
-import { CONFIG, DOM, initDOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
+import { DOM, initDOM, STATE, Utils, MoneyMask, Modules } from './state.js';
 import {
     resolveLancamentoEndpoint,
     resolveLancamentosBulkDeleteEndpoint,
@@ -12,7 +12,6 @@ import { OptionsManager, ModalManager } from './modal.js';
 import { CustomSelectManager, syncCustomSelects } from './custom-select.js';
 import {
     ExportManager,
-    FilterBadges,
     DataManager,
     ParcelamentoGrouper,
     FaturaDetalhes

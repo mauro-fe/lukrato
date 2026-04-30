@@ -7,7 +7,7 @@
  * ============================================================================
  */
 
-import { CONFIG, DOM, STATE, Utils, Notifications, Modules } from './state.js';
+import { DOM, Utils, Modules } from './state.js';
 import { handleMarcarPago, handleDesmarcarPago, handleCancelarRecorrencia, handleDelete, handleEdit } from './actions.js';
 import { closeAllDropdownMenus, closeDropdownMenu, resolveDropdownMenu, toggleDropdownMenu } from './dropdown.js';
 
@@ -66,7 +66,7 @@ const MobileCards = {
         const base = this.cache.filter(item => !Utils.isSaldoInicial(item));
 
         // Ordenação
-        let data = [...base];
+        const data = [...base];
         if (this.sortField === 'data') {
             data.sort((a, b) => {
                 const da = Utils.extractYMD(a.data || a.created_at) || {};

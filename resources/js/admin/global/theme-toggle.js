@@ -150,7 +150,7 @@ import { apiPost } from '../shared/api.js';
         });
     }
 
-    function handleSystemThemeChange(event) {
+    function handleSystemThemeChange() {
         if (currentThemePreference !== 'system') {
             return;
         }

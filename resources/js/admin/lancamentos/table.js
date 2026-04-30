@@ -7,7 +7,7 @@
  * ============================================================================
  */
 
-import { CONFIG, DOM, STATE, Utils, Notifications, Modules } from './state.js';
+import { DOM, STATE, Utils, Modules } from './state.js';
 import { handleMarcarPago, handleDesmarcarPago, handleCancelarRecorrencia, handleDelete, handleEdit } from './actions.js';
 import { closeAllDropdownMenus, closeDropdownMenu, resolveDropdownMenu, toggleDropdownMenu } from './dropdown.js';
 
@@ -566,7 +566,7 @@ export const TableManager = {
                 else if (segs >= 86400) t = Math.round(segs / 86400) + ' dia(s) antes';
                 else if (segs >= 3600) t = Math.round(segs / 3600) + ' hora(s) antes';
                 else t = Math.round(segs / 60) + ' min antes';
-                let canais = [];
+                const canais = [];
                 if (item.canal_inapp) canais.push('App');
                 if (item.canal_email) canais.push('E-mail');
                 chips += `<div class="lk-detail-chip lk-chip-lembrete"><i data-lucide="bell"></i><span class="lk-detail-label">Lembrete</span><span class="lk-detail-value">${t} · ${canais.join(', ') || 'Nenhum canal'}</span></div>`;
@@ -622,7 +622,7 @@ export const TableManager = {
             const pages = [];
             const maxVisible = 5;
             let startPage = Math.max(1, STATE.currentPage - Math.floor(maxVisible / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            const endPage = Math.min(totalPages, startPage + maxVisible - 1);
             if (endPage - startPage + 1 < maxVisible) startPage = Math.max(1, endPage - maxVisible + 1);
             for (let i = startPage; i <= endPage; i++) {
                 const isActive = i === STATE.currentPage;

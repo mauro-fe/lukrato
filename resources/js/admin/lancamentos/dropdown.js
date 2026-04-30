@@ -21,7 +21,7 @@ function clearMenuListeners(menu) {
     state.cleanupFns.forEach((cleanup) => {
         try {
             cleanup();
-        } catch (_) {
+        } catch {
             // Ignore stale listener cleanup.
         }
     });

@@ -4,7 +4,7 @@
  * ============================================================================
  */
 
-import { CONFIG, DOM, STATE, Utils, MoneyMask, Notifications, Modules } from './state.js';
+import { CONFIG, DOM, STATE, Utils, Notifications, Modules } from './state.js';
 import {
     resolveLancamentoFaturaDetailsEndpoint,
     resolveLancamentoPayEndpoint,
@@ -222,7 +222,7 @@ export const SummaryCards = {
         const items = STATE.filteredData?.length ? STATE.filteredData : STATE.lancamentos || [];
         let totalReceitas = 0;
         let totalDespesas = 0;
-        let count = items.length;
+        const count = items.length;
 
         for (const item of items) {
             const tipo = String(item.tipo || '').toLowerCase();

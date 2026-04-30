@@ -580,7 +580,6 @@ const fetchReportData = () => API.fetchReportData();
 const showLoading = () => UI.showLoading();
 const showEmptyState = () => UI.showEmptyState();
 const showErrorState = (message) => UI.showErrorState(message);
-const showPaywall = (m) => UI.showPaywall(m);
 const updateMonthLabel = () => UI.updateMonthLabel();
 const updatePageContext = () => UI.updatePageContext();
 const updateReportFilterSummary = () => UI.updateReportFilterSummary();

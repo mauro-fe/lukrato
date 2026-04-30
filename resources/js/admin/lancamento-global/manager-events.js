@@ -2,8 +2,6 @@ export function attachLancamentoGlobalEventsMethods(ManagerClass, dependencies) 
     const {
         applyMoneyMask,
         parseMoney,
-        formatMoney,
-        refreshIcons,
     } = dependencies;
 
     Object.assign(ManagerClass.prototype, {

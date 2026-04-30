@@ -7,7 +7,7 @@
  * ============================================================================
  */
 
-import { formatMoney, parseMoney, escapeHtml, normalizeText, getTipoClass, debounce } from '../shared/utils.js';
+import { formatMoney, escapeHtml, normalizeText, getTipoClass, debounce } from '../shared/utils.js';
 import { getBaseUrl, getCSRFToken as getSharedCSRFToken } from '../shared/api.js';
 import {
     resolveLancamentosEndpoint,

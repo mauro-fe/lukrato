@@ -108,7 +108,7 @@ function bindProfileSubmit(context) {
                 const emailVerificationSent = Boolean(response?.data?.email_verification_sent);
 
                 let icon = 'success';
-                let title = 'Perfil atualizado!';
+                const title = 'Perfil atualizado!';
                 let text = 'Suas informacoes foram salvas com sucesso.';
 
                 if (emailChangePending && emailVerificationSent) {

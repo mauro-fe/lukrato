@@ -6,7 +6,6 @@ import {
 
 export function attachLancamentosModalOptions(OptionsManager, dependencies) {
     const {
-        CONFIG,
         DOM,
         STATE,
         Utils,

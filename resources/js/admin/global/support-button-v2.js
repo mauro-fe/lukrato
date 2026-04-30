@@ -728,7 +728,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             try {
                 const errorData = await res.json();
                 errorMessage = errorData.message || errorMessage;
-            } catch (_) {
+            } catch {
                 // noop
             }
 
