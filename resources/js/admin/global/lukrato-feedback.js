@@ -547,7 +547,6 @@ import { buildAppUrl } from '../shared/api.js';
             resource = 'recurso',
             used = 0,
             limit = 0,
-            context = 'default',
         } = options;
 
         const percentage = limit > 0 ? Math.round((used / limit) * 100) : 100;
@@ -608,7 +607,6 @@ import { buildAppUrl } from '../shared/api.js';
         showInfo,
         showConfirm,
         showLoading,
-        hideLoading,
     };
 
     // Alias global para acesso rápido

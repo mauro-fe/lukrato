@@ -75,7 +75,6 @@ const boletoSection = document.getElementById('boleto-section');
 const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
 
 const pixQrCodeContainer = document.getElementById('pix-qrcode-container');
-const pixQrCodeImg = document.getElementById('pix-qrcode-img');
 const pixCopyPasteCode = document.getElementById('pix-copy-paste-code');
 const pixCopyBtn = document.getElementById('pix-copy-btn');
 const pixPendingStatus = document.getElementById('pix-pending-status');
@@ -83,7 +82,6 @@ const pixPendingStatus = document.getElementById('pix-pending-status');
 const boletoContainer = document.getElementById('boleto-container');
 const boletoLinhaDigitavel = document.getElementById('boleto-linha-digitavel');
 const boletoCopyBtn = document.getElementById('boleto-copy-btn');
-const boletoDownloadLink = document.getElementById('boleto-download-link');
 const boletoPendingStatus = document.getElementById('boleto-pending-status');
 
 const pendingPaymentSection = document.getElementById('pending-payment-section');
@@ -108,8 +106,6 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', cu
 let currentPlanConfig = null;
 let currentBillingType = 'CREDIT_CARD';
 let paymentPollingInterval = null;
-let hasPendingPayment = false;
-let pendingPaymentData = null;
 let paymentMethodsLocked = false;
 let appliedCoupon = null;
 
@@ -117,7 +113,6 @@ let appliedCoupon = null;
 
 const couponToggle = document.getElementById('couponToggle');
 const couponBody = document.getElementById('couponBody');
-const couponChevron = document.getElementById('couponChevron');
 const couponInput = document.getElementById('couponCodeInput');
 const couponApplyBtn = document.getElementById('couponApplyBtn');
 const couponFeedback = document.getElementById('couponFeedback');
@@ -198,7 +193,7 @@ function updatePriceWithCoupon() {
     const total = calcTotal(currentPlanConfig.monthlyBase, currentPlanConfig.months, currentPlanConfig.discount);
 
     if (appliedCoupon && total > 0) {
-        let discountValue = appliedCoupon.tipo_desconto === 'percentual'
+        const discountValue = appliedCoupon.tipo_desconto === 'percentual'
             ? total * (appliedCoupon.valor_desconto / 100)
             : appliedCoupon.valor_desconto;
         const finalTotal = Math.max(0, total - discountValue);
@@ -440,7 +435,7 @@ async function checkPendingPix() {
         } else if (json.data?.paid) {
             finishPaymentSuccess('Seu plano foi ativado.');
         }
-    } catch (err) { /* silencioso */ }
+    } catch { /* silencioso */ }
 }
 
 // ─── Clipboard ──────────────────────────────────────────────────────────────
@@ -453,7 +448,7 @@ async function copyToClipboard(text, button) {
         button.classList.add('copied');
         if (span) span.textContent = 'Copiado!';
         setTimeout(() => { button.classList.remove('copied'); if (span) span.textContent = originalText; }, 2000);
-    } catch (err) {
+    } catch {
         window.Swal?.fire('Erro', 'Não foi possível copiar. Selecione e copie manualmente.', 'warning');
     }
 }
@@ -486,20 +481,15 @@ async function checkPendingPayment() {
     try {
         const json = await apiGet(resolvePremiumPendingPaymentEndpoint());
         if (json.success && json.data?.hasPending) {
-            hasPendingPayment = true;
-            pendingPaymentData = json.data;
             showPendingPaymentSection(json.data);
             return true;
         } else if (json.data?.paid) {
             finishPaymentSuccess('Seu plano foi ativado.');
             return true;
         }
-        hasPendingPayment = false;
-        pendingPaymentData = null;
         hidePendingPaymentSection();
         return false;
-    } catch (err) {
-        hasPendingPayment = false;
+    } catch {
         hidePendingPaymentSection();
         return false;
     }
@@ -508,6 +498,7 @@ async function checkPendingPayment() {
 function showPendingPaymentSection(data) {
     if (modalBody) modalBody.style.display = 'none';
     pendingPaymentSection?.classList.add('is-visible');
+    lockPaymentMethods();
 
     const billingTypeLabel = data.billingType === 'PIX' ? 'PIX' : 'Boleto';
     const typeClass = data.billingType === 'PIX' ? 'pending-type-pix' : 'pending-type-boleto';
@@ -534,6 +525,7 @@ function showPendingPaymentSection(data) {
 
 function hidePendingPaymentSection() {
     pendingPaymentSection?.classList.remove('is-visible');
+    unlockPaymentMethods();
     if (modalBody) modalBody.style.display = '';
 }
 
@@ -555,7 +547,6 @@ async function cancelPendingPayment() {
         const json = await apiPost(resolvePremiumCancelPendingEndpoint());
 
         if (json.success) {
-            hasPendingPayment = false; pendingPaymentData = null;
             stopPaymentPolling(); hidePendingPaymentSection();
             window.Swal?.fire({ icon: 'success', title: 'Pagamento cancelado!', text: 'Agora você pode escolher outro método.', timer: 2000, showConfirmButton: false });
         } else {
@@ -622,9 +613,7 @@ function closeBillingModal() {
 
     currentPlanConfig = null;
     stopPaymentPolling();
-    hasPendingPayment = false; pendingPaymentData = null;
     hidePendingPaymentSection();
-    unlockPaymentMethods();
 
     pixQrCodeContainer?.classList.remove('is-visible');
     boletoContainer?.classList.remove('is-visible');
@@ -723,7 +712,7 @@ form?.addEventListener('submit', async (e) => {
 
     syncPlanHiddenFields();
     const fd = new FormData(form);
-    let payload = {
+    const payload = {
         plan_id: currentPlanConfig.planId, plan_code: currentPlanConfig.planCode,
         cycle: inputPlanCycle.value, months: Number(inputPlanMonths.value || 1),
         discount: Number(inputPlanDiscount.value || 0),

@@ -20,8 +20,7 @@ import { escapeHtml } from '../shared/utils.js';
 let posts = [];
 let categorias = [];
 let currentPage = 1;
-let totalPages = 1;
-let perPage = 15;
+const perPage = 15;
 let editingPostId = null;
 let filterDebounce = null;
 let tinyMCEInitialized = false;
@@ -236,7 +235,6 @@ async function loadPosts() {
 
         if (data.success) {
             posts = data.data.items;
-            totalPages = Math.ceil(data.data.total / data.data.perPage);
             currentPage = data.data.page;
 
             updateStats(data.data.stats);
