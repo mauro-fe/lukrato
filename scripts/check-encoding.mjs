@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { TextDecoder } from 'node:util';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -48,11 +48,11 @@ const SKIP_PREFIXES = [
     'resources/css/admin/vendor/'
 ];
 
-// Typical UTF-8 mojibake sequences from Latin-1/Windows-1252 double-encoding.
-const MOJIBAKE_RE = /(?:Ã[^\u0000-\u007F]|Â[^\u0000-\u007F]|â[\u0080-\u00BF]{1,2}|ð[\u0080-\u00BF]{2,3}|\uFFFD)/u;
+// Typical UTF-8 mojibake sequences after Latin-1/Windows-1252 decoding.
+const MOJIBAKE_RE = /(?:\u00C3(?:[\u0080-\u00BF]|\u0192[^\u0000-\u007F])|\u00C2[^\u0000-\u007F]|\u00E2(?:[\u0080-\u00BF]{1,2}|\u20AC[\u0080-\u00BF\u2018-\u2026])|\u00F0(?:[\u0080-\u00BF]{2,3}|\u0178[^\u0000-\u007F]{0,2})|\uFFFD)/u;
 
-function toPosix(p) {
-    return p.replace(/\\/g, '/');
+function toPosix(filePath) {
+    return filePath.replace(/\\/g, '/');
 }
 
 function shouldSkip(filePath) {
@@ -68,15 +68,26 @@ function isTextFile(filePath) {
 }
 
 function listFiles() {
-    const command = checkStaged
-        ? 'git diff --cached --name-only --diff-filter=ACMRTUXB'
-        : 'git ls-files';
+    const args = checkStaged
+        ? ['diff', '--cached', '--name-only', '--diff-filter=ACMRTUXB']
+        : ['ls-files'];
 
-    const output = execSync(command, { encoding: 'utf8' });
+    const output = execFileSync('git', args, { encoding: 'utf8' });
     return output
         .split(/\r?\n/)
         .map((line) => line.trim())
         .filter(Boolean);
+}
+
+function findLine(text, regex) {
+    const lines = text.split(/\r?\n/);
+    for (let index = 0; index < lines.length; index++) {
+        if (regex.test(lines[index])) {
+            return index + 1;
+        }
+    }
+
+    return null;
 }
 
 function checkFile(filePath) {
@@ -94,7 +105,11 @@ function checkFile(filePath) {
     }
 
     if (MOJIBAKE_RE.test(text)) {
-        return { file: filePath, type: 'mojibake' };
+        return {
+            file: filePath,
+            type: 'mojibake',
+            line: findLine(text, MOJIBAKE_RE)
+        };
     }
 
     return null;
@@ -114,7 +129,10 @@ function printIssues(issues) {
 
     if (mojibake.length > 0) {
         console.error(`Mojibake patterns (${mojibake.length}):`);
-        mojibake.forEach((item) => console.error(` - ${item.file}`));
+        mojibake.forEach((item) => {
+            const suffix = item.line ? `:${item.line}` : '';
+            console.error(` - ${item.file}${suffix}`);
+        });
         console.error('');
     }
 

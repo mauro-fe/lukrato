@@ -1287,7 +1287,7 @@
 }
 
 .sugestao-economia::before {
-  content: "ðŸ’°";
+  content: "\1F4B0";
   font-size: 0.7rem;
 }
 
