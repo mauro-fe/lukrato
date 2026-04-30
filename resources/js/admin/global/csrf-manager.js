@@ -179,7 +179,7 @@ import { applyRuntimeCsrfToken } from '../shared/runtime.js';
                 try {
                     await refreshToken();
                     return fetchWithCsrf(url, options, false);
-                } catch (refreshErr) {
+                } catch {
                     // Retorna a resposta original do erro
                 }
             }
@@ -206,7 +206,7 @@ import { applyRuntimeCsrfToken } from '../shared/runtime.js';
                 try {
                     const errorData = await response.json();
                     errorMsg = errorData?.message || errorMsg;
-                } catch (_) {
+                } catch {
                     // Ignora erro de parse
                 }
             }

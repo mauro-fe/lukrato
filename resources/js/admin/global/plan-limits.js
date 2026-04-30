@@ -128,7 +128,7 @@ import { resolvePlanLimitsEndpoint } from '../api/endpoints/billing.js';
                         data: limitsData,
                         timestamp: now,
                     }));
-                } catch (e) { /* ignore */ }
+                } catch { /* ignore */ }
 
                 return limitsData;
             }
@@ -145,7 +145,7 @@ import { resolvePlanLimitsEndpoint } from '../api/endpoints/billing.js';
                         return limitsData;
                     }
                 }
-            } catch (e) { /* ignore */ }
+            } catch { /* ignore */ }
         }
 
         return null;

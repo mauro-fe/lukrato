@@ -10,7 +10,7 @@
  * ============================================================================
  */
 
-import { apiGet, getBaseUrl, getErrorMessage } from '../shared/api.js';
+import { apiGet, getBaseUrl } from '../shared/api.js';
 import {
     resolveGamificationAchievementsEndpoint,
     resolveGamificationProgressEndpoint,
@@ -52,7 +52,6 @@ function getAchievementIconColor(icon) {
 // ─── State ──────────────────────────────────────────────────────────────────
 
 let isPro = false;
-let currentProgress = {};
 
 // ─── Core Functions ─────────────────────────────────────────────────────────
 
@@ -86,11 +85,10 @@ async function loadGamificationProgress() {
         const data = await apiGet(resolveGamificationProgressEndpoint());
         const isSuccess = data.success === true;
         if (isSuccess && data.data) {
-            currentProgress = data.data;
             isPro = data.data.is_pro;
             updateProgressUI(data.data);
         }
-    } catch (error) { /* silenciar */ }
+    } catch { /* silenciar */ }
 }
 
 function updateProgressUI(progress) {
@@ -235,7 +233,7 @@ function updateAchievementsUI(achievements) {
     displayAchievements.forEach(achievement => {
         const badgeItem = document.createElement('div');
         const isUnlocked = achievement.unlocked || achievement.unlocked_ever;
-        let statusClass = isUnlocked ? 'unlocked' : 'locked';
+        const statusClass = isUnlocked ? 'unlocked' : 'locked';
 
         badgeItem.className = `badge-item ${statusClass}`;
         if (achievement.is_pro_only && !isPro) badgeItem.classList.add('pro-only');
@@ -289,59 +287,6 @@ function showAchievementDetail(achievement) {
         customClass: { popup: 'lk-swal-popup achievement-modal', confirmButton: 'btn btn-primary' },
         didOpen: () => { if (window.lucide) lucide.createIcons(); }
     });
-}
-
-// ─── Show All Achievements Modal ────────────────────────────────────────────
-
-async function showAllAchievements() {
-    try {
-        const data = await apiGet(resolveGamificationAchievementsEndpoint());
-        const isSuccess = data.success === true;
-        if (!isSuccess || !data.data) return;
-
-        const achievements = data.data.achievements;
-        const stats = data.data.stats;
-
-        let html = `
-            <div class="achievements-modal-stats">
-                <div class="stat-item"><div class="stat-value">${stats.unlocked_count}</div><div class="stat-label">Desbloqueadas</div></div>
-                <div class="stat-item"><div class="stat-value">${stats.completion_percentage}%</div><div class="stat-label">Completado</div></div>
-            </div>
-            <div class="achievements-modal-grid">
-        `;
-
-        achievements.forEach(ach => {
-            const status = ach.unlocked ? 'unlocked' : 'locked';
-            const proTag = ach.is_pro_only ? '<span class="pro-tag">PRO</span>' : '';
-            html += `
-                <div class="achievement-modal-item ${status}">
-                    <div class="achievement-icon" style="color:${getAchievementIconColor(ach.icon)}"><i data-lucide="${ach.icon}"></i></div>
-                    <div class="achievement-info">
-                        <div class="achievement-name">${escapeHtml(ach.name)} ${proTag}</div>
-                        <div class="achievement-desc">${escapeHtml(ach.description)}</div>
-                        <div class="achievement-points-small"><i data-lucide="star"></i> ${ach.points_reward} pts</div>
-                    </div>
-                    ${ach.unlocked ? '<div class="achievement-check"><i data-lucide="check"></i></div>' : ''}
-                </div>
-            `;
-        });
-
-        html += '</div>';
-
-        Swal.fire({
-            title: 'Suas Conquistas',
-            html: html,
-            width: '800px',
-            confirmButtonText: 'Fechar',
-            customClass: { popup: 'lk-swal-popup achievements-modal', confirmButton: 'btn btn-primary' },
-            didOpen: () => { if (window.lucide) lucide.createIcons(); }
-        });
-    } catch (error) {
-        console.error('Erro ao carregar conquistas:', error);
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({ icon: 'error', title: 'Erro', text: getErrorMessage(error, 'Nao foi possivel carregar as conquistas.') });
-        }
-    }
 }
 
 // ─── Pro Upgrade ────────────────────────────────────────────────────────────

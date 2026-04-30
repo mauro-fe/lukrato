@@ -21,7 +21,7 @@
         if (prefersCollapsed && isDesktop && !document.body.classList.contains('sidebar-collapsed')) {
             document.body.classList.add('sidebar-collapsed');
         }
-    } catch (err) {
+    } catch {
         // silently ignore
     }
 })();

@@ -1,6 +1,6 @@
 ﻿// ============================================================================
 // HEADER.JS - Sistema de Header e Sidebar
-import { apiGet, apiLogout, buildAppUrl, getApiPayload, getBaseUrl } from '../shared/api.js';
+import { apiGet, apiLogout, buildAppUrl, getApiPayload } from '../shared/api.js';
 import { resolveAccountsEndpoint } from '../api/endpoints/finance.js';
 
 // ============================================================================
@@ -247,7 +247,6 @@ import { resolveAccountsEndpoint } from '../api/endpoints/finance.js';
             });
 
         // Adiciona estado ativo ao link correto
-        let hasActive = false;
         links.forEach(link => {
             if (link.id === 'btn-logout' || link.hasAttribute('data-no-active')) return;
 
@@ -262,9 +261,8 @@ import { resolveAccountsEndpoint } from '../api/endpoints/finance.js';
                 )) {
                     link.classList.add('active');
                     link.setAttribute('aria-current', 'page');
-                    hasActive = true;
                 }
-            } catch (error) {
+            } catch {
                 console.warn('[Header] URL inválida no link:', link);
             }
         });
@@ -305,7 +303,6 @@ import { resolveAccountsEndpoint } from '../api/endpoints/finance.js';
         const closeBtn = document.getElementById('closeSidebarBtn');
         const closeBtnNew = document.querySelector('.sidebar-close-btn');
         const backdrop = document.getElementById('sidebarBackdrop');
-        const icon = btn?.querySelector('i');
 
         if (!aside || (!btn && !mobileBtn) || !body) return;
 

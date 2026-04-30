@@ -55,7 +55,7 @@ import {
     // ========================================================================
     // ESTADO
     // ========================================================================
-    let state = {
+    const state = {
         remainingTime: CONFIG.sessionLifetime,
         isWarningShown: false,
         isLoggedOutShown: false,
@@ -896,7 +896,7 @@ import {
             // Salva a página atual para redirecionar após login
             try {
                 sessionStorage.setItem('lk_redirect_after_login', currentPath);
-            } catch (e) {
+            } catch {
                 // Ignora erro de sessionStorage
             }
 

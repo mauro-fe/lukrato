@@ -387,7 +387,7 @@
             await navigator.clipboard.writeText(text);
             showToast('Copiado para a área de transferência!', 'success', 2000);
             return true;
-        } catch (err) {
+        } catch {
             showToast('Erro ao copiar', 'error', 2000);
             return false;
         }

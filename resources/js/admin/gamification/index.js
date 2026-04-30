@@ -20,7 +20,7 @@ import {
     resolveGamificationProgressEndpoint,
 } from '../api/endpoints/gamification.js';
 import { toastError } from '../shared/ui.js';
-import { escapeHtml, formatDate as sharedFormatDate } from '../shared/utils.js';
+import { escapeHtml } from '../shared/utils.js';
 import {
     ensureRuntimeConfig,
     getRuntimeConfig,
