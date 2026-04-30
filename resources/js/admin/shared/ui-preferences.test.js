@@ -14,7 +14,7 @@ describe('shared/ui-preferences', () => {
         apiPostMock.mockReset();
     });
 
-    it('carrega preferencias por pagina via endpoint v1', async () => {
+    it('carrega preferências por página via endpoint v1', async () => {
         apiGetMock.mockResolvedValue({
             data: {
                 preferences: {
@@ -31,7 +31,7 @@ describe('shared/ui-preferences', () => {
         expect(apiGetMock).toHaveBeenCalledWith('api/v1/user/ui-preferences/dashboard');
     });
 
-    it('persiste preferencias por pagina via endpoint v1', async () => {
+    it('persiste preferências por página via endpoint v1', async () => {
         apiPostMock.mockResolvedValue({
             data: {
                 preferences: {
@@ -52,7 +52,7 @@ describe('shared/ui-preferences', () => {
         });
     });
 
-    it('rejeita page keys invalidas antes de disparar requisicao', async () => {
+    it('rejeita page keys inválidas antes de disparar requisição', async () => {
         const { fetchUiPagePreferences } = await import('./ui-preferences.js');
 
         await expect(fetchUiPagePreferences('..invalid')).rejects.toThrow('Invalid UI page key.');

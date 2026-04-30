@@ -548,7 +548,7 @@ async function uploadImage(file) {
         }
     } catch (error) {
         console.error('Erro no upload:', error);
-        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisição do blog.'));
     }
 }
 
@@ -616,7 +616,7 @@ async function savePost() {
         }
     } catch (error) {
         console.error('Erro ao salvar post:', error);
-        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisição do blog.'));
     }
 }
 
@@ -632,7 +632,7 @@ async function editPost(id) {
         }
     } catch (error) {
         console.error('Erro ao editar post:', error);
-        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisição do blog.'));
     }
 }
 
@@ -663,6 +663,6 @@ async function deletePost(id) {
         }
     } catch (error) {
         console.error('Erro ao excluir post:', error);
-        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisicao do blog.'));
+        LKFeedback.error(getErrorMessage(error, 'Erro ao processar requisição do blog.'));
     }
 }

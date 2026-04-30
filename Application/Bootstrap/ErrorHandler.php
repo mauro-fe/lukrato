@@ -20,8 +20,7 @@ class ErrorHandler
         ?string $environment = null,
         ?ResponseEmitter $responseEmitter = null,
         ?InfrastructureRuntimeConfig $runtimeConfig = null
-    )
-    {
+    ) {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
         $this->environment = $environment ?? $this->runtimeConfig->appEnvironment();
         $this->responseEmitter = ApplicationContainer::resolveOrNew($responseEmitter, ResponseEmitter::class);
@@ -191,7 +190,7 @@ class ErrorHandler
 
     private function buildRequestErrorResponse(\Throwable $e): Response
     {
-        $html = '<h1>Erro na requisicao:</h1>';
+        $html = '<h1>Erro na requisição:</h1>';
         $html .= '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
         $html .= '<h2>Stack Trace:</h2>';
         $html .= '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';

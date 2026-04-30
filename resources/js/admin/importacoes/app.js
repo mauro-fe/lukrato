@@ -104,14 +104,14 @@ function buildFetchApiJsonError(error, payload = null) {
     const message = String(
         resolvedPayload?.message
         || messages[0]
-        || getErrorMessage(error, 'Falha na requisicao.')
+        || getErrorMessage(error, 'Falha na requisição.')
     ).trim();
 
     const requestError = error instanceof Error
         ? error
-        : new Error(message || 'Falha na requisicao.');
+        : new Error(message || 'Falha na requisição.');
 
-    requestError.message = message || requestError.message || 'Falha na requisicao.';
+    requestError.message = message || requestError.message || 'Falha na requisição.';
     requestError.response = error?.response ?? null;
     requestError.payload = resolvedPayload;
     requestError.messages = messages;
