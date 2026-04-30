@@ -10,7 +10,6 @@ import { resolveLancamentoEndpoint, resolveLancamentosBulkDeleteEndpoint } from 
  */
 
 export function createDashboardFoundation({
-    CONFIG,
     getDashboardOverview,
     getApiPayload,
     apiGet,

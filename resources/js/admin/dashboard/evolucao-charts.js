@@ -98,7 +98,7 @@ class EvolucaoCharts {
             this._drawMensal(data.mensal);
             this._drawAnual(data.anual);
             this._updateStats(data);
-        } catch (_) {
+        } catch {
             // silently ignore
         }
     }

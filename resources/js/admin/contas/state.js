@@ -187,7 +187,7 @@ export const Utils = {
         const reais = value / 100;
 
         // Formata com 2 casas decimais
-        let formatted = reais.toFixed(2)
+        const formatted = reais.toFixed(2)
             .replace('.', ',')
             .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 

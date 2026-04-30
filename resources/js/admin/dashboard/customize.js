@@ -101,7 +101,7 @@ function syncDashboardLayout(prefs = COMPLETE_DEFAULTS) {
 
     const overviewTopCount = syncVisibleChildren(overviewTop, { hideWhenEmpty: false });
 
-    const healthAiCount = syncVisibleChildren(healthAiRow);
+    syncVisibleChildren(healthAiRow);
     if (healthInsights) {
         healthInsights.style.display = prefs.toggleHealthScore ? '' : 'none';
     }

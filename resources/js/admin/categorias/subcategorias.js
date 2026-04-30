@@ -9,7 +9,7 @@
  */
 
 import {
-    CONFIG, STATE, Modules, Utils,
+    STATE, Modules, Utils,
     AVAILABLE_ICONS, ICON_COLORS,
     escapeHtml, toastSuccess, toastError,
 } from './state.js';

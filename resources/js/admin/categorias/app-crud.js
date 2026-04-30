@@ -10,7 +10,6 @@ import { resolveCategoriesEndpoint, resolveCategoryEndpoint } from '../api/endpo
 
 export function createCategoriasCrud({
     STATE,
-    CONFIG,
     Utils,
     apiPost,
     apiPut,

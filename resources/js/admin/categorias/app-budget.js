@@ -10,7 +10,6 @@ import { resolveFinanceBudgetEndpoint, resolveFinanceBudgetsEndpoint } from '../
 
 export function createCategoriasBudget({
     STATE,
-    CONFIG,
     Utils,
     apiPost,
     apiDelete,
