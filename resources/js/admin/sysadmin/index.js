@@ -1082,7 +1082,6 @@ function getTimeAgo(dateStr) {
 // FEEDBACK ADMIN
 // ============================================================================
 
-let feedbackCurrentPage = 1;
 let feedbackStatsLoaded = false;
 
 async function loadFeedbackStats() {
@@ -1128,7 +1127,6 @@ function setText(id, value) {
 }
 
 async function loadFeedbackList(page = 1) {
-    feedbackCurrentPage = page;
     const wrapper = document.getElementById('feedbackTableWrapper');
     if (!wrapper) return;
 
@@ -1296,7 +1294,6 @@ document.addEventListener('click', (e) => {
 const VALID_TABS = ['dashboard', 'controle', 'usuarios', 'logs', 'ia', 'feedback'];
 const sysadminTabs = document.querySelectorAll('.sysadmin-tab');
 const sysadminPanels = document.querySelectorAll('.sysadmin-tab-panel');
-let chartsInitialized = false;
 
 function switchTab(tabId) {
     if (!VALID_TABS.includes(tabId)) return;
@@ -1312,7 +1309,7 @@ function switchTab(tabId) {
     });
 
     // Persist tab preference
-    try { localStorage.setItem('sysadmin_tab', tabId); } catch (e) { }
+    try { localStorage.setItem('sysadmin_tab', tabId); } catch { }
     history.replaceState(null, '', `#${tabId}`);
 
     // Resize charts when switching to dashboard (ApexCharts + hidden container fix)
@@ -1350,7 +1347,7 @@ sysadminTabs.forEach(tab => {
         try {
             const stored = localStorage.getItem('sysadmin_tab');
             if (stored && VALID_TABS.includes(stored)) initial = stored;
-        } catch (e) { }
+        } catch { }
     }
 
     if (initial !== 'dashboard') switchTab(initial);
@@ -1380,7 +1377,6 @@ const feedbackFiltersForm = document.getElementById('feedbackFilters');
 if (feedbackFiltersForm) {
     feedbackFiltersForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        feedbackCurrentPage = 1;
         loadFeedbackList();
     });
 }

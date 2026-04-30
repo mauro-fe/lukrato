@@ -222,12 +222,6 @@ function getQueryValue() {
     return (STATE.filterQuery || '').toLowerCase().trim();
 }
 
-function getMonthReferenceLabel() {
-    const baseDate = new Date(STATE.anoSelecionado, Math.max(0, STATE.mesSelecionado - 1), 1);
-    const label = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(baseDate);
-    return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
 function getCategoriasByType(tipo) {
     return STATE.categorias.filter(cat => cat.tipo === tipo || cat.tipo === 'ambas');
 }
@@ -300,7 +294,7 @@ function updateFilterSummary({ query, visibleCount, totalCount }) {
     `;
 }
 
-function updateContextCard({ receitas, despesas, receitasTotal, despesasTotal }) {
+function updateContextCard({ receitasTotal, despesasTotal }) {
     const query = STATE.filterQuery.trim();
     const ownCount = STATE.categorias.filter(cat => !!cat.user_id).length;
     const totalCategorias = Number(receitasTotal || 0) + Number(despesasTotal || 0);
@@ -466,13 +460,6 @@ function renderCategoriaItem(categoria, tipo) {
             </div>`;
     }
 
-    const badges = [
-        `<span class="cat-card-badge ${isCustom ? 'own' : 'default'}">${isCustom ? 'Sua' : 'Padrão'}</span>`,
-        searchMeta.subMatches?.length
-            ? `<span class="cat-card-badge search">Match em ${searchMeta.subMatches.length} subcategoria(s)</span>`
-            : '',
-    ].filter(Boolean).join('');
-
     const actionsHtml = canManage
         ? `
             <button type="button" class="cat-card-btn reorder"
@@ -520,25 +507,6 @@ function renderCategoriaItem(categoria, tipo) {
             ${SubcategoriasModule.renderAccordionPanel(categoria.id)}
         </div>
     `;
-}
-
-/**
- * Renderizar lista de despesas
- */
-function renderListaDespesas(despesas) {
-    const container = document.getElementById('despesasList');
-
-    if (despesas.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i data-lucide="inbox"></i>
-                <p>Nenhuma categoria de despesa cadastrada</p>
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = despesas.map(cat => renderCategoriaItem(cat, 'despesa')).join('');
 }
 
 // =========================================================================

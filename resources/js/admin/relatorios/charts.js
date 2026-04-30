@@ -320,7 +320,7 @@ export const ChartManager = {
                             const globalIdx = currentChunkOffset + config.dataPointIndex;
                             const entry = processedEntries[globalIdx];
                             if (!entry || entry.isOthers) return;
-                            ChartManager.handlePieClick(entry, globalIdx, config.dataPointIndex, idx);
+                            ChartManager.handlePieClick(entry);
                         },
                         dataPointMouseEnter: (event) => {
                             if (event.target) event.target.style.cursor = 'pointer';
@@ -511,7 +511,7 @@ export const ChartManager = {
     /**
      * Handle click on a doughnut segment: toggle subcategory drill-down
      */
-    handlePieClick(entry, globalIdx, dataPointIndex, chartIdx) {
+    handlePieClick(entry) {
         // PRO check
         if (!window.IS_PRO) {
             if (window.PlanLimits?.promptUpgrade) {

@@ -78,7 +78,7 @@ export function init() {
             const res = await fetch(apiUrl, { method: 'POST', body: new FormData(form) });
             const raw = await res.text();
             let payload = null;
-            try { payload = JSON.parse(raw); } catch (_) { /* ignore */ }
+            try { payload = JSON.parse(raw); } catch { /* ignore */ }
 
             const okBySuccess = payload?.success === true;
             const message     = payload?.message ?? 'Mensagem enviada com sucesso.';
@@ -114,7 +114,7 @@ export function init() {
                     text: 'Não foi possível enviar sua mensagem agora. Tente novamente.',
                     confirmButtonColor: '#e67e22'
                 });
-            } catch (_) { /* SweetAlert2 failed to load — fail silently */ }
+            } catch { /* SweetAlert2 failed to load — fail silently */ }
         } finally {
             sending = false;
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = oldBtnText ?? 'Enviar'; }

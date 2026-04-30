@@ -8,7 +8,7 @@
  */
 
 import { getBaseUrl } from '../shared/api.js';
-import { formatMoney, escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
+import { formatMoney } from '../shared/utils.js';
 import { refreshIcons } from '../shared/ui.js';
 
 // Re-export shared utilities for convenience
@@ -246,7 +246,7 @@ export const Utils = {
         if (utf8Match) {
             try {
                 return decodeURIComponent(utf8Match[1]);
-            } catch (e) {
+            } catch {
                 return utf8Match[1];
             }
         }

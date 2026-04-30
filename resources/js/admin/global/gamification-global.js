@@ -75,7 +75,7 @@ import {
                     particleCount,
                     origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
                 }));
-            } catch (error) {
+            } catch {
                 clearInterval(interval);
             }
         }, 250);
@@ -88,9 +88,9 @@ import {
         try {
             const audio = new Audio(buildAssetUrl('audio/success-fanfare-trumpets-6185.mp3'));
             audio.volume = 0.5;
-            audio.play().catch(err => {
+            audio.play().catch(() => {
             });
-        } catch (error) {
+        } catch {
         }
     }
 
@@ -361,7 +361,7 @@ import {
                 },
                 allowOutsideClick: false,
                 allowEscapeKey: false
-            }).then((result) => {
+            }).then(() => {
                 // Quando fechar, chamar callback para mostrar próximo item
                 if (onClose) {
                     setTimeout(onClose, 300); // Pequeno delay para transição suave
@@ -734,21 +734,6 @@ import {
     };
 
     /**
-     * Mostrar a próxima conquista da fila (uma por vez)
-     */
-    function showNextPendingAchievement() {
-        if (!window.pendingAchievements || window.pendingAchievements.length === 0) {
-            return;
-        }
-
-        // Pegar a primeira conquista da fila
-        const achievement = window.pendingAchievements.shift();
-
-        // Mostrar a conquista com callback para mostrar a próxima
-        notifyAchievementWithCallback(achievement, showNextPendingAchievement);
-    }
-
-    /**
      * Mostrar o próximo item da fila combinada (conquista ou level up)
      */
     function showNextQueuedItem() {
@@ -823,7 +808,7 @@ import {
                 },
                 allowOutsideClick: false,
                 allowEscapeKey: false
-            }).then((result) => {
+            }).then(() => {
                 // Quando fechar, chamar callback para mostrar próxima conquista
                 if (onClose) {
                     setTimeout(onClose, 300); // Pequeno delay para transição suave
