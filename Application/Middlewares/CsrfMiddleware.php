@@ -113,7 +113,7 @@ class CsrfMiddleware
         }
 
         [$token, $source] = self::extractToken($request);
-        $valid = is_string($token) && self::validateToken($token, $tokenId);
+        $valid = self::validateToken($token, $tokenId);
 
         if ($valid) {
             // ✅ Token válido - NÃO regenerar, manter o mesmo token

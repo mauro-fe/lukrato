@@ -201,7 +201,7 @@ class ImportUploadSecurityService
         foreach ($nonEmptyLines as $line) {
             foreach ([',', ';', "\t"] as $delimiter) {
                 $columns = str_getcsv($line, $delimiter);
-                if (is_array($columns) && count($columns) >= 2) {
+                if (count($columns) >= 2) {
                     return true;
                 }
             }

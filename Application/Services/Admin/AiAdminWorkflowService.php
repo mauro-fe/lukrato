@@ -275,9 +275,7 @@ class AiAdminWorkflowService
             ]);
         }
 
-        $resultPreview = is_array($result)
-            ? json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-            : null;
+        $resultPreview = json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $this->logLegacyAiCall(
             $userId,

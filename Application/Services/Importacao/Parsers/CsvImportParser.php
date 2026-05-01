@@ -41,7 +41,7 @@ class CsvImportParser implements ImportParserInterface
      */
     private function resolveOptions(ImportProfileConfigDTO $profile): array
     {
-        $options = is_array($profile->options ?? null) ? $profile->options : [];
+        $options = $profile->options;
         $hasHeader = $this->normalizeBoolean($options['csv_has_header'] ?? true);
 
         return [
@@ -76,10 +76,6 @@ class CsvImportParser implements ImportParserInterface
             if ($lineNumber > $maxReadableLines) {
                 fclose($handle);
                 throw new \InvalidArgumentException(ImportSecurityPolicy::rowsLimitMessage());
-            }
-
-            if (!is_array($line)) {
-                continue;
             }
 
             $rows[] = [

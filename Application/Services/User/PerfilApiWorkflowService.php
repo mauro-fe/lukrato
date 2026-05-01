@@ -51,7 +51,7 @@ class PerfilApiWorkflowService
         }
 
         $profileUpdate = $this->perfilService->atualizarPerfil($userId, $dto);
-        $updatedUser = (is_array($profileUpdate) && array_key_exists('user', $profileUpdate))
+        $updatedUser = array_key_exists('user', $profileUpdate)
             ? $profileUpdate['user']
             : $profileUpdate;
 

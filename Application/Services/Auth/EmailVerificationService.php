@@ -415,9 +415,7 @@ class EmailVerificationService
 
             $user->assinaturas()->delete();
 
-            if (method_exists($user, 'categorias')) {
-                $user->categorias()->delete();
-            }
+            $user->categorias()->delete();
 
             $user->delete();
 

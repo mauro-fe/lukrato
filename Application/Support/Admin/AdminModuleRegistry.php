@@ -542,7 +542,7 @@ final class AdminModuleRegistry
     private static function firstViewId(array $viewIds): ?string
     {
         foreach ($viewIds as $viewId) {
-            if (is_string($viewId) && trim($viewId) !== '') {
+            if (trim($viewId) !== '') {
                 return trim($viewId);
             }
         }

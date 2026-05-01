@@ -1014,7 +1014,7 @@ class ImportExecutionService
                 continue;
             }
 
-            $rowKey = is_string($key) && trim($key) !== ''
+            $rowKey = trim($key) !== ''
                 ? trim($key)
                 : trim((string) ($value['row_key'] ?? ''));
 

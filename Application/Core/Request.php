@@ -109,7 +109,7 @@ class Request
 
         parse_str($this->rawInput, $parsed);
 
-        return is_array($parsed) ? $parsed : [];
+        return $parsed;
     }
 
     private function detectHeaders(array $server): array

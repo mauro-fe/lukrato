@@ -262,9 +262,7 @@ class PreferenciasUsuarioUseCase
                 case 'reset_all':
                     $helpPreferences = [
                         'settings' => [
-                            'auto_offer' => array_key_exists('auto_offer', $helpPreferences['settings'])
-                                ? (bool) $helpPreferences['settings']['auto_offer']
-                                : true,
+                            'auto_offer' => (bool) $helpPreferences['settings']['auto_offer'],
                         ],
                         'tour_completed' => [],
                         'offer_dismissed' => [],
@@ -423,7 +421,7 @@ class PreferenciasUsuarioUseCase
     }
 
     /**
-     * @param array<string,mixed> $value
+     * @param mixed $value
      * @return array<string,string>
      */
     private function normalizeHelpStateMap(mixed $value): array
