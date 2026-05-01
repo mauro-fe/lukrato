@@ -24,8 +24,6 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class TelegramService
 {
-    private const BASE_URL = 'https://api.telegram.org';
-
     private TelegramBotClient $http;
     private string $token;
     private TelegramRuntimeConfig $runtimeConfig;

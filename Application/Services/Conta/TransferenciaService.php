@@ -7,7 +7,6 @@ namespace Application\Services\Conta;
 use Application\Container\ApplicationContainer;
 use Application\Models\Conta;
 use Application\Models\Lancamento;
-use Application\Repositories\ContaRepository;
 use Application\Services\Metas\MetaProgressService;
 use Illuminate\Database\Capsule\Manager as DB;
 use Throwable;
@@ -15,14 +14,11 @@ use ValueError;
 
 class TransferenciaService
 {
-    private ContaRepository $contaRepo;
     private MetaProgressService $metaProgressService;
 
     public function __construct(
-        ?ContaRepository $contaRepo = null,
         ?MetaProgressService $metaProgressService = null
     ) {
-        $this->contaRepo = ApplicationContainer::resolveOrNew($contaRepo, ContaRepository::class);
         $this->metaProgressService = ApplicationContainer::resolveOrNew($metaProgressService, MetaProgressService::class);
     }
 

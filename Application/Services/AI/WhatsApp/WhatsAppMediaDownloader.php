@@ -13,8 +13,6 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class WhatsAppMediaDownloader
 {
-    private const API_VERSION = 'v21.0';
-    private const BASE_URL = 'https://graph.facebook.com';
     private const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
     private WhatsAppMediaHttpClient $http;

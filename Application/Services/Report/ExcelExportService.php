@@ -19,9 +19,7 @@ class ExcelExportService implements ReportExporterInterface
     // Cores do Design System
     private const COLOR_PRIMARY = 'FFE67E22';
     private const COLOR_SECONDARY = 'FF2C3E50';
-    private const COLOR_TEXT = 'FF1E293B';
     private const COLOR_TEXT_MUTED = 'FF475569';
-    private const COLOR_BG = 'FFE6F0FA';
     private const COLOR_SURFACE = 'FFF0F6FC';
     private const COLOR_SURFACE_MUTED = 'FFD9E6F2';
     private const COLOR_BORDER = 'FFCBD5E1';

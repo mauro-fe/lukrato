@@ -13,9 +13,6 @@ class PromptOptimizer
     /** Tamanho máximo de arrays de listagem */
     private const MAX_ARRAY_SIZE = 10;
 
-    /** Tamanho máximo de sub-arrays (ex: top_categorias) */
-    private const MAX_SUB_ARRAY_SIZE = 8;
-
     /** Chaves cujos arrays devem ser limitados */
     private const TRUNCATABLE_KEYS = [
         'lancamentos_recentes'    => 8,

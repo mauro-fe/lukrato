@@ -19,19 +19,16 @@ use Throwable;
 
 class GamificationController extends ApiController
 {
-    private GamificationService $gamificationService;
     private AchievementService $achievementService;
     private StreakService $streakService;
     private MissionService $missionService;
 
     public function __construct(
-        ?GamificationService $gamificationService = null,
         ?AchievementService $achievementService = null,
         ?StreakService $streakService = null,
         ?MissionService $missionService = null
     ) {
         parent::__construct();
-        $this->gamificationService = $this->resolveOrCreate($gamificationService, GamificationService::class);
         $this->achievementService = $this->resolveOrCreate($achievementService, AchievementService::class);
         $this->streakService = $this->resolveOrCreate($streakService, StreakService::class);
         $this->missionService = $this->resolveOrCreate($missionService, MissionService::class);

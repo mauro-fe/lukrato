@@ -10,7 +10,6 @@ use Application\Services\AI\Media\MediaAsset;
 use Application\Services\AI\Media\MediaRouterService;
 use Application\Services\AI\Media\ReceiptAnalysisResult;
 use Application\Services\AI\Media\TranscriptionResult;
-use Application\Services\AI\Media\VideoTranscriptionService;
 use PHPUnit\Framework\TestCase;
 
 class MediaRouterServiceTest extends TestCase
@@ -27,9 +26,6 @@ class MediaRouterServiceTest extends TestCase
                 }
             },
             receiptAnalyzer: new class extends ImageAnalysisService {
-                public function __construct() {}
-            },
-            videoTranscriber: new class extends VideoTranscriptionService {
                 public function __construct() {}
             },
         );
@@ -74,9 +70,6 @@ class MediaRouterServiceTest extends TestCase
                     );
                 }
             },
-            videoTranscriber: new class extends VideoTranscriptionService {
-                public function __construct() {}
-            },
         );
 
         $result = $router->process(new MediaAsset(
@@ -99,14 +92,6 @@ class MediaRouterServiceTest extends TestCase
             },
             receiptAnalyzer: new class extends ImageAnalysisService {
                 public function __construct() {}
-            },
-            videoTranscriber: new class extends VideoTranscriptionService {
-                public function __construct() {}
-
-                public function transcribe(string $videoContent, string $filename = 'video.mp4', ?string $prompt = null): TranscriptionResult
-                {
-                    return new TranscriptionResult(success: true, text: 'recebi 300 do cliente', durationMs: 21);
-                }
             },
         );
 

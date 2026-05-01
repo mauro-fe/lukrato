@@ -23,9 +23,6 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class WhatsAppService
 {
-    private const API_VERSION = 'v21.0';
-    private const BASE_URL    = 'https://graph.facebook.com';
-
     private WhatsAppGraphClient $http;
     private string $token;
     private string $phoneId;

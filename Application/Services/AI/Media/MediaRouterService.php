@@ -13,16 +13,13 @@ class MediaRouterService
 {
     private AudioTranscriptionService $audioTranscriber;
     private ImageAnalysisService $receiptAnalyzer;
-    private ?VideoTranscriptionService $videoTranscriber;
 
     public function __construct(
         ?AudioTranscriptionService $audioTranscriber = null,
-        ?ImageAnalysisService $receiptAnalyzer = null,
-        ?VideoTranscriptionService $videoTranscriber = null,
+        ?ImageAnalysisService $receiptAnalyzer = null
     ) {
         $this->audioTranscriber = ApplicationContainer::resolveOrNew($audioTranscriber, AudioTranscriptionService::class);
         $this->receiptAnalyzer = ApplicationContainer::resolveOrNew($receiptAnalyzer, ImageAnalysisService::class);
-        $this->videoTranscriber = $videoTranscriber;
     }
 
     public function process(MediaAsset $asset): MediaProcessingResult

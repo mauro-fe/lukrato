@@ -63,6 +63,9 @@ class LoginHandler implements AuthHandlerInterface
         try {
             LogService::info('[LOGIN_HANDLER DEBUG] Início handle', ['email' => $credentials->email]);
 
+            $this->csrfCheck->execute($this->request);
+            $this->rateLimitCheck->execute($this->request);
+
             $this->validationStrategy->validate($credentials);
             LogService::info('[LOGIN_HANDLER DEBUG] Validação OK');
 

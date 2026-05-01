@@ -24,7 +24,6 @@ use Application\Services\Infrastructure\LogService;
  */
 class ConfirmationHandler implements AIHandlerInterface
 {
-    private ?AIProvider $provider = null;
     private ActionRegistry $actionRegistry;
     private ContaRepository $contaRepository;
 
@@ -38,7 +37,6 @@ class ConfirmationHandler implements AIHandlerInterface
 
     public function setProvider(AIProvider $provider): void
     {
-        $this->provider = $provider;
     }
 
     public function supports(IntentType $intent): bool

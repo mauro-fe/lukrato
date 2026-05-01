@@ -24,11 +24,8 @@ use Carbon\Carbon;
  */
 class PayFaturaHandler implements AIHandlerInterface
 {
-    private ?AIProvider $provider = null;
-
     public function setProvider(AIProvider $provider): void
     {
-        $this->provider = $provider;
     }
 
     public function supports(IntentType $intent): bool

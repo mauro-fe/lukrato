@@ -8,7 +8,6 @@ use Application\Controllers\Api\Gamification\GamificationController;
 use Application\Core\Exceptions\AuthException;
 use Application\Models\Usuario;
 use Application\Services\Gamification\AchievementService;
-use Application\Services\Gamification\GamificationService;
 use Application\Services\Gamification\StreakService;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -52,8 +51,6 @@ class GamificationControllerTest extends TestCase
             ->andReturn([]);
 
         $streakService = Mockery::mock(StreakService::class);
-        $gamificationService = Mockery::mock(GamificationService::class);
-
         $userProgressModel = Mockery::mock('alias:Application\Models\UserProgress');
         $userProgressModel
             ->shouldReceive('where')
@@ -65,7 +62,7 @@ class GamificationControllerTest extends TestCase
             ->once()
             ->andReturn(null);
 
-        $controller = new GamificationController($gamificationService, $achievementService, $streakService);
+        $controller = new GamificationController($achievementService, $streakService);
 
         $response = $controller->getProgress();
 
@@ -92,7 +89,6 @@ class GamificationControllerTest extends TestCase
         $this->seedAuthenticatedUserSession(702, 'Gamification Invalid');
 
         $controller = new GamificationController(
-            Mockery::mock(GamificationService::class),
             Mockery::mock(AchievementService::class),
             Mockery::mock(StreakService::class),
         );
@@ -109,7 +105,6 @@ class GamificationControllerTest extends TestCase
     public function testGetProgressThrowsAuthExceptionWhenSessionIsMissing(): void
     {
         $controller = new GamificationController(
-            Mockery::mock(GamificationService::class),
             Mockery::mock(AchievementService::class),
             Mockery::mock(StreakService::class),
         );

@@ -108,7 +108,6 @@ class SimpleControllerDependencyResolutionTest extends TestCase
         $this->assertSame($notificationService, $this->readProperty($notificationController, 'notificationService'));
         $this->assertSame($feedbackService, $this->readProperty($feedbackAdminController, 'service'));
         $this->assertSame($feedbackService, $this->readProperty($feedbackController, 'service'));
-        $this->assertSame($gamificationService, $this->readProperty($gamificationController, 'gamificationService'));
         $this->assertSame($achievementService, $this->readProperty($gamificationController, 'achievementService'));
         $this->assertSame($streakService, $this->readProperty($gamificationController, 'streakService'));
         $this->assertSame($missionService, $this->readProperty($gamificationController, 'missionService'));

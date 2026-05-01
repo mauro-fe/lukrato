@@ -79,7 +79,6 @@ class CoreDomainServicesDependencyResolutionTest extends TestCase
         $this->assertSame($planLimitService, $this->readProperty($metaService, 'planLimit'));
         $this->assertSame($metaProgressService, $this->readProperty($metaService, 'progressService'));
 
-        $this->assertSame($contaRepository, $this->readProperty($transferenciaService, 'contaRepo'));
         $this->assertSame($metaProgressService, $this->readProperty($transferenciaService, 'metaProgressService'));
 
         $this->assertSame($lancamentoRepository, $this->readProperty($lancamentoDeletionService, 'lancamentoRepo'));
