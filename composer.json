@@ -2,23 +2,24 @@
   "name": "seu-projeto/lukrato",
   "description": "Sistema de gestão financeira pessoal",
   "type": "project",
+  "license": "proprietary",
   "require": {
-    "php": "^8.0",
-    "cocur/slugify": "4.6.0",
+    "php": "^8.2",
+    "cocur/slugify": "^4.6",
     "dompdf/dompdf": "^3.1",
-    "google/apiclient": "2.18",
+    "google/apiclient": "^2.18",
     "guzzlehttp/guzzle": "^7.10",
     "illuminate/database": "^11.0",
     "illuminate/events": "^11.0",
     "laravel/serializable-closure": "^2.0",
-    "mercadopago/dx-php": "3.6.0",
+    "mercadopago/dx-php": "^3.6",
     "monolog/monolog": "^3.9",
     "nesbot/carbon": "^3.10.1",
     "phpmailer/phpmailer": "^6.9",
     "phpoffice/phpspreadsheet": "^5.3",
     "predis/predis": "^1.1",
-    "tecnickcom/tcpdf": "*",
-    "vlucas/phpdotenv": "*",
+    "tecnickcom/tcpdf": "^6.11",
+    "vlucas/phpdotenv": "^5.6",
     "wixel/gump": "^2.2"
   },
   "require-dev": {
@@ -49,7 +50,15 @@
       "@composer test:architecture"
     ],
     "test:backend:full": "@php vendor/bin/phpunit",
-    "guard:backend": "@composer test:backend:full",
+    "guard:backend": [
+      "@composer validate --strict",
+      "@composer test:backend:full"
+    ],
+    "guard:all": [
+      "@composer guard:backend",
+      "npm run guard:front",
+      "npm run check:encoding"
+    ],
     "install-pdf": [
       "composer require tecnickcom/tcpdf",
       "composer require dompdf/dompdf"
