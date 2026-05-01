@@ -494,10 +494,8 @@ class AchievementService
         // Para DAYS_30_USING, também verificar atividade real (pelo menos 5 dias com lançamentos)
         if ($days <= 30) {
             $activeDays = Lancamento::where('user_id', $user->id)
-                ->selectRaw('DATE(data) as dia')
-                ->groupBy('dia')
-                ->get()
-                ->count();
+                ->distinct()
+                ->count('data');
             return $activeDays >= 5;
         }
 

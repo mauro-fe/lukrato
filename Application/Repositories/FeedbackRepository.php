@@ -7,6 +7,9 @@ namespace Application\Repositories;
 use Application\Models\Feedback;
 use Carbon\Carbon;
 
+/**
+ * @extends BaseRepository<Feedback>
+ */
 class FeedbackRepository extends BaseRepository
 {
     protected function getModelClass(): string

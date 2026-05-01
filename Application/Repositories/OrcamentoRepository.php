@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @extends BaseRepository<OrcamentoCategoria>
+ */
 class OrcamentoRepository extends BaseRepository
 {
     protected function getModelClass(): string

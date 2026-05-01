@@ -12,14 +12,11 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Classe base abstrata para repositories.
  * Implementa funcionalidades comuns.
+ *
+ * @template TModel of Model
  */
 abstract class BaseRepository implements RepositoryInterface
 {
-    /**
-     * @var Model
-     */
-    protected Model $model;
-
     /**
      * Relacionamentos para eager loading na próxima query.
      */
@@ -28,18 +25,9 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Retorna o nome da classe do model.
      * 
-     * @return string
+     * @return class-string<TModel>
      */
     abstract protected function getModelClass(): string;
-
-    /**
-     * Construtor - instancia o model.
-     */
-    public function __construct()
-    {
-        $modelClass = $this->getModelClass();
-        $this->model = new $modelClass();
-    }
 
     /**
      * Define relacionamentos para eager loading na próxima query.
@@ -54,14 +42,26 @@ abstract class BaseRepository implements RepositoryInterface
     }
 
     /**
+     * @template T of Model
+     * @param class-string<T> $modelClass
+     * @return Builder<T>
+     */
+    private function newQueryFor(string $modelClass): Builder
+    {
+        /** @var Builder<T> $query */
+        $query = $modelClass::query();
+        return $query;
+    }
+
+    /**
      * Cria uma nova query builder instance.
      * Aplica eager loading se definido.
      * 
-     * @return Builder
+     * @return Builder<TModel>
      */
     protected function query(): Builder
     {
-        $query = $this->model->newQuery();
+        $query = $this->newQueryFor($this->getModelClass());
 
         if (!empty($this->eagerLoad)) {
             $query->with($this->eagerLoad);
@@ -73,6 +73,8 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return TModel|null
      */
     public function find(int $id): ?Model
     {
@@ -81,6 +83,8 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return TModel
      */
     public function findOrFail(int $id): Model
     {
@@ -89,6 +93,8 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return Collection<int, Model>
      */
     public function all(): Collection
     {
@@ -97,6 +103,8 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return TModel
      */
     public function create(array $data): Model
     {
@@ -135,7 +143,7 @@ abstract class BaseRepository implements RepositoryInterface
      *
      * @param int $id
      * @param int $userId
-     * @return Model|null
+     * @return TModel|null
      */
     public function findForUser(int $id, int $userId): ?Model
     {
@@ -150,7 +158,7 @@ abstract class BaseRepository implements RepositoryInterface
      * 
      * @param int $perPage
      * @param int $page
-     * @return Collection
+     * @return Collection<int, Model>
      */
     public function paginate(int $perPage = 15, int $page = 1): Collection
     {
@@ -164,7 +172,7 @@ abstract class BaseRepository implements RepositoryInterface
      * Busca registros com condições específicas.
      * 
      * @param array $conditions
-     * @return Collection
+     * @return Collection<int, Model>
      */
     public function findWhere(array $conditions): Collection
     {
@@ -185,7 +193,7 @@ abstract class BaseRepository implements RepositoryInterface
      * Busca um único registro com condições.
      * 
      * @param array $conditions
-     * @return Model|null
+     * @return TModel|null
      */
     public function findOneWhere(array $conditions): ?Model
     {

@@ -3,6 +3,8 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -36,12 +38,12 @@ class Categoria extends Model
 
     // ─── Relacionamentos ────────────────────────────────
 
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
 
-    public function lancamentos()
+    public function lancamentos(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'categoria_id');
     }
@@ -49,7 +51,7 @@ class Categoria extends Model
     /**
      * Categoria pai (se esta for uma subcategoria).
      */
-    public function parent()
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
@@ -57,7 +59,7 @@ class Categoria extends Model
     /**
      * Subcategorias desta categoria.
      */
-    public function subcategorias()
+    public function subcategorias(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('nome');
     }
@@ -65,7 +67,7 @@ class Categoria extends Model
     /**
      * Lançamentos que usam esta categoria como subcategoria.
      */
-    public function lancamentosComoSubcategoria()
+    public function lancamentosComoSubcategoria(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'subcategoria_id');
     }

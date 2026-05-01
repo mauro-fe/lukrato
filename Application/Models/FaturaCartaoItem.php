@@ -4,6 +4,8 @@ namespace Application\Models;
 
 use Application\Casts\MoneyDecimalCast;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model para itens de fatura de cartão de crédito
@@ -101,27 +103,32 @@ class FaturaCartaoItem extends Model
     }
 
     // Relacionamentos
-    public function fatura()
+    /** @return BelongsTo<Fatura, $this> */
+    public function fatura(): BelongsTo
     {
         return $this->belongsTo(Fatura::class, 'fatura_id');
     }
 
-    public function lancamento()
+    /** @return BelongsTo<Lancamento, $this> */
+    public function lancamento(): BelongsTo
     {
         return $this->belongsTo(Lancamento::class, 'lancamento_id');
     }
 
-    public function cartaoCredito()
+    /** @return BelongsTo<CartaoCredito, $this> */
+    public function cartaoCredito(): BelongsTo
     {
         return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
     }
 
-    public function categoria()
+    /** @return BelongsTo<Categoria, $this> */
+    public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }
 
-    public function subcategoria()
+    /** @return BelongsTo<Categoria, $this> */
+    public function subcategoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'subcategoria_id');
     }
@@ -162,7 +169,8 @@ class FaturaCartaoItem extends Model
     /**
      * Item pai da recorrência (o primeiro item que originou a assinatura)
      */
-    public function recorrenciaPai()
+    /** @return BelongsTo<FaturaCartaoItem, $this> */
+    public function recorrenciaPai(): BelongsTo
     {
         return $this->belongsTo(FaturaCartaoItem::class, 'recorrencia_pai_id');
     }
@@ -170,7 +178,8 @@ class FaturaCartaoItem extends Model
     /**
      * Itens filhos gerados por esta recorrência
      */
-    public function recorrenciaFilhos()
+    /** @return HasMany<FaturaCartaoItem, $this> */
+    public function recorrenciaFilhos(): HasMany
     {
         return $this->hasMany(FaturaCartaoItem::class, 'recorrencia_pai_id');
     }

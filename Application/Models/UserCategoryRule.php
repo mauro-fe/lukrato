@@ -192,7 +192,7 @@ class UserCategoryRule extends Model
     /**
      * Busca regras do usuário que casam com a descrição.
      *
-     * @return static|null A regra com maior usage_count que casar
+     * @return self|null A regra com maior usage_count que casar
      */
     public static function findMatch(string $description, int $userId, ?string $context = null): ?self
     {

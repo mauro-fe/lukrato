@@ -59,7 +59,7 @@ class LancamentoExportService
     }
 
     /**
-     * @return array{start:Carbon,end:Carbon,categoria?:array{isNull:bool,id:?int},tipo:?string,account:?int,include_transfers:bool}
+     * @return array{categoria:array{isNull:bool,id:?int},tipo:?string,account:?int,include_transfers:bool}
      */
     private function normalizeCriteria(array $filters): array
     {

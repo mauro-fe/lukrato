@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -56,7 +57,7 @@ class BlogPost extends Model
     /**
      * Categoria do post.
      */
-    public function categoria()
+    public function categoria(): BelongsTo
     {
         return $this->belongsTo(BlogCategoria::class, 'blog_categoria_id');
     }

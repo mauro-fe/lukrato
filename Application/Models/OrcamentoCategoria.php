@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Model OrcamentoCategoria - Orçamento mensal por categoria
@@ -62,12 +63,12 @@ class OrcamentoCategoria extends Model
     // RELATIONSHIPS
     // ============================================================
 
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
 
-    public function categoria()
+    public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }

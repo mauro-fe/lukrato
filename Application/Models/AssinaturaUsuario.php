@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Class AssinaturaUsuario
@@ -46,11 +47,11 @@ class AssinaturaUsuario extends Model
     ];
     protected $casts = ['renova_em' => 'datetime', 'cancelada_em' => 'datetime'];
 
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
-    public function plano()
+    public function plano(): BelongsTo
     {
         return $this->belongsTo(Plano::class, 'plano_id');
     }

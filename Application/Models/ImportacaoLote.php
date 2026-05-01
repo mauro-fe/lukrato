@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ImportacaoLote extends Model
 {
@@ -34,14 +36,13 @@ class ImportacaoLote extends Model
         'error_rows' => 'int',
     ];
 
-    public function conta()
+    public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id');
     }
 
-    public function itens()
+    public function itens(): HasMany
     {
         return $this->hasMany(ImportacaoItem::class, 'lote_id');
     }
 }
-

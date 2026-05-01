@@ -4,6 +4,8 @@ namespace Application\Models;
 
 use Application\Casts\MoneyDecimalCast;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -194,7 +196,7 @@ class Lancamento extends Model
      * Relacionamento com Parcelamento (opcional - apenas para agrupamento)
      * Um lançamento PODE pertencer a um parcelamento (cabeçalho)
      */
-    public function parcelamento()
+    public function parcelamento(): BelongsTo
     {
         return $this->belongsTo(Parcelamento::class, 'parcelamento_id');
     }
@@ -203,7 +205,7 @@ class Lancamento extends Model
      * Relacionamento com Cartão de Crédito (opcional)
      * Um lançamento PODE estar vinculado a um cartão de crédito
      */
-    public function cartaoCredito()
+    public function cartaoCredito(): BelongsTo
     {
         return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
     }
@@ -211,7 +213,7 @@ class Lancamento extends Model
     /**
      * Lançamento "pai" da recorrência (primeiro do grupo)
      */
-    public function recorrenciaPai()
+    public function recorrenciaPai(): BelongsTo
     {
         return $this->belongsTo(self::class, 'recorrencia_pai_id');
     }
@@ -219,7 +221,7 @@ class Lancamento extends Model
     /**
      * Lançamentos filhos (gerados por recorrência)
      */
-    public function recorrenciaFilhos()
+    public function recorrenciaFilhos(): HasMany
     {
         return $this->hasMany(self::class, 'recorrencia_pai_id');
     }
@@ -251,7 +253,7 @@ class Lancamento extends Model
     /**
      * Relacionamento com Usuário (obrigatório)
      */
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
@@ -259,7 +261,7 @@ class Lancamento extends Model
     /**
      * Relacionamento com Categoria (opcional)
      */
-    public function categoria()
+    public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }
@@ -267,12 +269,12 @@ class Lancamento extends Model
     /**
      * Relacionamento com Subcategoria (opcional)
      */
-    public function subcategoria()
+    public function subcategoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'subcategoria_id');
     }
 
-    public function meta()
+    public function meta(): BelongsTo
     {
         return $this->belongsTo(Meta::class, 'meta_id');
     }
@@ -280,7 +282,7 @@ class Lancamento extends Model
     /**
      * Relacionamento com Conta (opcional)
      */
-    public function conta()
+    public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id');
     }
@@ -295,7 +297,7 @@ class Lancamento extends Model
 
 
 
-    public function contaDestino()
+    public function contaDestino(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id_destino');
     }

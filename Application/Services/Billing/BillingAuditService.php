@@ -73,7 +73,7 @@ class BillingAuditService
             $grouped = [];
             foreach ($charges as $charge) {
                 $valor = $charge->valor ?? 0;
-                $key = round($valor, 0); // Agrupar por valores similares
+                $key = (string) round($valor, 0); // Agrupar por valores similares
 
                 if (!isset($grouped[$key])) {
                     $grouped[$key] = [];

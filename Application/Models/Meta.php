@@ -3,6 +3,8 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Meta extends Model
 {
@@ -68,17 +70,17 @@ class Meta extends Model
         'data_prazo' => 'date:Y-m-d',
     ];
 
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
 
-    public function lancamentos()
+    public function lancamentos(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'meta_id');
     }
 
-    public function conta()
+    public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id');
     }

@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CupomUsado extends Model
 {
@@ -30,7 +31,7 @@ class CupomUsado extends Model
     /**
      * Relacionamento com cupom
      */
-    public function cupom()
+    public function cupom(): BelongsTo
     {
         return $this->belongsTo(Cupom::class, 'cupom_id');
     }
@@ -38,7 +39,7 @@ class CupomUsado extends Model
     /**
      * Relacionamento com usuário
      */
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
     }
@@ -46,7 +47,7 @@ class CupomUsado extends Model
     /**
      * Relacionamento com assinatura
      */
-    public function assinatura()
+    public function assinatura(): BelongsTo
     {
         return $this->belongsTo(AssinaturaUsuario::class, 'assinatura_id');
     }

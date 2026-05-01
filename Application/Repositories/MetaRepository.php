@@ -7,6 +7,9 @@ namespace Application\Repositories;
 use Application\Models\Meta;
 use Illuminate\Database\Eloquent\Collection;
 
+/**
+ * @extends BaseRepository<Meta>
+ */
 class MetaRepository extends BaseRepository
 {
     protected function getModelClass(): string
@@ -15,7 +18,9 @@ class MetaRepository extends BaseRepository
     }
 
     /**
-     * Busca todas as metas do usuário
+     * Busca todas as metas do usuário.
+     *
+     * @return Collection<int, Meta>
      */
     public function findByUser(int $userId, ?string $status = null): Collection
     {
@@ -84,7 +89,9 @@ class MetaRepository extends BaseRepository
     }
 
     /**
-     * Busca metas ativas ordenadas por prioridade
+     * Busca metas ativas ordenadas por prioridade.
+     *
+     * @return Collection<int, Meta>
      */
     public function getAtivasOrdenadas(int $userId): Collection
     {

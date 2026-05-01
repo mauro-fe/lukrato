@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Repository para operações com contas.
+ *
+ * @extends BaseRepository<Conta>
  */
 class ContaRepository extends BaseRepository
 {

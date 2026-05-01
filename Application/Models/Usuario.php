@@ -8,6 +8,8 @@ use Application\Services\Auth\TokenPairService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\FeatureGate;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -22,6 +24,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $google_id
  *
  * @property-read mixed $plano
+ * @property-read bool $is_gratuito
+ * @property-read bool $is_pro
+ * @property-read bool $is_ultra
+ * @property-read string $plan_tier
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Model|static find(int|string $id)
@@ -105,15 +111,18 @@ class Usuario extends Model
     }
 
 
-    public function categorias()
+    /** @return HasMany<Categoria, $this> */
+    public function categorias(): HasMany
     {
         return $this->hasMany(Categoria::class, 'user_id');
     }
-    public function lancamentos()
+    /** @return HasMany<Lancamento, $this> */
+    public function lancamentos(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'user_id');
     }
-    public function contas()
+    /** @return HasMany<Conta, $this> */
+    public function contas(): HasMany
     {
         return $this->hasMany(Conta::class, 'user_id');
     }
@@ -135,11 +144,13 @@ class Usuario extends Model
         return $this->planTier();
     }
 
-    public function assinaturas()
+    /** @return HasMany<AssinaturaUsuario, $this> */
+    public function assinaturas(): HasMany
     {
         return $this->hasMany(AssinaturaUsuario::class, 'user_id');
     }
-    public function assinaturaAtiva()
+    /** @return HasOne<AssinaturaUsuario, $this> */
+    public function assinaturaAtiva(): HasOne
     {
         return $this->hasOne(AssinaturaUsuario::class, 'user_id')
             ->where(function ($query) {
@@ -435,12 +446,14 @@ class Usuario extends Model
     }
 
 
-    public function enderecos()
+    /** @return HasMany<Endereco, $this> */
+    public function enderecos(): HasMany
     {
         return $this->hasMany(Endereco::class, 'user_id');
     }
 
-    public function enderecoPrincipal()
+    /** @return HasOne<Endereco, $this> */
+    public function enderecoPrincipal(): HasOne
     {
         return $this->hasOne(Endereco::class, 'user_id')
             ->where('tipo', 'principal')

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Repository para operações com parcelamentos.
+ *
+ * @extends BaseRepository<Parcelamento>
  */
 class ParcelamentoRepository extends BaseRepository
 {

@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Telefone extends Model
 {
@@ -11,11 +12,11 @@ class Telefone extends Model
     public $timestamps = false;
     protected $fillable = ['numero', 'id_usuario', 'tipo', 'id_ddd'];
 
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'id_usuario', 'id');
     }
-    public function ddd()
+    public function ddd(): BelongsTo
     {
         return $this->belongsTo(Ddd::class, 'id_ddd', 'id_ddd');
     }

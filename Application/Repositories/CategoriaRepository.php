@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Repository para operações com categorias.
+ *
+ * @extends BaseRepository<Categoria>
  */
 class CategoriaRepository extends BaseRepository
 {

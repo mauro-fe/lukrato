@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -57,33 +59,33 @@ class Conta extends Model
     protected $with = ['instituicaoFinanceira'];
     protected $dates = ['deleted_at'];
 
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
 
-    public function instituicaoFinanceira()
+    public function instituicaoFinanceira(): BelongsTo
     {
         return $this->belongsTo(InstituicaoFinanceira::class, 'instituicao_financeira_id');
     }
 
-    public function cartoesCredito()
+    public function cartoesCredito(): HasMany
     {
         return $this->hasMany(CartaoCredito::class, 'conta_id');
     }
 
-    public function lancamentos()
+    public function lancamentos(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'conta_id');
     }
 
-    public function transferenciasRecebidas()
+    public function transferenciasRecebidas(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'conta_id_destino')
             ->where('eh_transferencia', 1);
     }
 
-    public function transferenciasEnviadas()
+    public function transferenciasEnviadas(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'conta_id')
             ->where('eh_transferencia', 1);

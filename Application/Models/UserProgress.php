@@ -3,6 +3,8 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model: UserProgress
@@ -56,7 +58,7 @@ class UserProgress extends Model
     /**
      * Usuário dono do progresso
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
@@ -64,7 +66,7 @@ class UserProgress extends Model
     /**
      * Histórico de pontos
      */
-    public function pointsHistory()
+    public function pointsHistory(): HasMany
     {
         return $this->hasMany(PointsLog::class, 'user_id', 'user_id')
             ->orderBy('created_at', 'desc');
@@ -73,7 +75,7 @@ class UserProgress extends Model
     /**
      * Conquistas desbloqueadas
      */
-    public function achievements()
+    public function achievements(): HasMany
     {
         return $this->hasMany(UserAchievement::class, 'user_id', 'user_id');
     }

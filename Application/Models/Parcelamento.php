@@ -3,6 +3,8 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model Parcelamento - Tabela AUXILIAR (Cabeçalho)
@@ -99,7 +101,7 @@ class Parcelamento extends Model
      * Um parcelamento TEM MUITOS lançamentos (as parcelas)
      * CADA PARCELA É UM LANÇAMENTO INDIVIDUAL
      */
-    public function lancamentos()
+    public function lancamentos(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'parcelamento_id')
             ->orderBy('data', 'asc');
@@ -108,7 +110,7 @@ class Parcelamento extends Model
     /**
      * Relacionamento com Usuário
      */
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
@@ -116,7 +118,7 @@ class Parcelamento extends Model
     /**
      * Relacionamento com Categoria
      */
-    public function categoria()
+    public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }
@@ -124,7 +126,7 @@ class Parcelamento extends Model
     /**
      * Relacionamento com Conta
      */
-    public function conta()
+    public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id');
     }
@@ -132,7 +134,7 @@ class Parcelamento extends Model
     /**
      * Relacionamento com Cartão de Crédito (opcional)
      */
-    public function cartaoCredito()
+    public function cartaoCredito(): BelongsTo
     {
         return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
     }

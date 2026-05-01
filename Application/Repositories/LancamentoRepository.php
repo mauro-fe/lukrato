@@ -16,6 +16,8 @@ use InvalidArgumentException;
 
 /**
  * Repository para operações com lançamentos.
+ *
+ * @extends BaseRepository<Lancamento>
  */
 class LancamentoRepository extends BaseRepository
 {

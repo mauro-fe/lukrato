@@ -451,6 +451,8 @@ class NotificationService
 
     /**
      * Constrói a query filtrada de usuários (reutilizável por get e count)
+     *
+     * @return Builder<Usuario>
      */
     private function buildFilteredUsersQuery(array $filters): Builder
     {

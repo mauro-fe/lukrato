@@ -3,8 +3,10 @@
 namespace Application\Models;
 
 use Application\Casts\MoneyDecimalCast;
+use Illuminate\Database\Capsule\Manager as Manager;
 use Illuminate\Database\Eloquent\Model;
-use \Illuminate\Database\Capsule\Manager as Manager;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Class CartaoCredito
@@ -16,7 +18,7 @@ use \Illuminate\Database\Capsule\Manager as Manager;
  * @property string|null $bandeira
  * @property string|null $ultimos_digitos
  * @property float|null $limite_total
- * @property float|null $limite_disponivel
+ * @property float|string|null $limite_disponivel
  * @property int|null $dia_vencimento
  * @property int|null $dia_fechamento
  * @property string|null $cor_cartao
@@ -72,7 +74,7 @@ class CartaoCredito extends Model
     /**
      * Relacionamento com usuário
      */
-    public function usuario()
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
@@ -80,7 +82,7 @@ class CartaoCredito extends Model
     /**
      * Relacionamento com conta
      */
-    public function conta()
+    public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id');
     }
@@ -88,7 +90,7 @@ class CartaoCredito extends Model
     /**
      * Lançamentos deste cartão
      */
-    public function lancamentos()
+    public function lancamentos(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'cartao_credito_id');
     }
@@ -96,7 +98,7 @@ class CartaoCredito extends Model
     /**
      * Itens de fatura deste cartão
      */
-    public function itensFatura()
+    public function itensFatura(): HasMany
     {
         return $this->hasMany(FaturaCartaoItem::class, 'cartao_credito_id');
     }

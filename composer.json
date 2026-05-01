@@ -23,6 +23,7 @@
     "wixel/gump": "^2.2"
   },
   "require-dev": {
+    "larastan/larastan": "^3.9",
     "mockery/mockery": "^1.6",
     "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^10.0 || ^11.0"

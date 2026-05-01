@@ -7,6 +7,9 @@ namespace Application\Repositories;
 use Application\Models\BlogPost;
 use Illuminate\Database\Eloquent\Collection;
 
+/**
+ * @extends BaseRepository<BlogPost>
+ */
 class BlogPostRepository extends BaseRepository
 {
     protected function getModelClass(): string

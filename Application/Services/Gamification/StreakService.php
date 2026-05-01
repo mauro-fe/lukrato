@@ -89,10 +89,8 @@ class StreakService
     {
         // Contar dias únicos com lançamentos
         $uniqueDays = Lancamento::where('user_id', $userId)
-            ->selectRaw('DATE(data) as dia')
-            ->groupBy('dia')
-            ->get()
-            ->count();
+            ->distinct()
+            ->count('data');
 
         // Buscar última data de lançamento
         $lastLancamento = Lancamento::where('user_id', $userId)

@@ -18,18 +18,13 @@ class ViewHelper
 
 
         $ficha_id = null;
-        if ($admin) {
-            $ficha_id = $admin->fichas()
-                ->orderBy('created_at', 'desc')
-                ->value('id');
-        }
 
         return [
             'admin_id' => $admin_id,
             'admin_username' => $admin_username,
             'nome_clinica' => $nome_clinica,
             'slug_clinica' => $slug_clinica,
-            'ficha_id' => $ficha_id ?? 0,
+            'ficha_id' => 0,
             'base_url' => BASE_URL,
             'current_year' => date('Y')
         ];

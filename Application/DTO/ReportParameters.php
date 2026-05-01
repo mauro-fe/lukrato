@@ -31,7 +31,7 @@ readonly class ReportParameters
 
     public function getPeriodInDays(): int
     {
-        return $this->start->diffInDays($this->end) + 1;
+        return (int) $this->start->diffInDays($this->end) + 1;
     }
 
     public function isSingleMonth(): bool

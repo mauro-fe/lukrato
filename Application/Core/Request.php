@@ -38,7 +38,13 @@ class Request
         $this->files = $files ?? self::globalArray('_FILES');
         $this->rawInput = $rawInput ?? (file_get_contents('php://input') ?: '');
 
-        $this->parseData($query ?? self::globalArray('_GET'), $post ?? self::globalArray('_POST'));
+        [$body, $json, $jsonError] = $this->parseBody($post ?? self::globalArray('_POST'));
+
+        $this->query = $query ?? self::globalArray('_GET');
+        $this->body = $body;
+        $this->json = $json;
+        $this->jsonError = $jsonError;
+        $this->data = array_merge($this->query, $this->body);
     }
 
     private static function globalArray(string $key): array
@@ -46,18 +52,6 @@ class Request
         $value = $GLOBALS[$key] ?? [];
 
         return is_array($value) ? $value : [];
-    }
-
-    private function parseData(array $query, array $post): void
-    {
-        $this->query = $query;
-
-        [$body, $json, $jsonError] = $this->parseBody($post);
-
-        $this->body = $body;
-        $this->json = $json;
-        $this->jsonError = $jsonError;
-        $this->data = array_merge($this->query, $this->body);
     }
 
     /**

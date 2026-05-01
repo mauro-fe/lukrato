@@ -1,5 +1,9 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
 parameters:
-    level: 2
+    level: 3
+    checkModelAppends: false
     paths:
         - Application
         - routes

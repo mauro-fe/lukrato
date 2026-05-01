@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Model: UserAchievement
@@ -39,7 +40,7 @@ class UserAchievement extends Model
     /**
      * Usuário
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
@@ -47,7 +48,7 @@ class UserAchievement extends Model
     /**
      * Conquista
      */
-    public function achievement()
+    public function achievement(): BelongsTo
     {
         return $this->belongsTo(Achievement::class, 'achievement_id');
     }
