@@ -230,7 +230,7 @@ class LancamentoValidator
         }
 
         if ($tipo === 'despesa') {
-            $modelo = (string) ($meta?->modelo ?? Meta::MODELO_RESERVA);
+            $modelo = (string) ($meta->modelo ?? Meta::MODELO_RESERVA);
             return $modelo === Meta::MODELO_REALIZACAO
                 ? Lancamento::META_OPERACAO_REALIZACAO
                 : Lancamento::META_OPERACAO_RESGATE;

@@ -425,12 +425,12 @@ class AchievementService
             AchievementType::TOTAL_1000_LAUNCHES => $this->progressCount($userId, 'launches', 1000),
 
             // Streak / dias ativos
-            AchievementType::STREAK_3 => ['current' => min($progress?->current_streak ?? 0, 3), 'target' => 3],
-            AchievementType::STREAK_7 => ['current' => min($progress?->current_streak ?? 0, 7), 'target' => 7],
-            AchievementType::DAYS_50_ACTIVE => ['current' => min($progress?->current_streak ?? 0, 50), 'target' => 50],
-            AchievementType::DAYS_100_ACTIVE => ['current' => min($progress?->current_streak ?? 0, 100), 'target' => 100],
-            AchievementType::DAYS_365_ACTIVE => ['current' => min($progress?->current_streak ?? 0, 365), 'target' => 365],
-            AchievementType::CONSISTENCY_TOTAL => ['current' => min($progress?->current_streak ?? 0, 30), 'target' => 30],
+            AchievementType::STREAK_3 => ['current' => min($progress->current_streak ?? 0, 3), 'target' => 3],
+            AchievementType::STREAK_7 => ['current' => min($progress->current_streak ?? 0, 7), 'target' => 7],
+            AchievementType::DAYS_50_ACTIVE => ['current' => min($progress->current_streak ?? 0, 50), 'target' => 50],
+            AchievementType::DAYS_100_ACTIVE => ['current' => min($progress->current_streak ?? 0, 100), 'target' => 100],
+            AchievementType::DAYS_365_ACTIVE => ['current' => min($progress->current_streak ?? 0, 365), 'target' => 365],
+            AchievementType::CONSISTENCY_TOTAL => ['current' => min($progress->current_streak ?? 0, 30), 'target' => 30],
 
             // Categorias
             AchievementType::TOTAL_5_CATEGORIES => $this->progressCount($userId, 'categories', 5),
@@ -438,11 +438,11 @@ class AchievementService
             AchievementType::TOTAL_25_CATEGORIES => $this->progressCount($userId, 'categories', 25),
 
             // Níveis
-            AchievementType::LEVEL_5 => ['current' => min($progress?->current_level ?? 1, 5), 'target' => 5],
-            AchievementType::LEVEL_8 => ['current' => min($progress?->current_level ?? 1, 8), 'target' => 8],
-            AchievementType::LEVEL_10 => ['current' => min($progress?->current_level ?? 1, 10), 'target' => 10],
-            AchievementType::LEVEL_12 => ['current' => min($progress?->current_level ?? 1, 12), 'target' => 12],
-            AchievementType::LEVEL_15 => ['current' => min($progress?->current_level ?? 1, 15), 'target' => 15],
+            AchievementType::LEVEL_5 => ['current' => min($progress->current_level ?? 1, 5), 'target' => 5],
+            AchievementType::LEVEL_8 => ['current' => min($progress->current_level ?? 1, 8), 'target' => 8],
+            AchievementType::LEVEL_10 => ['current' => min($progress->current_level ?? 1, 10), 'target' => 10],
+            AchievementType::LEVEL_12 => ['current' => min($progress->current_level ?? 1, 12), 'target' => 12],
+            AchievementType::LEVEL_15 => ['current' => min($progress->current_level ?? 1, 15), 'target' => 15],
 
             // Referências
             AchievementType::FIRST_REFERRAL => $this->progressCount($userId, 'referrals', 1),

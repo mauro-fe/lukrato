@@ -79,7 +79,7 @@ class FeedbackService
     public function shouldShowNps(int $userId): bool
     {
         $currentUser = Auth::user();
-        $currentUserId = (int) ($currentUser?->id ?? $currentUser?->id_usuario ?? 0);
+        $currentUserId = (int) ($currentUser->id ?? $currentUser->id_usuario ?? 0);
 
         if ($currentUserId === $userId && !FeedbackVisibility::canCollectGeneralFeedback($currentUser?->created_at)) {
             return false;

@@ -29,7 +29,7 @@ trait HandlesAdminLayoutData
 
         $data['currentUser'] = $currentUser;
         $data['username'] = $data['username'] ?? $displayName;
-        $data['isSysAdmin'] = $data['isSysAdmin'] ?? (((int) ($currentUser?->is_admin ?? 0)) === 1);
+        $data['isSysAdmin'] = $data['isSysAdmin'] ?? (((int) ($currentUser->is_admin ?? 0)) === 1);
         $data['isPro'] = $isPro;
         $data['planTier'] = $data['planTier'] ?? ($currentUser && method_exists($currentUser, 'planTier') ? $currentUser->planTier() : 'free');
         $data['planLabel'] = $data['planLabel'] ?? match ($data['planTier']) {
@@ -63,8 +63,8 @@ trait HandlesAdminLayoutData
             $data['supportEmail'] = $currentUser->email ?? '';
             $userId = $currentUser->id_usuario ?? $currentUser->id ?? null;
             $telefoneModel = $userId ? Telefone::where('id_usuario', $userId)->first() : null;
-            $data['supportTel'] = $telefoneModel?->numero ?? '';
-            $data['supportDdd'] = $telefoneModel?->ddd?->codigo ?? '';
+            $data['supportTel'] = $telefoneModel->numero ?? '';
+            $data['supportDdd'] = $telefoneModel->ddd->codigo ?? '';
         }
 
         $currentViewId = trim((string) ($data['currentViewId'] ?? ''), '-');
@@ -134,7 +134,7 @@ trait HandlesAdminLayoutData
     protected function buildAdminRuntimeConfig(array $data): array
     {
         $currentUser = $data['currentUser'] ?? null;
-        $dashboardPreferencesRaw = $currentUser?->dashboard_preferences ?? null;
+        $dashboardPreferencesRaw = $currentUser->dashboard_preferences ?? null;
         $dashboardPreferences = is_array($dashboardPreferencesRaw)
             ? $dashboardPreferencesRaw
             : [];
@@ -149,15 +149,15 @@ trait HandlesAdminLayoutData
             'planLabel' => (string) ($data['planLabel'] ?? 'FREE'),
             'showUpgradeCTA' => (bool) ($data['showUpgradeCTA'] ?? true),
             'userTheme' => (string) ($data['userTheme'] ?? 'dark'),
-            'userId' => $currentUser?->id ?? $currentUser?->id_usuario ?? null,
+            'userId' => $currentUser->id ?? $currentUser->id_usuario ?? null,
             'username' => (string) ($data['username'] ?? $this->resolveAdminDisplayName($currentUser)),
-            'userEmail' => (string) ($currentUser?->email ?? ''),
+            'userEmail' => (string) ($currentUser->email ?? ''),
             'currentMenu' => (string) (($data['menu'] ?? '') ?: 'dashboard'),
             'currentViewId' => (string) ($data['currentViewId'] ?? ''),
             'currentViewPath' => (string) ($data['currentViewPath'] ?? ''),
             'bundle' => is_array($data['bundle'] ?? null) ? $data['bundle'] : [],
-            'needsDisplayNamePrompt' => trim((string) ($currentUser?->nome ?? '')) === '',
-            'tourCompleted' => !empty($currentUser?->tour_completed_at),
+            'needsDisplayNamePrompt' => trim((string) ($currentUser->nome ?? '')) === '',
+            'tourCompleted' => !empty($currentUser->tour_completed_at),
             'helpCenter' => $this->normalizeAdminHelpCenterPreferences($dashboardPreferences['help_center'] ?? null),
             'userAvatar' => $currentUser?->avatar
                 ? rtrim(BASE_URL, '/') . '/' . ltrim((string) $currentUser->avatar, '/')
@@ -198,14 +198,14 @@ trait HandlesAdminLayoutData
 
     private function resolveAdminDisplayName(?Usuario $currentUser): string
     {
-        $fullName = trim((string) ($currentUser?->nome ?? ''));
+        $fullName = trim((string) ($currentUser->nome ?? ''));
 
         return $fullName !== '' ? $fullName : $this->resolveEmailNickname($currentUser);
     }
 
     private function resolveAdminFirstName(?Usuario $currentUser): string
     {
-        $fullName = trim((string) ($currentUser?->nome ?? ''));
+        $fullName = trim((string) ($currentUser->nome ?? ''));
 
         if ($fullName !== '') {
             return explode(' ', $fullName)[0];
@@ -216,7 +216,7 @@ trait HandlesAdminLayoutData
 
     private function resolveEmailNickname(?Usuario $currentUser): string
     {
-        $email = trim((string) ($currentUser?->email ?? ''));
+        $email = trim((string) ($currentUser->email ?? ''));
         if ($email === '' || !str_contains($email, '@')) {
             return 'Você';
         }
@@ -269,9 +269,9 @@ trait HandlesAdminLayoutData
     private function buildAdminAvatarSettings(?Usuario $currentUser): array
     {
         return [
-            'position_x' => max(0, min(100, (int) ($currentUser?->avatar_focus_x ?? 50))),
-            'position_y' => max(0, min(100, (int) ($currentUser?->avatar_focus_y ?? 50))),
-            'zoom' => max(1, min(2, round((float) ($currentUser?->avatar_zoom ?? 1), 2))),
+            'position_x' => max(0, min(100, (int) ($currentUser->avatar_focus_x ?? 50))),
+            'position_y' => max(0, min(100, (int) ($currentUser->avatar_focus_y ?? 50))),
+            'zoom' => max(1, min(2, round((float) ($currentUser->avatar_zoom ?? 1), 2))),
         ];
     }
 }

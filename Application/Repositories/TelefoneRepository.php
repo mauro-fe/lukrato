@@ -46,7 +46,7 @@ class TelefoneRepository
         $data = [
             'numero' => $numero,
             'id_ddd' => $ddd->id_ddd,
-            'tipo' => $telefone?->tipo ?? 'celular'
+            'tipo' => $telefone->tipo ?? 'celular'
         ];
 
         if ($telefone) {

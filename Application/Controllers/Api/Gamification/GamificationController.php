@@ -278,9 +278,9 @@ class GamificationController extends ApiController
                 'total_lancamentos' => $totalLancamentos,
                 'total_categorias' => $totalCategorias,
                 'meses_ativos' => $mesesAtivos,
-                'pontos_total' => $progress?->total_points ?? 0,
-                'nivel_atual' => $progress?->current_level ?? 1,
-                'streak_atual' => $progress?->current_streak ?? 0,
+                'pontos_total' => $progress->total_points ?? 0,
+                'nivel_atual' => $progress->current_level ?? 1,
+                'streak_atual' => $progress->current_streak ?? 0,
                 'is_pro' => $user->isPro(),
             ], 'Estatísticas do usuário');
         } catch (Throwable $e) {

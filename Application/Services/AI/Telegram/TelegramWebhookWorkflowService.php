@@ -824,7 +824,7 @@ class TelegramWebhookWorkflowService
 
     private function sendAiResponse(string $chatId, AIResponseDTO $response, TelegramMessage $msgRecord): void
     {
-        $intent = $response->intent?->value ?? 'chat';
+        $intent = $response->intent->value ?? 'chat';
         $pendingId = $response->data['pending_id'] ?? $response->data['pending_action_id'] ?? null;
 
         if (!empty($pendingId)) {

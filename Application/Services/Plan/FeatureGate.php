@@ -30,7 +30,7 @@ final class FeatureGate
      */
     public static function planTier(Usuario $u): string
     {
-        $code = strtolower((string) ($u->planoAtual()?->code ?? ''));
+        $code = strtolower((string) ($u->planoAtual()->code ?? ''));
 
         if ($code === 'ultra') {
             return 'ultra';

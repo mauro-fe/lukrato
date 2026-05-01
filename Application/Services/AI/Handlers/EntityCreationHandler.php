@@ -1613,7 +1613,7 @@ class EntityCreationHandler implements AIHandlerInterface
 
         $categoriaNome = trim((string) ($d['categoria_nome'] ?? ''));
         if ($categoriaNome === '' && !empty($d['categoria_id'])) {
-            $categoriaNome = (string) (Categoria::find($d['categoria_id'])?->nome ?? '');
+            $categoriaNome = (string) (Categoria::find($d['categoria_id'])->nome ?? '');
         }
         if ($categoriaNome !== '') {
             $lines[] = "📁 Categoria: **{$categoriaNome}**";

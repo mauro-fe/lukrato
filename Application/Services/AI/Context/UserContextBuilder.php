@@ -88,7 +88,7 @@ class UserContextBuilder
                 ->with('plano')
                 ->first();
 
-            return $assinatura?->plano?->nome ?? 'Gratuito';
+            return $assinatura->plano->nome ?? 'Gratuito';
         } catch (\Throwable) {
             return 'Gratuito';
         }

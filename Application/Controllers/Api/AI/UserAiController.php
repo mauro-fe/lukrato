@@ -154,7 +154,7 @@ class UserAiController extends ApiController
         return Response::successResponse([
             'id' => $conversation->id,
             'titulo' => $conversation->titulo,
-            'created_at' => $conversation->created_at?->toISOString(),
+            'created_at' => $conversation->created_at->toISOString(),
         ], 'Conversa criada.', 201);
     }
 

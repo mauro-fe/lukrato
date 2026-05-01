@@ -53,8 +53,8 @@ class ParcelamentosController extends ApiController
                 'percentual_pago' => $parcelamento->percentual_pago,
                 'status' => $parcelamento->status,
                 'tipo' => $parcelamento->tipo,
-                'categoria' => $parcelamento->categoria?->nome ?? null,
-                'conta' => $parcelamento->conta?->nome ?? null,
+                'categoria' => $parcelamento->categoria->nome ?? null,
+                'conta' => $parcelamento->conta->nome ?? null,
                 'data_criacao' => $parcelamento->data_criacao,
                 'parcelas' => $parcelas->map(fn($lancamento) => [
                     'id' => $lancamento->id,
@@ -92,8 +92,8 @@ class ParcelamentosController extends ApiController
             'percentual_pago' => $parcelamento->percentual_pago,
             'status' => $parcelamento->status,
             'tipo' => $parcelamento->tipo,
-            'categoria' => $parcelamento->categoria?->nome ?? null,
-            'conta' => $parcelamento->conta?->nome ?? null,
+            'categoria' => $parcelamento->categoria->nome ?? null,
+            'conta' => $parcelamento->conta->nome ?? null,
             'data_criacao' => $parcelamento->data_criacao,
             'parcelas' => $parcelas->map(fn($lancamento) => [
                 'id' => $lancamento->id,

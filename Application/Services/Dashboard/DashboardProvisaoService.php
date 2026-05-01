@@ -175,7 +175,7 @@ class DashboardProvisaoService
                 'data_pagamento'   => $l->data instanceof \DateTimeInterface
                     ? $l->data->format('Y-m-d')
                     : (string) $l->data,
-                'categoria'        => $l->categoria?->nome ?? null,
+                'categoria'        => $l->categoria->nome ?? null,
                 'eh_parcelado'     => (bool) $l->eh_parcelado,
                 'parcela_atual'    => $l->parcela_atual ?? $l->numero_parcela,
                 'numero_parcelas'  => $l->total_parcelas,

@@ -184,14 +184,14 @@ class UserAiWorkflowService
                 'id' => $userMessage->id,
                 'role' => 'user',
                 'content' => $userMessage->content,
-                'created_at' => $userMessage->created_at?->toISOString(),
+                'created_at' => $userMessage->created_at->toISOString(),
             ],
             'assistant_message' => [
                 'id' => $assistantMessage->id,
                 'role' => 'assistant',
                 'content' => $assistantMessage->content,
                 'intent' => $assistantMessage->intent,
-                'created_at' => $assistantMessage->created_at?->toISOString(),
+                'created_at' => $assistantMessage->created_at->toISOString(),
             ],
         ];
     }

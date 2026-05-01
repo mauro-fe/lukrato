@@ -74,7 +74,7 @@ class CartaoFaturaReadService
                 'ultimos_digitos' => $cartao->ultimos_digitos,
                 'dia_vencimento' => $cartao->dia_vencimento,
                 'bandeira' => $cartao->bandeira,
-                'cor_cartao' => $cartao->cor_cartao ?? $cartao->conta?->instituicaoFinanceira?->cor_primaria ?? null,
+                'cor_cartao' => $cartao->cor_cartao ?? $cartao->conta->instituicaoFinanceira->cor_primaria ?? null,
             ],
             'itens' => $itens->map(fn($item) => [
                 'id' => $item->id,

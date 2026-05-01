@@ -630,7 +630,7 @@ class WhatsAppWebhookWorkflowService
 
     private function sendAiResponse(string $toPhone, AIResponseDTO $response, WhatsAppMessage $msgRecord): void
     {
-        $intent = $response->intent?->value ?? 'chat';
+        $intent = $response->intent->value ?? 'chat';
         $pendingId = $response->data['pending_id'] ?? $response->data['pending_action_id'] ?? null;
 
         if (!empty($pendingId)) {

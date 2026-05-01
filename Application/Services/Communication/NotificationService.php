@@ -400,7 +400,7 @@ class NotificationService
 
                 $this->logger->warning('[NotificationService] Campanha presa em sending recuperada', [
                     'campaign_id' => $stuck->id,
-                    'updated_at' => $stuck->updated_at?->toDateTimeString(),
+                    'updated_at' => $stuck->updated_at->toDateTimeString(),
                 ]);
             }
 

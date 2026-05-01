@@ -243,7 +243,7 @@ class ReportService
             $labels[] = $cursor->format($labelFormat);
 
             $delta = $deltas->get($key);
-            $running += (float)($delta?->delta ?? $delta?->saldo ?? 0.0);
+            $running += (float)($delta->delta ?? $delta->saldo ?? 0.0);
 
             $values[] = round($running, 2);
             $incrementFn($cursor);
@@ -264,8 +264,8 @@ class ReportService
             $row = $rows->get($key);
 
             $labels[] = $cursor->format('d/m');
-            $receitas[] = (float)($row?->receitas ?? 0.0);
-            $despesas[] = (float)($row?->despesas ?? 0.0);
+            $receitas[] = (float)($row->receitas ?? 0.0);
+            $despesas[] = (float)($row->despesas ?? 0.0);
 
             $cursor->addDay();
         }

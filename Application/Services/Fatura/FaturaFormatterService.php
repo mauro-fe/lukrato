@@ -196,7 +196,7 @@ class FaturaFormatterService
     private function formatarCartao(CartaoCredito $cartao): array
     {
         $cor = $cartao->cor_cartao
-            ?? $cartao->conta?->instituicaoFinanceira?->cor_primaria
+            ?? $cartao->conta->instituicaoFinanceira->cor_primaria
             ?? null;
 
         return [

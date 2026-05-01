@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Formatters;
 
 use Application\Models\Lancamento;
+use DateTimeInterface;
 
 /**
  * Formatador para respostas de lançamentos.
@@ -18,7 +19,7 @@ class LancamentoResponseFormatter
     {
         return [
             'id' => (int)$lancamento->id,
-            'data' => $lancamento->data?->format('Y-m-d'),
+            'data' => self::formatDate($lancamento->data ?? null),
             'hora_lancamento' => $lancamento->hora_lancamento ?? null,
             'tipo' => (string)$lancamento->tipo,
             'valor' => (float)$lancamento->valor,
@@ -52,21 +53,21 @@ class LancamentoResponseFormatter
             'canal_email' => (bool)($lancamento->canal_email ?? false),
             'canal_inapp' => (bool)($lancamento->canal_inapp ?? false),
             // Relações
-            'categoria' => $lancamento->categoria?->nome ?? '',
-            'categoria_nome' => $lancamento->categoria?->nome ?? '',
+            'categoria' => $lancamento->categoria->nome ?? '',
+            'categoria_nome' => $lancamento->categoria->nome ?? '',
             'subcategoria_id' => $lancamento->subcategoria_id ? (int) $lancamento->subcategoria_id : null,
-            'subcategoria_nome' => $lancamento->subcategoria?->nome ?? '',
-            'subcategoria_icone' => $lancamento->subcategoria?->icone ?? '',
-            'meta_titulo' => $lancamento->meta?->titulo ?? '',
-            'conta' => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            'conta_nome' => $lancamento->conta?->nome ?? $lancamento->conta?->instituicao ?? '',
-            'conta_instituicao' => $lancamento->conta?->instituicao ?? '',
-            'cartao_nome' => $lancamento->cartaoCredito?->nome_cartao ?? '',
-            'cartao_bandeira' => $lancamento->cartaoCredito?->bandeira ?? '',
+            'subcategoria_nome' => $lancamento->subcategoria->nome ?? '',
+            'subcategoria_icone' => $lancamento->subcategoria->icone ?? '',
+            'meta_titulo' => $lancamento->meta->titulo ?? '',
+            'conta' => $lancamento->conta->nome ?? $lancamento->conta->instituicao ?? '',
+            'conta_nome' => $lancamento->conta->nome ?? $lancamento->conta->instituicao ?? '',
+            'conta_instituicao' => $lancamento->conta->instituicao ?? '',
+            'cartao_nome' => $lancamento->cartaoCredito->nome_cartao ?? '',
+            'cartao_bandeira' => $lancamento->cartaoCredito->bandeira ?? '',
             // Totais reais do parcelamento
             'total_parcelas' => $lancamento->parcelamento?->numero_parcelas ? (int)$lancamento->parcelamento->numero_parcelas : ($lancamento->total_parcelas ? (int)$lancamento->total_parcelas : null),
             'parcelas_pagas' => $lancamento->parcelamento?->parcelas_pagas !== null ? (int)$lancamento->parcelamento->parcelas_pagas : null,
-            'parcelamento_status' => $lancamento->parcelamento?->status ?? null,
+            'parcelamento_status' => $lancamento->parcelamento->status ?? null,
         ];
     }
 
@@ -82,5 +83,14 @@ class LancamentoResponseFormatter
         }
 
         return $formatted;
+    }
+
+    private static function formatDate(mixed $value): ?string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        return $value !== null && $value !== '' ? (string) $value : null;
     }
 }

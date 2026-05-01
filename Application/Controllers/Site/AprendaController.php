@@ -139,7 +139,7 @@ class AprendaController extends WebController
                 'breadcrumbItems' => [
                     ['label' => 'Início', 'url' => BASE_URL],
                     ['label' => 'Aprenda', 'url' => rtrim(BASE_URL, '/') . '/blog'],
-                    ['label' => $post->categoria?->nome ?? 'Artigo', 'url' => $post->categoria ? rtrim(BASE_URL, '/') . '/blog/categoria/' . $post->categoria->slug : null],
+                    ['label' => $post->categoria->nome ?? 'Artigo', 'url' => $post->categoria ? rtrim(BASE_URL, '/') . '/blog/categoria/' . $post->categoria->slug : null],
                     ['label' => $post->titulo, 'url' => null],
                 ],
             ],

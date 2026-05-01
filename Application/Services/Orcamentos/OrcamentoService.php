@@ -60,11 +60,11 @@ class OrcamentoService
             return [
                 'id'                => $orc->id,
                 'categoria_id'      => $orc->categoria_id,
-                'categoria_nome'    => $orc->categoria?->nome ?? 'Sem categoria',
+                'categoria_nome'    => $orc->categoria->nome ?? 'Sem categoria',
                 'categoria'         => [
                     'id'    => $orc->categoria_id,
-                    'nome'  => $orc->categoria?->nome ?? 'Sem categoria',
-                    'icone' => $orc->categoria?->icone ?? null,
+                    'nome'  => $orc->categoria->nome ?? 'Sem categoria',
+                    'icone' => $orc->categoria->icone ?? null,
                 ],
                 'valor_limite'      => $orc->valor_limite,
                 'rollover'          => $orc->rollover,

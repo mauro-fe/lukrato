@@ -122,7 +122,7 @@ class FinancialAnalysisPreprocessor
             ->map(function ($row) {
                 $cat = Categoria::find($row->categoria_id);
                 return [
-                    'categoria' => $cat?->nome ?? 'Sem categoria',
+                    'categoria' => $cat->nome ?? 'Sem categoria',
                     'total'     => round((float) $row->total, 2),
                     'qtd'       => (int) $row->qtd,
                 ];

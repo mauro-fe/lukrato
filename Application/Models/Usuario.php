@@ -363,7 +363,7 @@ class Usuario extends Model
         }
 
         // Verifica se o plano é "pro" (qualquer código que NÃO seja free/gratuito)
-        $code = strtolower((string) ($assinatura->plano?->code ?? ''));
+        $code = strtolower((string) ($assinatura->plano->code ?? ''));
         if (in_array($code, ['free', 'gratuito', ''], true)) {
             return false;
         }
@@ -418,7 +418,7 @@ class Usuario extends Model
 
     public function isUltra(): bool
     {
-        return $this->isPro() && strtolower((string) ($this->resolvedAssinatura()?->plano?->code ?? '')) === 'ultra';
+        return $this->isPro() && strtolower((string) ($this->resolvedAssinatura()->plano->code ?? '')) === 'ultra';
     }
 
     /**
