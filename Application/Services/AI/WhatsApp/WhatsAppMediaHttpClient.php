@@ -6,9 +6,9 @@ namespace Application\Services\AI\WhatsApp;
 
 use Application\Config\WhatsAppRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class WhatsAppMediaHttpClient extends Client
+class WhatsAppMediaHttpClient extends ConfiguredHttpClient
 {
     private const API_VERSION = 'v21.0';
     private const BASE_URL = 'https://graph.facebook.com';

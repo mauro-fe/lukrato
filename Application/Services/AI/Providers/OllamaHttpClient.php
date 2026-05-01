@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Providers;
 
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class OllamaHttpClient extends Client
+class OllamaHttpClient extends ConfiguredHttpClient
 {
     public function __construct(array $config = [])
     {

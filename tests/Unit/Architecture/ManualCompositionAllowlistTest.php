@@ -14,6 +14,7 @@ class ManualCompositionAllowlistTest extends TestCase
     {
         $allowedFiles = [
             'Application/Container/ApplicationContainer.php',
+            'Application/Services/Http/ConfiguredHttpClient.php',
             'Application/Services/Infrastructure/LogChannelFactory.php',
         ];
 

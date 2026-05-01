@@ -1,0 +1,8 @@
+parameters:
+    level: 0
+    paths:
+        - Application
+        - routes
+        - config
+        - bootstrap.php
+    tmpDir: storage/phpstan

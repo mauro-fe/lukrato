@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Providers;
 
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class OpenAIHttpClient extends Client
+class OpenAIHttpClient extends ConfiguredHttpClient
 {
     public function __construct(array $config = [])
     {

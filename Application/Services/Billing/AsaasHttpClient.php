@@ -6,9 +6,9 @@ namespace Application\Services\Billing;
 
 use Application\Config\AsaasRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class AsaasHttpClient extends Client
+class AsaasHttpClient extends ConfiguredHttpClient
 {
     public function __construct(array $config = [])
     {

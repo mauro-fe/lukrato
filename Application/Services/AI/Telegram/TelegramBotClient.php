@@ -6,9 +6,9 @@ namespace Application\Services\AI\Telegram;
 
 use Application\Config\TelegramRuntimeConfig;
 use Application\Container\ApplicationContainer;
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class TelegramBotClient extends Client
+class TelegramBotClient extends ConfiguredHttpClient
 {
     private const BASE_URL = 'https://api.telegram.org';
 

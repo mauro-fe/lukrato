@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\AI\Media;
 
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class OpenAIAudioHttpClient extends Client
+class OpenAIAudioHttpClient extends ConfiguredHttpClient
 {
     public function __construct(array $config = [])
     {

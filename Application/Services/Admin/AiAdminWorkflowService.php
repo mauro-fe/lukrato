@@ -17,7 +17,6 @@ use Application\Services\AI\Providers\OllamaProvider;
 use Application\Services\AI\Providers\OpenAIProvider;
 use Application\Services\Infrastructure\CacheService;
 use Application\Services\Infrastructure\LogService;
-use GuzzleHttp\Client;
 use Throwable;
 
 class AiAdminWorkflowService
@@ -25,8 +24,8 @@ class AiAdminWorkflowService
     private ?AIService $aiService;
     private ?SystemContextService $systemContextService;
     private ?CacheService $cacheService;
-    private ?Client $healthHttpClient = null;
-    private ?Client $quotaHttpClient = null;
+    private ?AiServiceHealthHttpClient $healthHttpClient = null;
+    private ?OpenAIQuotaHttpClient $quotaHttpClient = null;
     private AiRuntimeConfig $runtimeConfig;
 
     public function __construct(
@@ -311,7 +310,7 @@ class AiAdminWorkflowService
         ))->gather();
     }
 
-    protected function healthHttpClient(): Client
+    protected function healthHttpClient(): AiServiceHealthHttpClient
     {
         return $this->healthHttpClient ??= ApplicationContainer::resolveOrNew(
             null,
@@ -319,7 +318,7 @@ class AiAdminWorkflowService
         );
     }
 
-    protected function quotaHttpClient(): Client
+    protected function quotaHttpClient(): OpenAIQuotaHttpClient
     {
         return $this->quotaHttpClient ??= ApplicationContainer::resolveOrNew(
             null,

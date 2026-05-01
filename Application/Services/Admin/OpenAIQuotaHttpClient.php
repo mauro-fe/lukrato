@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\Admin;
 
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class OpenAIQuotaHttpClient extends Client
+class OpenAIQuotaHttpClient extends ConfiguredHttpClient
 {
     public function __construct(array $config = [])
     {

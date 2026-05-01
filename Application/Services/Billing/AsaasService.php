@@ -8,6 +8,7 @@ use Application\Config\AsaasRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Core\Request;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Application\Services\Infrastructure\CircuitBreakerService;
 use Application\Core\Exceptions\ClientErrorException;
@@ -17,7 +18,7 @@ use Application\Services\Infrastructure\LogService;
 
 class AsaasService
 {
-    private Client $client;
+    private ClientInterface $client;
     private string $apiKey;
     private ?string $webhookToken;
     private string $baseUrl;
@@ -26,7 +27,7 @@ class AsaasService
     private readonly AsaasRuntimeConfig $runtimeConfig;
 
     public function __construct(
-        ?Client $client = null,
+        ?ClientInterface $client = null,
         ?CircuitBreakerService $circuitBreaker = null,
         ?string $apiKey = null,
         ?string $baseUrl = null,
@@ -48,7 +49,7 @@ class AsaasService
             $resolvedClient ??= ApplicationContainer::tryMake(Client::class);
         }
 
-        if (!$resolvedClient instanceof Client && empty($this->apiKey)) {
+        if (!$resolvedClient instanceof ClientInterface && empty($this->apiKey)) {
             throw new \RuntimeException('ASAAS_API_KEY não configurada no .env');
         }
 

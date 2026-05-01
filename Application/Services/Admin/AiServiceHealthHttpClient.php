@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Application\Services\Admin;
 
-use GuzzleHttp\Client;
+use Application\Services\Http\ConfiguredHttpClient;
 
-class AiServiceHealthHttpClient extends Client
+class AiServiceHealthHttpClient extends ConfiguredHttpClient
 {
     public function __construct(array $config = [])
     {
