@@ -385,17 +385,10 @@ class CartaoFaturaPaymentService
 
             if ($itensPagosNoMes === 1) {
                 foreach ($lancamentosPagamento as $pagamento) {
-                    if (!$pagamento instanceof Lancamento) {
-                        continue;
-                    }
-
                     $pagamento->delete();
                 }
             } else {
                 $lancamentoPagamento = $lancamentosPagamento->first();
-                if (!$lancamentoPagamento instanceof Lancamento) {
-                    throw new \Exception('Pagamento não encontrado para esta parcela.');
-                }
 
                 $lancamentoPagamento->valor -= $item->valor;
                 $lancamentoPagamento->save();

@@ -7,7 +7,6 @@ namespace Application\Builders;
 use Application\Enums\ReportType;
 use Application\DTO\ReportData;
 use Application\DTO\ReportParameters;
-use InvalidArgumentException;
 
 class ReportExportBuilder
 {
@@ -35,9 +34,7 @@ class ReportExportBuilder
     {
         return match ($type) {
             ReportType::DESPESAS_POR_CATEGORIA,
-            ReportType::RECEITAS_POR_CATEGORIA =>
-            $this->processCategoryReport($payload, 'Categoria'),
-
+            ReportType::RECEITAS_POR_CATEGORIA,
             ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
             ReportType::RECEITAS_ANUAIS_POR_CATEGORIA =>
             $this->processCategoryReport($payload, 'Categoria'),
@@ -59,10 +56,6 @@ class ReportExportBuilder
 
             ReportType::CARTOES_CREDITO =>
             $this->processCardsReport($payload),
-
-            default => throw new InvalidArgumentException(
-                "Tipo de relatório '{$type->value}' não implementado no exportador."
-            ),
         };
     }
 
@@ -278,8 +271,6 @@ class ReportExportBuilder
 
             ReportType::CARTOES_CREDITO =>
             $this->buildCardsTotals($payload),
-
-            default => [],
         };
     }
 

@@ -24,10 +24,6 @@ class ImportRowCategorizationService
         $normalized = [];
 
         foreach ($rows as $index => $row) {
-            if (!$row instanceof NormalizedImportRowDTO) {
-                continue;
-            }
-
             $normalized[] = NormalizedImportRowDTO::fromArray([
                 'date' => $row->date,
                 'amount' => $row->amount,
@@ -71,10 +67,6 @@ class ImportRowCategorizationService
         $enriched = [];
 
         foreach ($rows as $index => $row) {
-            if (!$row instanceof NormalizedImportRowDTO) {
-                continue;
-            }
-
             $match = CategoryRuleEngine::match($row->description, $userId, $row->memo ?? null);
             $categoriaId = self::normalizePositiveInt($match['categoria_id'] ?? null);
             $subcategoriaId = self::normalizePositiveInt($match['subcategoria_id'] ?? null);
@@ -130,10 +122,6 @@ class ImportRowCategorizationService
         $resolvedRows = [];
 
         foreach ($rows as $row) {
-            if (!$row instanceof NormalizedImportRowDTO) {
-                continue;
-            }
-
             $payload = $row->toArray();
             $raw = is_array($payload['raw'] ?? null) ? $payload['raw'] : [];
             $categoriaNomeRaw = self::normalizeText($raw['categoria'] ?? null);

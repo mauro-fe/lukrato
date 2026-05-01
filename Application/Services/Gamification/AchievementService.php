@@ -213,8 +213,6 @@ class AchievementService
             AchievementType::REFERRALS_5 => $this->checkReferrals($userId, 5),
             AchievementType::REFERRALS_10 => $this->checkReferrals($userId, 10),
             AchievementType::REFERRALS_25 => $this->checkReferrals($userId, 25),
-
-            default => false,
         };
     }
 

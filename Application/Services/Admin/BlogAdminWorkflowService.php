@@ -239,12 +239,11 @@ class BlogAdminWorkflowService
                 mkdir($uploadDir, 0755, true);
             }
 
-            $extension = match ($mime) {
+            $extension = [
                 'image/jpeg' => 'jpg',
                 'image/png' => 'png',
                 'image/webp' => 'webp',
-                default => 'jpg',
-            };
+            ][$mime];
 
             $filename = 'blog_' . uniqid() . '_' . time() . '.' . $extension;
             $filepath = $uploadDir . '/' . $filename;

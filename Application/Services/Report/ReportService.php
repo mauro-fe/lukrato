@@ -11,7 +11,6 @@ use Application\DTO\ReportParameters;
 use Application\Repositories\ReportRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 
 class ReportService
 {
@@ -57,9 +56,6 @@ class ReportService
 
             ReportType::CARTOES_CREDITO =>
             $this->handleCartoesCreditoReport($params),
-
-            default =>
-            throw new InvalidArgumentException("Tipo de relatório '{$type->value}' não suportado."),
         };
     }
 
