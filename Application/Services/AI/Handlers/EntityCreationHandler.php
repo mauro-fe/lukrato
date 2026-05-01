@@ -1417,7 +1417,7 @@ class EntityCreationHandler implements AIHandlerInterface
                 continue;
             }
 
-            if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
+            if (!isset($data[$field]) || $data[$field] === '') {
                 $missing[] = $field;
             }
         }

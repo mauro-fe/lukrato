@@ -95,7 +95,7 @@ class ConversationStateService
         // Recalcular quais campos ainda faltam
         $stillMissing = [];
         foreach ($missing as $field) {
-            if (!isset($partial[$field]) || $partial[$field] === '' || $partial[$field] === null) {
+            if (!isset($partial[$field]) || $partial[$field] === '') {
                 $stillMissing[] = $field;
             }
         }

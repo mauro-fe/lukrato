@@ -99,7 +99,7 @@ class SecurityHeaders
             return true;
         }
 
-        return $originPort >= 1 && $originPort <= 65535;
+        return $originPort >= 1;
     }
 
     private function getCSP(): string

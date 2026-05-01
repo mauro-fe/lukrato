@@ -44,6 +44,6 @@ abstract class AbstractSecurityCheck implements SecurityCheckInterface
 
     protected function getIdentifier(): string
     {
-        return $this->request->ip() ?? 'unknown';
+        return $this->request->ip();
     }
 }

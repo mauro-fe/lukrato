@@ -96,7 +96,7 @@ class ChatHandler implements AIHandlerInterface
             // Chamar LLM via provider
             $response = $this->provider->chat($request->message, $context);
 
-            if ($response === null || trim($response) === '') {
+            if (trim($response) === '') {
                 return $this->providerFailureResponse($request, 'AI provider returned empty chat response.');
             }
 

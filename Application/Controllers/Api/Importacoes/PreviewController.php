@@ -165,7 +165,7 @@ class PreviewController extends ApiController
             throw new \InvalidArgumentException('Não foi possível ler o arquivo enviado.');
         }
 
-        return [$contents, (string) ($validatedUpload['filename'] ?? '')];
+        return [$contents, (string) $validatedUpload['filename']];
     }
 
     private function resolveProfile(int $userId, int $contaId, string $sourceType): ImportProfileConfigDTO

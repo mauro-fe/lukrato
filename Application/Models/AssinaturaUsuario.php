@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $status
  * @property \Carbon\Carbon|null $renova_em
  * @property \Carbon\Carbon|null $cancelada_em
+ * @property-read Plano|null $plano
+ * @property-read Usuario|null $usuario
  *
  * @method static \Illuminate\Database\Eloquent\Builder|AssinaturaUsuario where(string $column, $value = null)
  * @mixin \Illuminate\Database\Eloquent\Builder

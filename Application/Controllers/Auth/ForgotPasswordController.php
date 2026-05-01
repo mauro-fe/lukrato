@@ -197,7 +197,7 @@ class ForgotPasswordController extends WebController
     private function applyRateLimit(string $action, int $limit, int $seconds): void
     {
         $this->cache->checkRateLimit(
-            $action . ':' . ($this->request->ip() ?? 'unknown'),
+            $action . ':' . $this->request->ip(),
             $limit,
             $seconds
         );

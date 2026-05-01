@@ -296,7 +296,7 @@ class CsvImportParser implements ImportParserInterface
         $missing = [];
 
         foreach ($required as $field) {
-            if (!isset($map[$field]) || $map[$field] === null || (int) $map[$field] < 0) {
+            if (!isset($map[$field]) || (int) $map[$field] < 0) {
                 $missing[] = $field;
             }
         }

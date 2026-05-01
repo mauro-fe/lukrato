@@ -101,7 +101,7 @@ class UserAiController extends ApiController
             return Response::errorResponse($response->message, 503);
         }
 
-        $analyzeData = is_array($response->data) ? $response->data : [];
+        $analyzeData = $response->data;
         $analyzeData['source'] = $response->source;
         $analyzeData['cached'] = $response->cached;
 
@@ -123,7 +123,7 @@ class UserAiController extends ApiController
         }
 
         if ($response->success) {
-            $extractData = is_array($response->data) ? $response->data : [];
+            $extractData = $response->data;
             $extractData['source'] = $response->source;
 
             return Response::successResponse($extractData, $response->message);

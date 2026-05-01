@@ -93,7 +93,7 @@ trait HandlesWebPresentation
 
     protected function putSessionValue(string $key, mixed $value): void
     {
-        if (!isset($_SESSION) || !is_array($_SESSION)) {
+        if (!isset($_SESSION)) {
             $_SESSION = [];
         }
 
@@ -102,7 +102,7 @@ trait HandlesWebPresentation
 
     protected function pullSessionValue(string $key, mixed $default = null): mixed
     {
-        if (!isset($_SESSION) || !is_array($_SESSION)) {
+        if (!isset($_SESSION)) {
             return $default;
         }
 

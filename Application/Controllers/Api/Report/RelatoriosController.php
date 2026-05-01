@@ -223,7 +223,7 @@ class RelatoriosController extends ApiController
 
     private function userCanAccessReports(Usuario $user): bool
     {
-        return !method_exists($user, 'podeAcessar') || $user->podeAcessar('reports');
+        return $user->podeAcessar('reports');
     }
 
     private function getCurrentUser(): ?Usuario

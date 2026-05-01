@@ -209,7 +209,7 @@ class Auth
             return false;
         }
 
-        $forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0] ?? ''));
+        $forwardedProto = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
         if ($forwardedProto !== '') {
             return in_array($forwardedProto, ['https', 'wss'], true);
         }

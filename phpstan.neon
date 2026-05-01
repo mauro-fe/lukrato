@@ -10,6 +10,21 @@ parameters:
         - config
         - bootstrap.php
     tmpDir: storage/phpstan
+    dynamicConstantNames:
+        - APP_NAME
+        - APP_ENV
+        - APP_DEBUG
+        - BASE_URL
+        - TURNSTILE_SITE_KEY
+        - TURNSTILE_SECRET_KEY
+        - TURNSTILE_THRESHOLD
+        - DEV_BYPASS_REGISTRATION_ANTIFRAUD
+        - DB_DRIVER
+        - DB_HOST
+        - DB_USER
+        - DB_PASSWORD
+        - DB_NAME
+        - DB_CHARSET
     bootstrapFiles:
         - phpstan/bootstrap.php
     stubFiles:

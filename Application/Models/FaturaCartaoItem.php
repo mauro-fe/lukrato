@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * 
  * Representa compras/parcelas que ainda não viraram lançamentos.
  * Só viram lançamentos quando a fatura é paga.
+ *
+ * @property-read Fatura|null $fatura
+ * @property-read Lancamento|null $lancamento
+ * @property-read CartaoCredito|null $cartaoCredito
+ * @property-read Categoria|null $categoria
+ * @property-read Categoria|null $subcategoria
  */
 class FaturaCartaoItem extends Model
 {

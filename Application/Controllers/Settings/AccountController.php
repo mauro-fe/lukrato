@@ -46,7 +46,7 @@ class AccountController extends WebController
     public function delete(): Response
     {
         $requestId = uniqid('acc_del_', true);
-        $ip = $this->request->ip() ?? null;
+        $ip = $this->request->ip();
 
         LogService::info('Iniciando processo de exclusão de conta', [
             'request_id' => $requestId,

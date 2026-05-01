@@ -8,7 +8,7 @@ final class InfrastructureRuntimeConfig
 {
     public function appEnvironment(): string
     {
-        if (defined('APP_ENV') && APP_ENV !== null && APP_ENV !== '') {
+        if (defined('APP_ENV') && APP_ENV !== '') {
             return strtolower(trim((string) APP_ENV));
         }
 
@@ -124,7 +124,7 @@ final class InfrastructureRuntimeConfig
 
         $value = getenv($key);
 
-        if ($value !== false && $value !== null) {
+        if ($value !== false) {
             return $value;
         }
 

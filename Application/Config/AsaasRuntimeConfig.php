@@ -74,7 +74,7 @@ final class AsaasRuntimeConfig
 
         $value = getenv($key);
 
-        if ($value !== false && $value !== null) {
+        if ($value !== false) {
             return $value;
         }
 

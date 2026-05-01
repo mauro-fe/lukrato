@@ -31,11 +31,11 @@ class HealthScoreInsightService
 
         $insights = [];
 
-        $receitas = (float)($data['receitas'] ?? 0);
-        $despesas = (float)($data['despesas'] ?? 0);
-        $saldo = (float)($data['saldo_atual'] ?? 0);
-        $lancamentos = (int)($data['count'] ?? 0);
-        $categories = (int)($data['categories'] ?? 0);
+        $receitas = (float) ($data['receitas'] ?? 0);
+        $despesas = (float) ($data['despesas'] ?? 0);
+        $saldo = (float) ($data['saldo_atual'] ?? 0);
+        $lancamentos = (int) ($data['count'] ?? 0);
+        $categories = (int) ($data['categories'] ?? 0);
         $resultado = $receitas - $despesas;
 
         // 1. Saldo negativo
@@ -128,8 +128,8 @@ class HealthScoreInsightService
         $monthParts = explode('-', $month);
         $orcCount = count($this->orcamentoRepo->findByUserAndMonth(
             $userId,
-            (int) ($monthParts[1] ?? date('n')),
-            (int) ($monthParts[0] ?? date('Y'))
+            (int) $monthParts[1],
+            (int) $monthParts[0]
         ));
         if ($orcCount === 0 && $lancamentos >= 5) {
             $insights[] = [

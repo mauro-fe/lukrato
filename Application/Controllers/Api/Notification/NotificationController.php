@@ -146,25 +146,25 @@ class NotificationController extends ApiController
         }
 
         if ($diff < 3600) {
-            $minutes = floor($diff / 60);
+            $minutes = intdiv($diff, 60);
 
             return "ha {$minutes} " . ($minutes === 1 ? 'minuto' : 'minutos');
         }
 
         if ($diff < 86400) {
-            $hours = floor($diff / 3600);
+            $hours = intdiv($diff, 3600);
 
             return "ha {$hours} " . ($hours === 1 ? 'hora' : 'horas');
         }
 
         if ($diff < 604800) {
-            $days = floor($diff / 86400);
+            $days = intdiv($diff, 86400);
 
             return "ha {$days} " . ($days === 1 ? 'dia' : 'dias');
         }
 
         if ($diff < 2592000) {
-            $weeks = floor($diff / 604800);
+            $weeks = intdiv($diff, 604800);
 
             return "ha {$weeks} " . ($weeks === 1 ? 'semana' : 'semanas');
         }

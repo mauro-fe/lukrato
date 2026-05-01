@@ -117,7 +117,7 @@ class RegistroController extends WebController
     {
         LogService::info('Novo usuário registrado com sucesso.', [
             'email' => $email,
-            'ip' => $this->request->ip() ?? 'unknown',
+            'ip' => $this->request->ip(),
             'user_id' => $result['user_id'] ?? 'unknown',
             'provider' => $provider,
         ]);
@@ -129,7 +129,7 @@ class RegistroController extends WebController
             LogLevel::WARNING,
             LogCategory::AUTH,
             'Registro: falha de validação',
-            ['email' => $email, 'ip' => $this->request->ip() ?? 'unknown', 'errors' => $e->getErrors()]
+            ['email' => $email, 'ip' => $this->request->ip(), 'errors' => $e->getErrors()]
         );
 
         return $this->responseHandler->validationError($e->getErrors());
@@ -140,7 +140,7 @@ class RegistroController extends WebController
         LogService::captureException($e, LogCategory::AUTH, [
             'action' => 'registro',
             'email' => $email,
-            'ip' => $this->request->ip() ?? 'unknown',
+            'ip' => $this->request->ip(),
         ]);
 
         return $this->responseHandler->generalError(
@@ -190,7 +190,7 @@ class RegistroController extends WebController
         }
 
         $token = $this->request->postString('cf-turnstile-response', '');
-        $this->turnstileService()->verify($token, $this->request->ip() ?? 'unknown');
+        $this->turnstileService()->verify($token, $this->request->ip());
     }
 
     private function turnstileService(): TurnstileService

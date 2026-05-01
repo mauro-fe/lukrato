@@ -130,7 +130,7 @@ class ReportRepository
             $query->where('id', $params->accountId);
         }
 
-        return (float)($query->sum('saldo_inicial') ?? 0.0);
+        return (float) $query->sum('saldo_inicial');
     }
 
     /**

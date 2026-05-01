@@ -981,12 +981,12 @@ class ImportExecutionService
         $row['subcategoria_nome'] = $resolvedNames['subcategoria_nome'];
         $row['categoria_editada'] = $wasEdited;
         $row['categoria_learning_source'] = $learningSource;
-        if (!isset($row['categoria_source']) || $row['categoria_source'] === null || $row['categoria_source'] === '') {
+        if (!isset($row['categoria_source']) || $row['categoria_source'] === '') {
             $row['categoria_source'] = ($categoriaSource = ImportSanitizer::sanitizeText((string) ($override['categoria_source'] ?? ''), 40)) !== ''
                 ? $categoriaSource
                 : null;
         }
-        if (!isset($row['categoria_confidence']) || $row['categoria_confidence'] === null || $row['categoria_confidence'] === '') {
+        if (!isset($row['categoria_confidence']) || $row['categoria_confidence'] === '') {
             $row['categoria_confidence'] = ($categoriaConfidence = ImportSanitizer::sanitizeText((string) ($override['categoria_confidence'] ?? ''), 40)) !== ''
                 ? $categoriaConfidence
                 : null;

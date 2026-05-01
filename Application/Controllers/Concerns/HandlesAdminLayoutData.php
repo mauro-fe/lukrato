@@ -208,7 +208,7 @@ trait HandlesAdminLayoutData
         $fullName = trim((string) ($currentUser?->nome ?? ''));
 
         if ($fullName !== '') {
-            return explode(' ', $fullName)[0] ?? '';
+            return explode(' ', $fullName)[0];
         }
 
         return $this->resolveEmailNickname($currentUser);

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Carbon\Carbon|null $published_at
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
+ * @property-read BlogCategoria|null $categoria
  *
  * @method static \Illuminate\Database\Eloquent\Builder publicados()
  * @method static \Illuminate\Database\Eloquent\Builder byCategoria(int $categoriaId)

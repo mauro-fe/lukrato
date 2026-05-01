@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $notificado_100
  * @property \Carbon\Carbon|string|null $created_at
  * @property \Carbon\Carbon|string|null $updated_at
+ * @property-read Categoria|null $categoria
+ * @property-read Usuario|null $usuario
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null)
  * @method static \Illuminate\Database\Eloquent\Builder forUser(int $userId)

@@ -136,8 +136,8 @@ trait HandlesDashboardRead
             'resultado' => $resultado,
             'saldoAcumulado' => $saldoAcumulado,
             'view' => $viewType,
-            'count' => (int) ($summary['count'] ?? 0),
-            'categories' => (int) ($summary['categories'] ?? 0),
+            'count' => (int) $summary['count'],
+            'categories' => (int) $summary['categories'],
         ];
     }
 

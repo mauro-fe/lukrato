@@ -54,7 +54,7 @@ class LoginController extends WebController
         $activeTab = $this->resolveActiveTab($registerErrors);
 
         $errorMessage = $this->getError();
-        $ip = $this->request->ip() ?? 'unknown';
+        $ip = $this->request->ip();
 
         if ($intended !== '') {
             $this->putSessionValue('login_intended', $intended);
@@ -201,7 +201,7 @@ class LoginController extends WebController
         }
 
         $email = '';
-        $ip = $this->request->ip() ?? 'unknown';
+        $ip = $this->request->ip();
 
         try {
             $this->validateCsrfToken();

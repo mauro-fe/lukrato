@@ -125,7 +125,7 @@ class EmailVerificationController extends WebController
         }
 
         try {
-            $ip = $this->request->ip() ?? 'unknown';
+            $ip = $this->request->ip();
             $this->cache->checkRateLimit('email-verification-resend:' . $ip, 3, 60);
         } catch (ValidationException $e) {
             if ($isAjax) {

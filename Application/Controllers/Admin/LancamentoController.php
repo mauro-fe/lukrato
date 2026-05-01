@@ -129,7 +129,7 @@ class LancamentoController extends WebController
                     continue;
                 }
 
-                if (is_scalar($value) || $value === null) {
+                if (is_scalar($value)) {
                     $normalizedValue = trim((string) $value);
                     if ($normalizedValue !== '') {
                         $filteredParams[$key] = $normalizedValue;

@@ -216,8 +216,8 @@ class ConfirmController extends ApiController
         $validatedUpload = $this->uploadSecurityService->extractValidatedUpload($sourceType, $file);
 
         return [
-            (string) ($validatedUpload['tmp_name'] ?? ''),
-            (string) ($validatedUpload['filename'] ?? ''),
+            (string) $validatedUpload['tmp_name'],
+            (string) $validatedUpload['filename'],
         ];
     }
 

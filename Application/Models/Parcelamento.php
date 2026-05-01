@@ -46,6 +46,10 @@ class Parcelamento extends Model
      * @property string $status
      * @property \Carbon\Carbon|null $data_criacao
      *
+     * @property-read Categoria|null $categoria
+     * @property-read Conta|null $conta
+     * @property-read CartaoCredito|null $cartaoCredito
+     * @property-read Usuario|null $usuario
      * @property-read float $valor_parcela
      * @property-read float $percentual_pago
      * @property-read float $valor_restante

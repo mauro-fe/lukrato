@@ -32,7 +32,7 @@ class CpfProtectionService
         $normalized = $this->normalize($value);
         $ivLength = openssl_cipher_iv_length(self::CIPHER);
 
-        if ($ivLength === false || $ivLength < 1) {
+        if ($ivLength < 1) {
             throw new \RuntimeException('Cipher inválido para criptografia de CPF.');
         }
 

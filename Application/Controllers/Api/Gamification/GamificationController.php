@@ -387,7 +387,6 @@ class GamificationController extends ApiController
 
                 return 'Há ' . $diff->i . ' min';
             }
-            "⚠️ Você precisa ter pelo menos uma conta cadastrada no Lukrato para registrar lançamentos.";
 
             return 'Há ' . $diff->h . 'h';
         }

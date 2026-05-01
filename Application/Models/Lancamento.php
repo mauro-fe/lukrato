@@ -77,6 +77,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $canal_inapp
  * @property \Carbon\Carbon|string|null $notificado_em
  * @property \Carbon\Carbon|string|null $lembrete_antecedencia_em
+ * @property-read Parcelamento|null $parcelamento
+ * @property-read CartaoCredito|null $cartaoCredito
+ * @property-read Usuario|null $usuario
+ * @property-read Categoria|null $categoria
+ * @property-read Categoria|null $subcategoria
+ * @property-read Meta|null $meta
+ * @property-read Conta|null $conta
+ * @property-read Conta|null $contaDestino
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])

@@ -58,7 +58,7 @@ class OverviewController extends ApiController
                 comSaldos: true,
                 mes: $month
             );
-            $accountCount = is_countable($accounts) ? count($accounts) : 0;
+            $accountCount = count($accounts);
 
             $overview = [
                 'month' => $month,

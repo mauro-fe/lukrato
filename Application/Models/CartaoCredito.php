@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $cor_cartao
  * @property bool $ativo
  *
+ * @property-read Conta|null $conta
+ * @property-read Usuario|null $usuario
  * @property-read string $numero_mascarado
  * @property-read float $limite_utilizado
  * @property-read float $percentual_uso
