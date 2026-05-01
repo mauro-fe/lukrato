@@ -1,8 +1,14 @@
 parameters:
-    level: 0
+    level: 1
     paths:
         - Application
         - routes
         - config
         - bootstrap.php
     tmpDir: storage/phpstan
+    bootstrapFiles:
+        - phpstan/bootstrap.php
+    stubFiles:
+        - phpstan/stubs/eloquent.stub
+    universalObjectCratesClasses:
+        - Illuminate\Database\Eloquent\Model

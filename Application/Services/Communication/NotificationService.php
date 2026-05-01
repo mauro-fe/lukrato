@@ -292,7 +292,7 @@ class NotificationService
 
             // Processar em lotes para evitar estouro de memória
             $this->buildFilteredUsersQuery($campaign->filters ?? [])
-                ->chunk(200, function ($users) use ($campaign, $cupom, $notificationMessage, &$notificationsDelivered, &$emailEligible, &$emailsSent, &$emailsFailed) {
+                ->chunk(200, function ($users) use ($campaign, $notificationMessage, &$notificationsDelivered, &$emailEligible, &$emailsSent, &$emailsFailed) {
                     foreach ($users as $user) {
                         // Criar notificação interna
                         if ($campaign->send_notification) {
@@ -940,7 +940,7 @@ class NotificationService
             ->whereRaw('MONTH(data_nascimento) = ?', [$date->month])
             ->whereRaw('DAY(data_nascimento) = ?', [$date->day])
             ->get()
-            ->map(function ($user) use ($date) {
+            ->map(function ($user) {
                 $birthDate = Carbon::parse($user->data_nascimento);
                 return [
                     'id' => $user->id,

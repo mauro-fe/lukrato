@@ -36,6 +36,18 @@ class LoginHandler implements AuthHandlerInterface
         ?AbstractSecurityCheck $csrfCheck = null,
         ?AbstractSecurityCheck $rateLimitCheck = null
     ) {
+        if ($request !== null || $cache !== null) {
+            $container = ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap();
+
+            if ($request !== null) {
+                $container->instance(Request::class, $request);
+            }
+
+            if ($cache !== null) {
+                $container->instance(CacheService::class, $cache);
+            }
+        }
+
         $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
         $this->validationStrategy = ApplicationContainer::resolveOrNew(
             $validationStrategy,

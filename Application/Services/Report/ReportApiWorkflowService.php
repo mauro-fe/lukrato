@@ -193,7 +193,7 @@ class ReportApiWorkflowService
         $mes = $query['mes'] ?? date('m');
         $ano = $query['ano'] ?? date('Y');
 
-        if (!preg_match('/^\d{1,2}$/', $mes ?? '') || !preg_match('/^\d{4}$/', $ano ?? '')) {
+        if (!preg_match('/^\d{1,2}$/', $mes) || !preg_match('/^\d{4}$/', $ano)) {
             throw new InvalidArgumentException('Formato de mês/ano inválido');
         }
 

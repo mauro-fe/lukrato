@@ -32,13 +32,20 @@ class Request
         ?InfrastructureRuntimeConfig $runtimeConfig = null
     ) {
         $this->runtimeConfig = ApplicationContainer::resolveOrNew($runtimeConfig, InfrastructureRuntimeConfig::class);
-        $this->server = $server ?? $_SERVER ?? [];
+        $this->server = $server ?? self::globalArray('_SERVER');
         $this->method = strtoupper($this->server['REQUEST_METHOD'] ?? 'GET');
         $this->headers = $this->normalizeHeaders($headers ?? $this->detectHeaders($this->server));
-        $this->files = $files ?? $_FILES ?? [];
+        $this->files = $files ?? self::globalArray('_FILES');
         $this->rawInput = $rawInput ?? (file_get_contents('php://input') ?: '');
 
-        $this->parseData($query ?? $_GET ?? [], $post ?? $_POST ?? []);
+        $this->parseData($query ?? self::globalArray('_GET'), $post ?? self::globalArray('_POST'));
+    }
+
+    private static function globalArray(string $key): array
+    {
+        $value = $GLOBALS[$key] ?? [];
+
+        return is_array($value) ? $value : [];
     }
 
     private function parseData(array $query, array $post): void

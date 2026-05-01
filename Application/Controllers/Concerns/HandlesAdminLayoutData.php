@@ -223,7 +223,7 @@ trait HandlesAdminLayoutData
 
         $localPart = strtolower((string) strstr($email, '@', true));
         $candidate = preg_split('/[._-]+/', $localPart)[0] ?? $localPart;
-        $candidate = preg_replace('/\d+$/', '', $candidate ?? '') ?? '';
+        $candidate = preg_replace('/\d+$/', '', $candidate) ?? '';
         $candidate = trim($candidate);
 
         if ($candidate === '') {

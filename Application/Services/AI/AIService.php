@@ -168,7 +168,7 @@ class AIService
             $response = $handler->handle($request);
 
             // 4. Log (inclui confidence para debug)
-            $this->logDispatch($request, $response, $intent, microtime(true) - $start, $confidence ?? 1.0);
+            $this->logDispatch($request, $response, $intent, microtime(true) - $start, $confidence);
 
             return $response;
         } catch (Throwable $e) {

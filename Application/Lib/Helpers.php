@@ -75,7 +75,7 @@ class Helpers
 
     public static function isValidCpf(string $cpf): bool
     {
-        $cpf = preg_replace('/\D/', '', $cpf ?? '');
+        $cpf = preg_replace('/\D/', '', $cpf);
         if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) return false;
 
         $sum = 0;
@@ -94,7 +94,7 @@ class Helpers
 
     public static function isValidCnpj(string $cnpj): bool
     {
-        $cnpj = preg_replace('/\D/', '', $cnpj ?? '');
+        $cnpj = preg_replace('/\D/', '', $cnpj);
         if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1{13}$/', $cnpj)) return false;
 
         $w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];

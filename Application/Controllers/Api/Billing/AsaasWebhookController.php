@@ -137,7 +137,7 @@ class AsaasWebhookController extends ApiController
 
             LogService::captureException($e, LogCategory::WEBHOOK, [
                 'event' => $event,
-                'resource_id' => $resourceId ?? null,
+                'resource_id' => $resourceId,
             ]);
         }
 

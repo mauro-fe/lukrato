@@ -40,6 +40,18 @@ class AuthService
         ?RegistrationHandler $registrationHandler = null,
         ?LogoutHandler $logoutHandler = null
     ) {
+        if ($request !== null || $cache !== null) {
+            $container = ApplicationContainer::getInstance() ?? ApplicationContainer::bootstrap();
+
+            if ($request !== null) {
+                $container->instance(Request::class, $request);
+            }
+
+            if ($cache !== null) {
+                $container->instance(CacheService::class, $cache);
+            }
+        }
+
         $this->loginHandler = ApplicationContainer::resolveOrNew($loginHandler, LoginHandler::class);
         $this->registrationHandler = ApplicationContainer::resolveOrNew($registrationHandler, RegistrationHandler::class);
         $this->logoutHandler = ApplicationContainer::resolveOrNew($logoutHandler, LogoutHandler::class);

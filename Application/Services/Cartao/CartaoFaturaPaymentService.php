@@ -337,7 +337,7 @@ class CartaoFaturaPaymentService
             LogService::captureException($e, LogCategory::FATURA, [
                 'action' => 'pagar_parcelas',
                 'cartao_id' => $cartaoId,
-                'parcela_ids' => $parcelaIds ?? [],
+                'parcela_ids' => $parcelaIds,
                 'user_id' => $userId,
             ]);
             throw $e;
