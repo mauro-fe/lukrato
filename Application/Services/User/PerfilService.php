@@ -116,7 +116,7 @@ class PerfilService
         });
 
         $verificationSent = false;
-        if (($result['should_send_verification'] ?? false) === true) {
+        if ($result['should_send_verification'] === true) {
             $userToVerify = $this->usuarioRepo->findById($userId);
             if ($userToVerify) {
                 $verificationSent = $this->verificationService()->sendVerificationEmail($userToVerify);
@@ -125,7 +125,7 @@ class PerfilService
 
         return [
             'user' => $result['user'] ?? $this->obterPerfil($userId),
-            'email_change_pending' => (bool) ($result['email_change_pending'] ?? false),
+            'email_change_pending' => (bool) $result['email_change_pending'],
             'email_verification_sent' => $verificationSent,
         ];
     }

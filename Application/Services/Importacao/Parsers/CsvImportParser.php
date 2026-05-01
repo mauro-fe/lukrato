@@ -130,8 +130,8 @@ class CsvImportParser implements ImportParserInterface
 
         $rowsDto = [];
         foreach ($rows as $item) {
-            $lineNumber = (int) ($item['row'] ?? 0);
-            $line = is_array($item['values'] ?? null) ? $item['values'] : [];
+            $lineNumber = (int) $item['row'];
+            $line = $item['values'];
             if ($lineNumber < (int) $options['start_row'] || $this->isLineEmpty($line)) {
                 continue;
             }
@@ -167,8 +167,8 @@ class CsvImportParser implements ImportParserInterface
 
         $rowsDto = [];
         foreach ($rows as $item) {
-            $lineNumber = (int) ($item['row'] ?? 0);
-            $line = is_array($item['values'] ?? null) ? $item['values'] : [];
+            $lineNumber = (int) $item['row'];
+            $line = $item['values'];
             if ($lineNumber < (int) $options['start_row'] || $this->isLineEmpty($line)) {
                 continue;
             }
@@ -311,8 +311,8 @@ class CsvImportParser implements ImportParserInterface
     private function findRowValues(array $rows, int $rowNumber): ?array
     {
         foreach ($rows as $item) {
-            if ((int) ($item['row'] ?? 0) === $rowNumber) {
-                return is_array($item['values'] ?? null) ? $item['values'] : null;
+            if ((int) $item['row'] === $rowNumber) {
+                return $item['values'];
             }
         }
 
@@ -472,19 +472,19 @@ class CsvImportParser implements ImportParserInterface
     {
         $dataRows = array_values(array_filter(
             $rows,
-            fn(array $item): bool => (int) ($item['row'] ?? 0) >= (int) $options['start_row']
-                && !$this->isLineEmpty(is_array($item['values'] ?? null) ? $item['values'] : [])
+            fn(array $item): bool => (int) $item['row'] >= (int) $options['start_row']
+                && !$this->isLineEmpty($item['values'])
         ));
 
         if ($dataRows === []) {
             return;
         }
 
-        $lastDataRowNumber = (int) ($dataRows[array_key_last($dataRows)]['row'] ?? 0);
+        $lastDataRowNumber = (int) $dataRows[array_key_last($dataRows)]['row'];
 
         foreach ($dataRows as $item) {
-            $lineNumber = (int) ($item['row'] ?? 0);
-            $line = is_array($item['values'] ?? null) ? $item['values'] : [];
+            $lineNumber = (int) $item['row'];
+            $line = $item['values'];
             $issue = $this->detectRowIssue($line, $map, $lineNumber, $lastDataRowNumber, $options);
 
             if ($issue !== null) {

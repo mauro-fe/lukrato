@@ -237,7 +237,7 @@ class CategoryRuleEngine
     public static function match(string $description, ?int $userId = null, ?string $context = null): ?array
     {
         $normalizedParts = TransactionDescriptionNormalizer::normalize($description);
-        $normalizedDescription = mb_strtolower(trim($normalizedParts['descricao'] ?? ''));
+        $normalizedDescription = mb_strtolower(trim($normalizedParts['descricao']));
         $normalizedContext = mb_strtolower(trim(implode(' ', array_filter([
             $normalizedParts['categoria_contexto'] ?? null,
             $context,
@@ -411,7 +411,7 @@ class CategoryRuleEngine
     private static function extractKeywords(string $description): array
     {
         $normalizedParts = TransactionDescriptionNormalizer::normalize($description);
-        $normalized = mb_strtolower(trim($normalizedParts['descricao'] ?? ''));
+        $normalized = mb_strtolower(trim($normalizedParts['descricao']));
 
         // Remove valores monetários e números
         $cleaned = preg_replace('/r?\$[\s]?\d[\d.,]*/i', '', $normalized);

@@ -376,7 +376,7 @@ class EntityCreationHandler implements AIHandlerInterface
                 case 'descricao':
                     if (mb_strlen($msg) >= 2 && mb_strlen($msg) <= 150) {
                         $normalizedDescription = TransactionDescriptionNormalizer::normalize($msg);
-                        $descricao = trim((string) ($normalizedDescription['descricao'] ?? ''));
+                        $descricao = trim($normalizedDescription['descricao']);
 
                         if ($descricao !== '' && !$this->isPlaceholderLancamentoDescription($descricao)) {
                             $existing['descricao'] = mb_substr($descricao, 0, 190);
@@ -605,7 +605,7 @@ class EntityCreationHandler implements AIHandlerInterface
 
         if (!empty($descriptionParts)) {
             $normalizedDescription = TransactionDescriptionNormalizer::normalize(implode(' ', $descriptionParts));
-            $descricao = trim((string) ($normalizedDescription['descricao'] ?? ''));
+            $descricao = trim($normalizedDescription['descricao']);
 
             if ($descricao !== '') {
                 $data['descricao'] = mb_substr($descricao, 0, 190);
@@ -1016,7 +1016,7 @@ class EntityCreationHandler implements AIHandlerInterface
                 continue;
             }
 
-            $categoria = trim((string) ($matches[1] ?? ''), " \t\n\r\0\x0B,.");
+            $categoria = trim($matches[1], " \t\n\r\0\x0B,.");
             $categoria = preg_replace('/^(?:o|a|os|as|uma|um)\b\s+/iu', '', $categoria);
             $categoria = trim((string) $categoria);
 

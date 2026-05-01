@@ -213,12 +213,12 @@ class ImportExecutionService
                 );
             }
 
-            if (($outcome['status'] ?? '') === 'imported') {
+            if ($outcome['status'] === 'imported') {
                 $imported++;
                 continue;
             }
 
-            if (($outcome['status'] ?? '') === 'duplicate') {
+            if ($outcome['status'] === 'duplicate') {
                 $duplicated++;
                 continue;
             }
@@ -329,7 +329,7 @@ class ImportExecutionService
                 );
             }
 
-            if (($outcome['status'] ?? '') === 'imported') {
+            if ($outcome['status'] === 'imported') {
                 $imported++;
 
                 $faturaId = is_numeric($outcome['fatura_id'] ?? null) ? (int) $outcome['fatura_id'] : null;
@@ -340,7 +340,7 @@ class ImportExecutionService
                 continue;
             }
 
-            if (($outcome['status'] ?? '') === 'duplicate') {
+            if ($outcome['status'] === 'duplicate') {
                 $duplicated++;
                 continue;
             }
@@ -489,7 +489,7 @@ class ImportExecutionService
             }
 
             $persisted = $this->persistCardInvoiceItem($userId, $cartao, $normalized);
-            if (($persisted['success'] ?? false) === true) {
+            if ($persisted['success'] === true) {
                 $faturaId = is_numeric($persisted['fatura_id'] ?? null) ? (int) $persisted['fatura_id'] : null;
                 $faturaItemId = is_numeric($persisted['fatura_item_id'] ?? null) ? (int) $persisted['fatura_item_id'] : null;
 

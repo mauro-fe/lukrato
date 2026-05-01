@@ -105,8 +105,8 @@ class WhatsAppService
         $normalizedButtons = [];
 
         foreach (array_slice($buttons, 0, 3) as $button) {
-            $id = trim((string) ($button['id'] ?? ''));
-            $title = trim((string) ($button['title'] ?? ''));
+            $id = trim($button['id']);
+            $title = trim($button['title']);
 
             if ($id === '' || $title === '') {
                 continue;

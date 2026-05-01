@@ -191,11 +191,11 @@ class ImportacoesIndexPageDataService
     private function resolveAccountIdFromCard(array $cards, int $selectedCardId): int
     {
         foreach ($cards as $card) {
-            if ((int) ($card['id'] ?? 0) !== $selectedCardId) {
+            if ((int) $card['id'] !== $selectedCardId) {
                 continue;
             }
 
-            return (int) ($card['conta_id'] ?? 0);
+            return (int) $card['conta_id'];
         }
 
         return 0;

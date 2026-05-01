@@ -402,7 +402,7 @@ class PreferenciasUsuarioUseCase
             if ($isBirthday) {
                 $age = (int) $today->diff($birthDate)->y;
                 $nameParts = explode(' ', trim((string) $user->nome));
-                $firstName = $nameParts[0] ?? 'Você';
+                $firstName = $nameParts[0];
 
                 return $this->ok([
                     'is_birthday' => true,
@@ -472,7 +472,7 @@ class PreferenciasUsuarioUseCase
     private function getHelpBaseKey(string $key): string
     {
         $parts = explode('.', $key);
-        return strtolower(trim((string) ($parts[0] ?? '')));
+        return strtolower(trim($parts[0]));
     }
 
     /**

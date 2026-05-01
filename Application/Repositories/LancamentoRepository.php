@@ -843,7 +843,7 @@ class LancamentoRepository extends BaseRepository
      *
      * @param int $userId
      * @param string $month Formato: Y-m
-     * @return array{receitas: float, despesas: float, count: int, categories: int, saldo_atual: float}
+     * @return array{receitas?: float, despesas?: float, count?: int, categories?: int, saldo_atual?: float}
      */
     public function getResumoMes(int $userId, string $month): array
     {

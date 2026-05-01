@@ -562,7 +562,7 @@ class LogService
             '/(authorization\s*[:=]\s*)(Bearer\s+)?([^\s,\r\n]+)/iu',
             static function (array $matches): string {
                 $prefix = $matches[1];
-                $scheme = $matches[2] ?? '';
+                $scheme = $matches[2];
 
                 return $prefix . $scheme . self::REDACTED;
             },

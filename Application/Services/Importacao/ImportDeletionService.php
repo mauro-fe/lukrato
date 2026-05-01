@@ -433,15 +433,15 @@ class ImportDeletionService
             return 'A data de compra do item da fatura foi alterada manualmente.';
         }
 
-        if ($expectedVencimento !== null && $this->normalizeDate($faturaItem->data_vencimento ?? null) !== ($expectedVencimento['data'] ?? null)) {
+        if ($expectedVencimento !== null && $this->normalizeDate($faturaItem->data_vencimento ?? null) !== $expectedVencimento['data']) {
             return 'A data de vencimento do item da fatura foi alterada manualmente.';
         }
 
-        if ($expectedCompetencia !== null && (int) ($faturaItem->mes_referencia ?? 0) !== (int) ($expectedCompetencia['mes'] ?? 0)) {
+        if ($expectedCompetencia !== null && (int) ($faturaItem->mes_referencia ?? 0) !== (int) $expectedCompetencia['mes']) {
             return 'A competência do item da fatura foi alterada manualmente.';
         }
 
-        if ($expectedCompetencia !== null && (int) ($faturaItem->ano_referencia ?? 0) !== (int) ($expectedCompetencia['ano'] ?? 0)) {
+        if ($expectedCompetencia !== null && (int) ($faturaItem->ano_referencia ?? 0) !== (int) $expectedCompetencia['ano']) {
             return 'A competência do item da fatura foi alterada manualmente.';
         }
 

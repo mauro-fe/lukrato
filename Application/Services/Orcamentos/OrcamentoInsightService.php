@@ -83,7 +83,7 @@ class OrcamentoInsightService
         $prioridade = ['perigo' => 0, 'alerta' => 1, 'info' => 2, 'positivo' => 3];
         usort(
             $insights,
-            static fn(array $a, array $b): int => ($prioridade[$a['tipo']] ?? 9) <=> ($prioridade[$b['tipo']] ?? 9)
+            static fn(array $a, array $b): int => $prioridade[$a['tipo']] <=> $prioridade[$b['tipo']]
         );
 
         return array_slice($insights, 0, 8);

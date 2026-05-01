@@ -557,7 +557,7 @@ class TelegramWebhookWorkflowService
             return;
         }
 
-        if (($state['state'] ?? 'idle') !== 'awaiting_selection' || !isset($options[$optionIndex])) {
+        if ($state['state'] !== 'awaiting_selection' || !isset($options[$optionIndex])) {
             $this->telegram()->sendText($dto->chatId, "Essa opção expirou. Tente novamente.");
             $msgRecord->markProcessed('option_selection_failed');
             return;
@@ -1100,7 +1100,7 @@ class TelegramWebhookWorkflowService
     {
         $plainText = $this->telegramHtmlToPlainText($htmlText);
         $labels = array_values(array_filter(array_map(
-            static fn(array $reply): string => trim((string) ($reply['label'] ?? '')),
+            static fn(array $reply): string => trim($reply['label']),
             $quickReplies,
         )));
 

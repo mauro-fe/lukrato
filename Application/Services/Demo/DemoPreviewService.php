@@ -825,6 +825,6 @@ class DemoPreviewService
 
         $monthNum = (int) $date->format('n');
 
-        return sprintf('%s/%s', $labels[$monthNum] ?? $date->format('m'), $date->format('y'));
+        return sprintf('%s/%s', $labels[$monthNum], $date->format('y'));
     }
 }

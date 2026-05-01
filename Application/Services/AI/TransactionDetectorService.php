@@ -219,7 +219,7 @@ class TransactionDetectorService
         }
 
         $normalizedDescription = self::normalizeDescriptionPayload(implode(' ', $descriptionParts));
-        if (($normalizedDescription['descricao'] ?? '') === '') {
+        if ($normalizedDescription['descricao'] === '') {
             return null;
         }
 

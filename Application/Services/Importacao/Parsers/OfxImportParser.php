@@ -243,11 +243,11 @@ class OfxImportParser implements ImportParserInterface
     private function detectDeclaredEncoding(string $contents): ?string
     {
         if (preg_match('/^\s*CHARSET\s*:\s*([^\r\n]+)/mi', $contents, $matches) === 1) {
-            return $this->normalizeDeclaredEncodingToken((string) ($matches[1] ?? ''));
+            return $this->normalizeDeclaredEncodingToken($matches[1]);
         }
 
         if (preg_match('/<\?xml[^>]*encoding=["\']([^"\']+)["\']/i', $contents, $matches) === 1) {
-            return $this->normalizeDeclaredEncodingToken((string) ($matches[1] ?? ''));
+            return $this->normalizeDeclaredEncodingToken($matches[1]);
         }
 
         return null;
