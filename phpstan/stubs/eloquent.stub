@@ -26,9 +26,51 @@ namespace Illuminate\Database\Eloquent;
  * @method static static updateOrCreate(array<string, mixed> $attributes, array<string, mixed> $values = [])
  * @method static int count(string $columns = '*')
  * @method static int|float sum(string $column)
+ * @method mixed subcategorias()
+ * @method mixed lancamentos()
+ * @method mixed fichas()
+ * @method mixed assinaturas()
+ * @method mixed assinaturaAtiva()
+ * @method bool isPro()
+ * @method bool hasVerifiedEmail()
+ * @method void markEmailAsVerified()
+ * @method void atualizarLimiteDisponivel()
+ * @method bool markAsRead()
+ * @method bool trashed()
+ * @method array<string, mixed> toApiArray()
+ * @method bool isSubcategoria()
  */
 class Model
 {
+}
+
+/**
+ * @method mixed recentes()
+ * @method mixed publicados()
+ * @method mixed ativas()
+ * @method mixed arquivadas()
+ * @method mixed forUser(int $userId)
+ * @method mixed with(array<int|string, mixed>|string $relations)
+ * @method mixed withDefault(array<string, mixed>|\Closure|null $callback = null)
+ */
+class Builder
+{
+}
+
+namespace Illuminate\Database\Query;
+
+/**
+ * @method mixed with(array<int|string, mixed>|string $relations)
+ */
+class Builder
+{
+    public function get(mixed $columns = ['*']): mixed
+    {
+    }
+
+    public function first(mixed $columns = ['*']): mixed
+    {
+    }
 }
 
 namespace Illuminate\Database\Capsule;

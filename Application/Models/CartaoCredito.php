@@ -28,7 +28,7 @@ use \Illuminate\Database\Capsule\Manager as Manager;
  * @property-read string|null $proximo_vencimento
  *
  * @method static \Illuminate\Database\Eloquent\Builder|CartaoCredito where(string $column, $value = null)
- * @mixin \Eloquent
+ * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class CartaoCredito extends Model
 {

@@ -11,7 +11,7 @@ class ValidationException extends \Exception
     /**
      * Construtor da Exceção de Validação.
      *
-     * @param public readonly array $errors O array de mensagens de erro (ex: ['email' => 'E-mail inválido']).
+     * @param array<string, mixed> $errors O array de mensagens de erro (ex: ['email' => 'E-mail inválido']).
      * @param string $message Mensagem geral da exceção.
      * @param int $code O código de status HTTP (padrão 422).
      * @param \Throwable|null $previous A exceção anterior (para encadeamento).

@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Carbon\Carbon|null $cancelada_em
  *
  * @method static \Illuminate\Database\Eloquent\Builder|AssinaturaUsuario where(string $column, $value = null)
- * @mixin \Eloquent
+ * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class AssinaturaUsuario extends Model
 {
