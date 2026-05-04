@@ -156,6 +156,9 @@ class ErrorHandler
         );
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function buildJsonErrorResponse(array $data, int $statusCode = 500): Response
     {
         return Response::jsonResponse($data, $statusCode);

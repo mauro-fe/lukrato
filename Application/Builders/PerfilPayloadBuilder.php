@@ -28,6 +28,9 @@ class PerfilPayloadBuilder
     /**
      * Constrói o array de dados do usuário para ser retornado na API.
      */
+    /**
+     * @return array<string, mixed>
+     */
     public function build(Usuario $user): array
     {
         // Busca dados relacionados

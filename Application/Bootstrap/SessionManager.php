@@ -29,6 +29,9 @@ class SessionManager
         session_start();
     }
 
+    /**
+     * @return array{lifetime: int, path: string, domain: string, secure: bool, httponly: bool, samesite: string}
+     */
     private function getSessionConfig(): array
     {
         $secure = $this->isSecureConnection();

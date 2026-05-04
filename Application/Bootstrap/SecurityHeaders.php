@@ -32,6 +32,9 @@ class SecurityHeaders
         '/configuracoes',
     ];
 
+    /**
+     * @var array<string, string>
+     */
     private array $securityHeaders = [
         'X-Content-Type-Options' => 'nosniff',
         'X-Frame-Options' => 'DENY',

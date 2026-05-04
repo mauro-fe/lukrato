@@ -10,6 +10,9 @@ use Application\Enums\SubscriptionCycle;
  */
 class AsaasSubscriptionBuilder
 {
+    /**
+     * @var array<string, mixed>
+     */
     private array $data = [];
 
     public function forCustomer(string $customerId): self
@@ -70,6 +73,9 @@ class AsaasSubscriptionBuilder
         return $this;
     }
 
+    /**
+     * @param array<string, mixed> $creditCard
+     */
     public function withCreditCard(array $creditCard, CustomerDataDTO $holderInfo): self
     {
         $this->data['creditCard'] = $creditCard;
@@ -78,6 +84,9 @@ class AsaasSubscriptionBuilder
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function build(): array
     {
         return $this->data;

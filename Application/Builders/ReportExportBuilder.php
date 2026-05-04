@@ -8,11 +8,21 @@ use Application\Enums\ReportType;
 use Application\DTO\ReportData;
 use Application\DTO\ReportParameters;
 
+/**
+ * @phpstan-type ReportPayload array<string, mixed>
+ * @phpstan-type ReportHeaders list<string>
+ * @phpstan-type ReportRows list<list<string>>
+ * @phpstan-type ReportTable array{0: ReportHeaders, 1: ReportRows}
+ * @phpstan-type ReportTotals array<string, int|string>
+ */
 class ReportExportBuilder
 {
     private const EMPTY_DATA_MESSAGE = 'Nenhum dado disponível para o período selecionado';
     private const CURRENCY_SYMBOL = 'R$';
 
+    /**
+     * @param ReportPayload $payload
+     */
     public function build(ReportType $type, ReportParameters $params, array $payload): ReportData
     {
         [$headers, $rows] = $this->processData($type, $payload);
@@ -30,6 +40,10 @@ class ReportExportBuilder
         );
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processData(ReportType $type, array $payload): array
     {
         return match ($type) {
@@ -59,6 +73,10 @@ class ReportExportBuilder
         };
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processCategoryReport(array $payload, string $labelHeader): array
     {
         // Se contém details (PRO), renderizar com subcategorias
@@ -72,6 +90,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processCategoryReportWithSubcategories(array $payload, string $labelHeader): array
     {
         $headers = [$labelHeader, 'Subcategoria', 'Valor'];
@@ -105,6 +127,10 @@ class ReportExportBuilder
         return [$headers, $rows];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processBalanceReport(array $payload): array
     {
         return [
@@ -113,6 +139,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processEvolutionReport(array $payload): array
     {
         return [
@@ -121,6 +151,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processIncomeExpenseReport(array $payload, string $periodLabel): array
     {
         return [
@@ -129,6 +163,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processAnnualSummary(array $payload): array
     {
         return [
@@ -137,6 +175,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processAccountReport(array $payload): array
     {
         return [
@@ -145,6 +187,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTable
+     */
     private function processCardsReport(array $payload): array
     {
         $cards = $payload['cards'] ?? [];
@@ -168,6 +214,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportRows
+     */
     private function mapSingleColumn(array $payload): array
     {
         $labels = $payload['labels'] ?? [];
@@ -183,6 +233,10 @@ class ReportExportBuilder
         );
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportRows
+     */
     private function mapIncomeExpenseWithBalance(array $payload): array
     {
         $labels = $payload['labels'] ?? [];
@@ -207,6 +261,9 @@ class ReportExportBuilder
         );
     }
 
+    /**
+     * @param ReportPayload $payload
+     */
     private function resolveTitle(ReportType $type, ReportParameters $params, array $payload): string
     {
         $year = $payload['year'] ?? $params->start->format('Y');
@@ -251,6 +308,10 @@ class ReportExportBuilder
         return implode(' | ', $parts);
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTotals
+     */
     private function buildTotals(ReportType $type, array $payload): array
     {
         return match ($type) {
@@ -274,6 +335,10 @@ class ReportExportBuilder
         };
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTotals
+     */
     private function buildSingleValueTotals(array $payload): array
     {
         $total = $this->sumValues($payload['values'] ?? []);
@@ -283,6 +348,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTotals
+     */
     private function buildIncomeExpenseTotals(array $payload): array
     {
         $receitas = $this->sumValues($payload['receitas'] ?? []);
@@ -296,6 +365,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTotals
+     */
     private function buildBalanceTotals(array $payload): array
     {
         $values = $payload['values'] ?? [];
@@ -313,6 +386,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportPayload $payload
+     * @return ReportTotals
+     */
     private function buildCardsTotals(array $payload): array
     {
         $resumo = $payload['resumo_consolidado'] ?? [];
@@ -330,6 +407,10 @@ class ReportExportBuilder
         ];
     }
 
+    /**
+     * @param ReportHeaders $headers
+     * @return ReportRows
+     */
     private function createEmptyRow(array $headers): array
     {
         $emptyRow = [self::EMPTY_DATA_MESSAGE];
@@ -341,7 +422,7 @@ class ReportExportBuilder
         return [$emptyRow];
     }
 
-    private function sanitizeLabel($label): string
+    private function sanitizeLabel(mixed $label): string
     {
         return trim((string) $label) ?: 'Não especificado';
     }
@@ -351,6 +432,9 @@ class ReportExportBuilder
         return self::CURRENCY_SYMBOL . ' ' . number_format($value, 2, ',', '.');
     }
 
+    /**
+     * @param array<array-key, mixed> $values
+     */
     private function sumValues(array $values): float
     {
         return array_reduce(

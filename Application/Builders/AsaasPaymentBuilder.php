@@ -12,6 +12,9 @@ use Application\Models\Plano;
  */
 class AsaasPaymentBuilder
 {
+    /**
+     * @var array<string, mixed>
+     */
     private array $data = [];
 
     public function forCustomer(Usuario $usuario): self
@@ -50,6 +53,9 @@ class AsaasPaymentBuilder
         return $this;
     }
 
+    /**
+     * @param array<string, mixed> $creditCard
+     */
     public function withCreditCard(array $creditCard, CustomerDataDTO $holderInfo): self
     {
         $this->data['creditCard'] = $creditCard;
@@ -58,6 +64,9 @@ class AsaasPaymentBuilder
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function build(): array
     {
         return $this->data;
