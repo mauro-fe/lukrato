@@ -25,6 +25,10 @@ use Illuminate\Database\Capsule\Manager as DB;
  * Tenta resolver com SQL direto antes de recorrer ao LLM.
  *
  * Exemplos: "Quanto gastei este mês?", "Qual meu saldo?", "Quantos lançamentos tenho?"
+ *
+ * @phpstan-type Period array{0: int, 1: int}
+ * @phpstan-type QueryData array<string, mixed>
+ * @phpstan-type QueryResult array{message: string, data: QueryData}
  */
 class QuickQueryHandler implements AIHandlerInterface
 {
@@ -113,7 +117,7 @@ class QuickQueryHandler implements AIHandlerInterface
                         if ($result !== null) {
                             return AIResponseDTO::fromComputed(
                                 $result['message'],
-                                $result['data'] ?? [],
+                                $result['data'],
                                 IntentType::QUICK_QUERY,
                             );
                         }
@@ -141,6 +145,9 @@ class QuickQueryHandler implements AIHandlerInterface
 
     // ─── Extração de período ─────────────────────────────────
 
+    /**
+     * @return Period|null
+     */
     private function extractPeriod(string $message): ?array
     {
         return \Application\Services\AI\NLP\PeriodExtractor::extract($message);
@@ -148,6 +155,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     /**
      * Retorna mês e ano para queries, considerando período extraído.
+     */
+    /**
+     * @param Period|null $period
+     * @return Period
      */
     private function getPeriodValues(?array $period): array
     {
@@ -157,6 +168,9 @@ class QuickQueryHandler implements AIHandlerInterface
         return [(int) now()->month, (int) now()->year];
     }
 
+    /**
+     * @param Period|null $period
+     */
     private function getPeriodLabel(?array $period): string
     {
         if ($period !== null) {
@@ -167,6 +181,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     // ─── Resolvedores de consulta direta ─────────────────────
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getTotalDespesas(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -198,6 +216,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getTotalReceitas(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -229,6 +251,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getSaldo(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -278,6 +304,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getCountLancamentos(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -299,6 +329,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getCountContas(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -314,6 +348,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getCountCartoes(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -329,6 +367,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getMaiorGasto(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -365,6 +407,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getMenorGasto(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -402,6 +448,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getMediaDespesas(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -434,6 +484,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     // ─── Resolvedores de fatura de cartão ─────────────────────
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getFaturaAtual(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -491,6 +545,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getFaturaCartaoEspecifico(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -554,6 +612,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getItensFatura(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -633,6 +695,10 @@ class QuickQueryHandler implements AIHandlerInterface
 
     // ─── Admin queries ──────────────────────────────────────
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult
+     */
     private function getCountUsuarios(?int $userId, ?array $period = null): array
     {
         // Admin queries requerem isAdmin() no request (verificado em handle())
@@ -648,6 +714,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult
+     */
     private function getMRR(?int $userId, ?array $period = null): array
     {
         $mrr = (float) DB::table('assinaturas_usuarios')
@@ -672,6 +742,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult
+     */
     private function getCriticalErrors(?int $userId, ?array $period = null): array
     {
         $count = (int) DB::table('error_logs')
@@ -697,6 +771,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult
+     */
     private function getRegistrosSemana(?int $userId, ?array $period = null): array
     {
         $count = (int) DB::table('usuarios')
@@ -710,6 +788,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getCountCategorias(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -728,6 +810,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getLimiteCartoes(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
@@ -763,6 +849,10 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
+    /**
+     * @param Period|null $period
+     * @return QueryResult|null
+     */
     private function getContasAPagar(?int $userId, ?array $period = null): ?array
     {
         if ($userId === null) return null;
