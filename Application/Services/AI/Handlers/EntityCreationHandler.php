@@ -39,6 +39,12 @@ use Application\Services\AI\NLP\NumberNormalizer;
  *  - Meta financeira
  *  - Orçamento mensal
  *  - Categoria / Subcategoria
+ *
+ * @phpstan-type EntityData array<array-key, mixed>
+ * @phpstan-type StringList array<int, string>
+ * @phpstan-type ValidationErrors array<string, string>
+ * @phpstan-type OptionList array<int, array<string, mixed>>
+ * @phpstan-type FieldLabels array<string, string>
  */
 class EntityCreationHandler implements AIHandlerInterface
 {
@@ -217,6 +223,9 @@ class EntityCreationHandler implements AIHandlerInterface
      * Procede com validação e criação de PendingAiAction para confirmação.
      * Extraído do handle() para ser reutilizado pelo fluxo multi-turno.
      */
+    /**
+     * @param EntityData $extracted
+     */
     private function proceedToConfirmation(array $extracted, string $entityType, int $userId, AIRequestDTO $request): AIResponseDTO
     {
         $conversationId = $request->context['conversation_id'] ?? null;
@@ -347,6 +356,11 @@ class EntityCreationHandler implements AIHandlerInterface
      * Tenta extrair um valor direto quando o usuário responde uma pergunta específica.
      * Ex: perguntamos "Qual o valor?" e o usuário responde "150" ou "R$ 200".
      */
+    /**
+     * @param array<array-key, mixed> $missingFields
+     * @param EntityData $existing
+     * @return EntityData
+     */
     private function extractSingleFieldAnswer(string $message, array $missingFields, array $existing): array
     {
         if (empty($missingFields)) {
@@ -438,6 +452,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return $existing;
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractByRegex(string $message, string $entityType): array
     {
         return match ($entityType) {
@@ -451,6 +468,9 @@ class EntityCreationHandler implements AIHandlerInterface
         };
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractLancamento(string $message): array
     {
         $data = $this->extractStructuredLancamentoTokens($message);
@@ -548,6 +568,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return $this->fillDefaultLancamentoDescricao($data);
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractStructuredLancamentoTokens(string $message): array
     {
         if (!preg_match('/[,;\n]/u', $message)) {
@@ -659,6 +682,9 @@ class EntityCreationHandler implements AIHandlerInterface
     /**
      * Extrai forma de pagamento da mensagem.
      */
+    /**
+     * @return EntityData
+     */
     private function extractFormaPagamento(string $message): array
     {
         $normalized = mb_strtolower($message);
@@ -683,6 +709,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return [];
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractNomeCartao(string $message): array
     {
         if (!preg_match('/\b(?:cart[ãa]o|cr[ée]dito|fatura|parcelei|parcelo|parcelado?)\b/iu', $message)) {
@@ -705,6 +734,9 @@ class EntityCreationHandler implements AIHandlerInterface
 
     /**
      * Extrai informação de parcelamento.
+     */
+    /**
+     * @return EntityData
      */
     private function extractParcelamento(string $message): array
     {
@@ -743,6 +775,10 @@ class EntityCreationHandler implements AIHandlerInterface
     /**
      * Resolve categoria_sugerida (string) para categoria_id (int).
      * Usa CategoryRuleEngine (padrões aprendidos) e fallback por nome no banco.
+     */
+    /**
+     * @param EntityData $data
+     * @return EntityData
      */
     private function resolveCategoria(array $data, int $userId): array
     {
@@ -784,6 +820,10 @@ class EntityCreationHandler implements AIHandlerInterface
     /**
      * Tenta resolver o cartão de crédito mencionado na mensagem.
      * Se o usuário disse "no nubank" e tem um cartão Nubank, auto-preenche cartao_credito_id.
+     */
+    /**
+     * @param EntityData $data
+     * @return EntityData
      */
     private function resolveCartaoCredito(array $data, string $message, int $userId): array
     {
@@ -840,6 +880,10 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    /**
+     * @param EntityData $data
+     * @return EntityData
+     */
     private function fillDefaultLancamentoDescricao(array $data): array
     {
         $descricao = trim((string) ($data['descricao'] ?? ''));
@@ -872,6 +916,10 @@ class EntityCreationHandler implements AIHandlerInterface
         };
     }
 
+    /**
+     * @param EntityData $data
+     * @return EntityData
+     */
     private function resolveEntityReferences(array $data, string $entityType, int $userId): array
     {
         return match ($entityType) {
@@ -881,6 +929,10 @@ class EntityCreationHandler implements AIHandlerInterface
         };
     }
 
+    /**
+     * @param EntityData $data
+     * @return EntityData
+     */
     private function resolveOrcamentoCategoria(array $data, int $userId): array
     {
         $sugerida = trim((string) ($data['categoria_sugerida'] ?? $data['categoria_nome'] ?? ''));
@@ -899,6 +951,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    /**
+     * @param StringList $allowedTypes
+     */
     private function findCategoryByName(string $name, int $userId, array $allowedTypes = []): ?Categoria
     {
         $normalized = mb_strtolower(trim($name));
@@ -948,6 +1003,10 @@ class EntityCreationHandler implements AIHandlerInterface
             ->first();
     }
 
+    /**
+     * @param EntityData $partialData
+     * @param StringList $missingFields
+     */
     private function maybeStartSelection(
         int $conversationId,
         string $entityType,
@@ -982,6 +1041,9 @@ class EntityCreationHandler implements AIHandlerInterface
         );
     }
 
+    /**
+     * @return OptionList
+     */
     private function buildBudgetCategoryOptions(int $userId): array
     {
         return Categoria::query()
@@ -1032,6 +1094,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return null;
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractMeta(string $message): array
     {
         $data = [];
@@ -1068,6 +1133,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractOrcamento(string $message): array
     {
         $data = [];
@@ -1121,6 +1189,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractCategoria(string $message): array
     {
         $data = [];
@@ -1146,6 +1217,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractSubcategoria(string $message): array
     {
         $data = [];
@@ -1163,6 +1237,9 @@ class EntityCreationHandler implements AIHandlerInterface
         return $data;
     }
 
+    /**
+     * @return EntityData
+     */
     private function extractConta(string $message): array
     {
         $data = [];
@@ -1240,6 +1317,10 @@ class EntityCreationHandler implements AIHandlerInterface
 
     // ─── LLM fallback ───────────────────────────────────────────
 
+    /**
+     * @param EntityData $partial
+     * @return EntityData
+     */
     private function extractWithAI(string $message, string $entityType, array $partial): array
     {
         try {
@@ -1277,6 +1358,10 @@ class EntityCreationHandler implements AIHandlerInterface
         }
     }
 
+    /**
+     * @param EntityData $data
+     * @return EntityData
+     */
     private function sanitizeAIExtractedData(array $data, string $entityType, string $message): array
     {
         $clean = [];
@@ -1349,6 +1434,9 @@ class EntityCreationHandler implements AIHandlerInterface
         ], true);
     }
 
+    /**
+     * @param EntityData $partial
+     */
     private function buildExtractionPrompt(string $message, string $entityType, array $partial): string
     {
         $fields = match ($entityType) {
@@ -1370,6 +1458,9 @@ class EntityCreationHandler implements AIHandlerInterface
             "Mensagem: \"{$message}\"";
     }
 
+    /**
+     * @return EntityData|null
+     */
     private function parseJsonResponse(string $response): ?array
     {
         if (preg_match('/\{[^}]+\}/s', $response, $match)) {
@@ -1381,6 +1472,10 @@ class EntityCreationHandler implements AIHandlerInterface
 
     // ─── Validation ─────────────────────────────────────────────
 
+    /**
+     * @param EntityData $data
+     * @return StringList
+     */
     private function getMissingFields(array $data, string $entityType): array
     {
         $required = match ($entityType) {
@@ -1425,6 +1520,10 @@ class EntityCreationHandler implements AIHandlerInterface
         return $missing;
     }
 
+    /**
+     * @param EntityData $data
+     * @return ValidationErrors
+     */
     private function validate(array $data, string $entityType, int $userId): array
     {
         return match ($entityType) {
@@ -1438,6 +1537,10 @@ class EntityCreationHandler implements AIHandlerInterface
         };
     }
 
+    /**
+     * @param EntityData $data
+     * @return ValidationErrors
+     */
     private function validateOrcamento(array $data): array
     {
         $errors = OrcamentoValidator::validateSave($data);
@@ -1447,6 +1550,9 @@ class EntityCreationHandler implements AIHandlerInterface
 
     // ─── Preview / Labels ───────────────────────────────────────
 
+    /**
+     * @param EntityData $data
+     */
     private function formatPreview(array $data, string $entityType): string
     {
         return match ($entityType) {
@@ -1460,6 +1566,9 @@ class EntityCreationHandler implements AIHandlerInterface
         };
     }
 
+    /**
+     * @param EntityData $d
+     */
     private function previewLancamento(array $d): string
     {
         $isCartao = ($d['forma_pagamento'] ?? null) === 'cartao_credito';
@@ -1598,12 +1707,18 @@ class EntityCreationHandler implements AIHandlerInterface
         }
     }
 
+    /**
+     * @param EntityData $d
+     */
     private function previewMeta(array $d): string
     {
         $valor = 'R$ ' . number_format((float) ($d['valor_alvo'] ?? 0), 2, ',', '.');
         return "🎯 **Meta**: {$d['titulo']}\n💵 Valor alvo: {$valor}";
     }
 
+    /**
+     * @param EntityData $d
+     */
     private function previewOrcamento(array $d): string
     {
         $valor = 'R$ ' . number_format((float) ($d['valor_limite'] ?? 0), 2, ',', '.');
@@ -1624,17 +1739,26 @@ class EntityCreationHandler implements AIHandlerInterface
         return implode("\n", $lines);
     }
 
+    /**
+     * @param EntityData $d
+     */
     private function previewCategoria(array $d): string
     {
         $tipo = ucfirst($d['tipo'] ?? '');
         return "📁 **Categoria**: {$d['nome']}\n🏷️ Tipo: {$tipo}";
     }
 
+    /**
+     * @param EntityData $d
+     */
     private function previewSubcategoria(array $d): string
     {
         return "📂 **Subcategoria**: {$d['nome']}";
     }
 
+    /**
+     * @param EntityData $d
+     */
     private function previewConta(array $d): string
     {
         $nome = $d['nome'] ?? 'Conta';
@@ -1671,6 +1795,9 @@ class EntityCreationHandler implements AIHandlerInterface
         };
     }
 
+    /**
+     * @return FieldLabels
+     */
     private function getFieldLabels(string $entityType): array
     {
         return match ($entityType) {
