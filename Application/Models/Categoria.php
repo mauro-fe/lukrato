@@ -2,6 +2,7 @@
 
 namespace Application\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,14 +17,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_seeded
  * @property int $ordem
  *
- * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
- * @method static \Illuminate\Database\Eloquent\Builder receitas()
- * @method static \Illuminate\Database\Eloquent\Builder despesas()
- * @method static \Illuminate\Database\Eloquent\Builder forUser(int $userId)
- * @method static \Illuminate\Database\Eloquent\Builder roots()
- * @method static \Illuminate\Database\Eloquent\Builder children()
+ * @method static Builder<Categoria> where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static Builder<Categoria> receitas()
+ * @method static Builder<Categoria> despesas()
+ * @method static Builder<Categoria> forUser(int $userId)
+ * @method static Builder<Categoria> roots()
+ * @method static Builder<Categoria> children()
  *
- * @mixin \Illuminate\Database\Eloquent\Builder
+ * @mixin Builder<Categoria>
  */
 class Categoria extends Model
 {
@@ -38,11 +39,17 @@ class Categoria extends Model
 
     // ─── Relacionamentos ────────────────────────────────
 
+    /**
+     * @return BelongsTo<Usuario, $this>
+     */
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }
 
+    /**
+     * @return HasMany<Lancamento, $this>
+     */
     public function lancamentos(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'categoria_id');
@@ -50,6 +57,9 @@ class Categoria extends Model
 
     /**
      * Categoria pai (se esta for uma subcategoria).
+     */
+    /**
+     * @return BelongsTo<Categoria, $this>
      */
     public function parent(): BelongsTo
     {
@@ -59,6 +69,9 @@ class Categoria extends Model
     /**
      * Subcategorias desta categoria.
      */
+    /**
+     * @return HasMany<Categoria, $this>
+     */
     public function subcategorias(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('nome');
@@ -67,6 +80,9 @@ class Categoria extends Model
     /**
      * Lançamentos que usam esta categoria como subcategoria.
      */
+    /**
+     * @return HasMany<Lancamento, $this>
+     */
     public function lancamentosComoSubcategoria(): HasMany
     {
         return $this->hasMany(Lancamento::class, 'subcategoria_id');
@@ -74,22 +90,38 @@ class Categoria extends Model
 
     // ─── Scopes ─────────────────────────────────────────
 
-    public function scopeReceitas($q)
+    /**
+     * @param Builder<Categoria> $q
+     * @return Builder<Categoria>
+     */
+    public function scopeReceitas(Builder $q): Builder
     {
         return $q->where('tipo', 'receita');
     }
 
-    public function scopeDespesas($q)
+    /**
+     * @param Builder<Categoria> $q
+     * @return Builder<Categoria>
+     */
+    public function scopeDespesas(Builder $q): Builder
     {
         return $q->where('tipo', 'despesa');
     }
 
-    public function scopeTransferencias($q)
+    /**
+     * @param Builder<Categoria> $q
+     * @return Builder<Categoria>
+     */
+    public function scopeTransferencias(Builder $q): Builder
     {
         return $q->where('tipo', 'transferencia');
     }
 
-    public function scopeForUser($q, int $userId)
+    /**
+     * @param Builder<Categoria> $q
+     * @return Builder<Categoria>
+     */
+    public function scopeForUser(Builder $q, int $userId): Builder
     {
         return $q->where('user_id', $userId);
     }
@@ -97,7 +129,11 @@ class Categoria extends Model
     /**
      * Apenas categorias raiz (não são subcategorias).
      */
-    public function scopeRoots($q)
+    /**
+     * @param Builder<Categoria> $q
+     * @return Builder<Categoria>
+     */
+    public function scopeRoots(Builder $q): Builder
     {
         return $q->whereNull('parent_id');
     }
@@ -105,7 +141,11 @@ class Categoria extends Model
     /**
      * Apenas subcategorias (têm parent_id).
      */
-    public function scopeChildren($q)
+    /**
+     * @param Builder<Categoria> $q
+     * @return Builder<Categoria>
+     */
+    public function scopeChildren(Builder $q): Builder
     {
         return $q->whereNotNull('parent_id');
     }
