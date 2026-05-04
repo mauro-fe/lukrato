@@ -69,7 +69,7 @@ class ContaService
         DB::beginTransaction();
         try {
             // Incluir saldo inicial no array de dados
-            $data['saldo_inicial'] = $dto->saldoInicial ?? 0;
+            $data['saldo_inicial'] = $dto->saldoInicial;
 
             $conta = new Conta($data);
             $conta->save();

@@ -56,7 +56,7 @@ class CreateLancamentoAction implements ActionInterface
 
         return ActionResult::ok(
             $msg,
-            $result->data ?? []
+            $result->data
         );
     }
 }

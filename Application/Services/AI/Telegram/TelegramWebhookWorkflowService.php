@@ -650,8 +650,8 @@ class TelegramWebhookWorkflowService
         }
 
         $statusText = $dto->isVoice()
-            ? "🎙️ Transcrevendo áudio..."
-            : ($dto->isVideo() ? "🎬 Processando vídeo..." : "📎 Analisando arquivo...");
+            ? "Transcrevendo audio..."
+            : "Analisando arquivo...";
         $this->telegram()->sendText($dto->chatId, $statusText);
 
         $downloader = new TelegramFileDownloader();
@@ -792,12 +792,6 @@ class TelegramWebhookWorkflowService
     {
         $normalizedBody = TextNormalizer::normalize($dto->body);
         $normalizedBody = NumberNormalizer::normalize($normalizedBody);
-        $extracted = null;
-
-        if ($extracted !== null) {
-            $this->handleTransactionExtraction($dto, $user, $extracted, $msgRecord);
-            return;
-        }
 
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
             $usage = AIQuotaService::getUsage($user);

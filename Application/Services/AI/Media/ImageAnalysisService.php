@@ -292,7 +292,7 @@ class ImageAnalysisService
     {
         $size = @getimagesizefromstring($content);
 
-        if (!is_array($size) || !isset($size[0], $size[1])) {
+        if (!is_array($size)) {
             return [null, null];
         }
 
@@ -345,11 +345,6 @@ class ImageAnalysisService
 
         $width = imagesx($image);
         $height = imagesy($image);
-
-        if ($width <= 0 || $height <= 0) {
-            imagedestroy($image);
-            return null;
-        }
 
         $scale = min(1, $maxDimension / max($width, $height));
         $targetWidth = max(1, (int) round($width * $scale));

@@ -374,7 +374,7 @@ class EntityCreationHandler implements AIHandlerInterface
                     break;
 
                 case 'descricao':
-                    if (mb_strlen($msg) >= 2 && mb_strlen($msg) <= 150) {
+                    if (mb_strlen($msg) >= 2) {
                         $normalizedDescription = TransactionDescriptionNormalizer::normalize($msg);
                         $descricao = trim($normalizedDescription['descricao']);
 
@@ -389,7 +389,7 @@ class EntityCreationHandler implements AIHandlerInterface
                 case 'titulo':
                 case 'nome':
                     // Qualquer texto >2 chars serve como descrição/título/nome
-                    if (mb_strlen($msg) >= 2 && mb_strlen($msg) <= 150) {
+                    if (mb_strlen($msg) >= 2) {
                         $existing[$firstMissing] = $msg;
                     }
                     break;
@@ -1518,7 +1518,7 @@ class EntityCreationHandler implements AIHandlerInterface
 
         // Mostrar forma de pagamento se detectada
         $fp = $d['forma_pagamento'] ?? null;
-        if ($fp && $fp !== 'cartao_credito') {
+        if ($fp) {
             $fpLabel = match ($fp) {
                 'pix'            => 'PIX',
                 'cartao_debito'  => 'Cartão de Débito',

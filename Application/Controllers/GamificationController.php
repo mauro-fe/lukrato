@@ -11,7 +11,7 @@ class GamificationController extends WebController
     public function index(): Response
     {
         $user = $this->requireUser();
-        $isPro = $user ? $user->isPro() : false;
+        $isPro = $user->isPro();
 
         return $this->renderAdminResponse(
             'admin/gamification/index',

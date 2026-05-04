@@ -342,7 +342,7 @@ class AchievementService
                 ->where('achievement_id', $achievement->id);
 
             // Se tiver filtro de mês, só considera desbloqueadas naquele mês
-            if ($monthStart && $monthEnd) {
+            if ($monthStart !== null) {
                 $unlockedInMonth = (clone $unlockedQuery)
                     ->whereBetween('unlocked_at', [$monthStart, $monthEnd])
                     ->first();

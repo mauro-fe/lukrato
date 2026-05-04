@@ -48,10 +48,6 @@ class ScheduledCampaignHeartbeatService
                 return;
             }
 
-            if (!$this->shouldRun($intervalSeconds)) {
-                return;
-            }
-
             $result = $this->notificationService->processScheduledCampaigns();
             $this->rememberRun($intervalSeconds);
 

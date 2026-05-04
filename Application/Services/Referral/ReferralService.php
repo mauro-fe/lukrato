@@ -277,7 +277,7 @@ class ReferralService
             ->map(function ($indicacao) {
                 return [
                     'id' => $indicacao->id,
-                    'nome' => $indicacao->referred ? $indicacao->referred->nome : 'Usuário removido',
+                    'nome' => $indicacao->referred->nome ?? 'Usuário removido',
                     'status' => $indicacao->status,
                     'status_label' => $indicacao->getStatusLabel(),
                     'reward_days' => $indicacao->referrer_reward_days,
@@ -356,7 +356,7 @@ class ReferralService
             ->get()
             ->map(function ($item) {
                 return [
-                    'usuario' => $item->referrer ? $item->referrer->nome : 'Usuário removido',
+                    'usuario' => $item->referrer->nome ?? 'Usuário removido',
                     'total_indicacoes' => $item->total_indicacoes,
                     'total_dias' => $item->total_dias,
                 ];

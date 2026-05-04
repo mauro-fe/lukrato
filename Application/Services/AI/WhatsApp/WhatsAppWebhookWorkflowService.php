@@ -295,8 +295,8 @@ class WhatsAppWebhookWorkflowService
         }
 
         $statusText = $dto->isAudio()
-            ? "🎙️ Transcrevendo áudio..."
-            : ($dto->isVideo() ? "🎬 Processando vídeo..." : "📎 Analisando arquivo...");
+            ? "Transcrevendo audio..."
+            : "Analisando arquivo...";
         $this->whatsapp()->sendText($dto->fromPhone, $statusText);
 
         $downloader = new WhatsAppMediaDownloader();
@@ -450,12 +450,6 @@ class WhatsAppWebhookWorkflowService
             return;
         }
 
-        $extracted = null;
-
-        if ($extracted !== null) {
-            $this->handleTransactionExtraction($dto, $user, $extracted, $msgRecord);
-            return;
-        }
 
         if (!AIQuotaService::hasQuotaRemaining($user, 'chat')) {
             $usage = AIQuotaService::getUsage($user);

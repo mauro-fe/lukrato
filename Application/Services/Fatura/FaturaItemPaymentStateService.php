@@ -83,9 +83,7 @@ class FaturaItemPaymentStateService
         $item->data_pagamento = now();
         $item->save();
 
-        if ($item->cartaoCredito) {
-            $item->cartaoCredito->atualizarLimiteDisponivel();
-        }
+        $item->cartaoCredito->atualizarLimiteDisponivel();
 
         if ($item->fatura_id) {
             $fatura = Fatura::forUser($usuarioId)->find($item->fatura_id);

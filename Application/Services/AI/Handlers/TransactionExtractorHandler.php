@@ -141,20 +141,18 @@ class TransactionExtractorHandler implements AIHandlerInterface
             }
 
             // Categorizar
-            if (!empty($data['descricao'])) {
-                $category = CategoryRuleEngine::match(
-                    $data['descricao'],
-                    $request->userId,
-                    $data['categoria_contexto'] ?? null
-                );
-                if ($category !== null) {
-                    $data = array_merge($data, [
-                        'categoria'        => $category['categoria'],
-                        'subcategoria'     => $category['subcategoria'],
-                        'categoria_id'     => $category['categoria_id'],
-                        'subcategoria_id'  => $category['subcategoria_id'],
-                    ]);
-                }
+            $category = CategoryRuleEngine::match(
+                $data['descricao'],
+                $request->userId,
+                $data['categoria_contexto'] ?? null
+            );
+            if ($category !== null) {
+                $data = array_merge($data, [
+                    'categoria'        => $category['categoria'],
+                    'subcategoria'     => $category['subcategoria'],
+                    'categoria_id'     => $category['categoria_id'],
+                    'subcategoria_id'  => $category['subcategoria_id'],
+                ]);
             }
 
             $data['confidence'] = 'ai';

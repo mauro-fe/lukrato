@@ -593,7 +593,7 @@ class ReportService
                 ];
                 $totalHistorico += (float) $valorMes;
             }
-            $mediaHistorica = count($historicoMeses) > 0 ? $totalHistorico / count($historicoMeses) : 0;
+            $mediaHistorica = $totalHistorico / count($historicoMeses);
 
             // Calcular tendência
             $tendencia = 'estavel';
@@ -821,7 +821,7 @@ class ReportService
 
         // Calcular tendência
         $valores = array_column($evolucao, 'valor');
-        $media = count($valores) > 0 ? array_sum($valores) / count($valores) : 0;
+        $media = array_sum($valores) / count($valores);
         $ultimoValor = (float) (end($valores) ?: 0);
         $tendencia = $ultimoValor > $media * 1.1 ? 'subindo' : ($ultimoValor < $media * 0.9 ? 'caindo' : 'estável');
 
@@ -886,10 +886,8 @@ class ReportService
             $grupo['valor_total_restante'] = array_sum(array_map(fn($i) => (float) $i->valor, $grupo['itens']));
 
             // Data final é baseada no último mês/ano de referência
-            $ultimoItem = end($grupo['itens']);
-            if ($ultimoItem) {
-                $grupo['data_final'] = sprintf('%02d/%d', $ultimoItem->mes_referencia, $ultimoItem->ano_referencia);
-            }
+            $ultimoItem = $grupo['itens'][array_key_last($grupo['itens'])];
+            $grupo['data_final'] = sprintf('%02d/%d', $ultimoItem->mes_referencia, $ultimoItem->ano_referencia);
 
             unset($grupo['itens']); // Remove para não enviar ao frontend
         }

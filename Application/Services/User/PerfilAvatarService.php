@@ -209,10 +209,6 @@ class PerfilAvatarService
         $sourceWidth = imagesx($orientedImage);
         $sourceHeight = imagesy($orientedImage);
 
-        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
-            return $orientedImage;
-        }
-
         $maxEdge = 1024;
         $scale = min($maxEdge / $sourceWidth, $maxEdge / $sourceHeight, 1);
         $targetWidth = max(1, (int) round($sourceWidth * $scale));
