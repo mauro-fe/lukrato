@@ -23,6 +23,8 @@ class OrcamentoRepository extends BaseRepository
 
     /**
      * Busca orçamentos do usuário para um mês/ano
+     *
+     * @return Collection<int, OrcamentoCategoria>
      */
     public function findByUserAndMonth(int $userId, int $mes, int $ano): Collection
     {

@@ -419,16 +419,29 @@ class LogService
     private static function writeLog(string $level, string $message, array $context = []): void
     {
         $logger = self::getLogger();
+        $level = self::normalizeLogLevel($level);
         $sanitizedMessage = self::sanitizeMessage($message);
         [$context] = self::enrichContext($context, null);
         $sanitizedContext = self::sanitizeContext($context);
 
-        if (method_exists($logger, $level)) {
-            $logger->{$level}($sanitizedMessage, $sanitizedContext);
-            return;
-        }
+        $logger->log($level, $sanitizedMessage, $sanitizedContext);
+    }
 
-        $logger->log(strtoupper($level), $sanitizedMessage, $sanitizedContext);
+    /**
+     * @return 'alert'|'critical'|'debug'|'emergency'|'error'|'info'|'notice'|'warning'
+     */
+    private static function normalizeLogLevel(string $level): string
+    {
+        return match (strtolower($level)) {
+            'alert' => 'alert',
+            'critical' => 'critical',
+            'debug' => 'debug',
+            'emergency' => 'emergency',
+            'error' => 'error',
+            'notice' => 'notice',
+            'warning' => 'warning',
+            default => 'info',
+        };
     }
 
     private static function sanitizeValue(mixed $value, ?string $key = null): mixed

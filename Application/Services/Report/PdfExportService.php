@@ -49,7 +49,7 @@ class PdfExportService implements ReportExporterInterface
             520,
             800,
             "Página {PAGE_NUM} de {PAGE_COUNT}",
-            null,
+            'DejaVu Sans',
             9,
             [0.29, 0.33, 0.42]
         );

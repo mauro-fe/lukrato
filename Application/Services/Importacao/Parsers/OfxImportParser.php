@@ -54,7 +54,7 @@ class OfxImportParser implements ImportParserInterface
                 throw new \InvalidArgumentException(ImportSecurityPolicy::rowsLimitMessage($limit));
             }
 
-            return array_values($matches[1]);
+            return $matches[1];
         }
 
         $segments = preg_split('/<STMTTRN>/i', $contents) ?: [];

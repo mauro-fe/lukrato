@@ -28,7 +28,7 @@ class CategoriaRepository extends BaseRepository
      * Busca categorias de um usuário específico (incluindo globais).
      * 
      * @param int $userId
-     * @return Collection
+     * @return Collection<int, Categoria>
      */
     public function findByUser(int $userId): Collection
     {
@@ -82,7 +82,7 @@ class CategoriaRepository extends BaseRepository
      * Busca apenas categorias próprias do usuário (não globais).
      * 
      * @param int $userId
-     * @return Collection
+     * @return Collection<int, Categoria>
      */
     public function findOwnByUser(int $userId): Collection
     {
@@ -97,7 +97,7 @@ class CategoriaRepository extends BaseRepository
      * 
      * @param int $userId
      * @param CategoriaTipo $tipo
-     * @return Collection
+     * @return Collection<int, Categoria>
      */
     public function findByType(int $userId, CategoriaTipo $tipo): Collection
     {
@@ -115,7 +115,7 @@ class CategoriaRepository extends BaseRepository
      * Busca categorias de receita.
      * 
      * @param int $userId
-     * @return Collection
+     * @return Collection<int, Categoria>
      */
     public function findReceitas(int $userId): Collection
     {
@@ -126,7 +126,7 @@ class CategoriaRepository extends BaseRepository
      * Busca categorias de despesa.
      * 
      * @param int $userId
-     * @return Collection
+     * @return Collection<int, Categoria>
      */
     public function findDespesas(int $userId): Collection
     {
@@ -356,7 +356,7 @@ class CategoriaRepository extends BaseRepository
      * Busca categorias raiz (sem parent_id) do usuário + globais, com subcategorias eager-loaded.
      *
      * @param int $userId
-     * @return Collection
+     * @return Collection<int, Categoria>
      */
     public function findRootsByUser(int $userId): Collection
     {

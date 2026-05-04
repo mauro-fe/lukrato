@@ -326,12 +326,13 @@ class AsaasWebhookController extends ApiController
 
             // Obter valor do pagamento
             $valor = isset($payment['value']) ? (float) $payment['value'] : null;
+            $renovaEm = $assinatura->renova_em?->format('Y-m-d H:i:s');
 
             $this->mailService->sendSubscriptionConfirmation(
                 $usuario->email,
                 $usuario->nome ?? 'Usuário',
                 $planoNome,
-                $assinatura->renova_em,
+                $renovaEm,
                 $valor
             );
 

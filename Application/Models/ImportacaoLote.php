@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ImportacaoItem> $itens
+ */
 class ImportacaoLote extends Model
 {
     protected $table = 'importacao_lotes';
@@ -41,6 +44,9 @@ class ImportacaoLote extends Model
         return $this->belongsTo(Conta::class, 'conta_id');
     }
 
+    /**
+     * @return HasMany<ImportacaoItem, $this>
+     */
     public function itens(): HasMany
     {
         return $this->hasMany(ImportacaoItem::class, 'lote_id');

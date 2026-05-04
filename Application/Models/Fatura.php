@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Model para representar uma fatura de cartão de crédito
  * (compra parcelada que gera múltiplos itens)
+ *
+ * @property-read CartaoCredito|null $cartaoCredito
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, FaturaCartaoItem> $itens
  */
 class Fatura extends Model
 {
@@ -51,6 +54,8 @@ class Fatura extends Model
 
     /**
      * Relacionamento: Uma fatura pertence a um cartão de crédito
+     *
+     * @return BelongsTo<CartaoCredito, $this>
      */
     public function cartaoCredito(): BelongsTo
     {
@@ -59,6 +64,8 @@ class Fatura extends Model
 
     /**
      * Relacionamento: Uma fatura tem muitos itens (parcelas)
+     *
+     * @return HasMany<FaturaCartaoItem, $this>
      */
     public function itens(): HasMany
     {

@@ -28,7 +28,7 @@ class ContaRepository extends BaseRepository
      * 
      * @param int $userId
      * @param bool $onlyActive Retornar apenas ativas
-     * @return Collection
+     * @return Collection<int, Conta>
      */
     public function findByUser(int $userId, bool $onlyActive = false): Collection
     {
@@ -79,7 +79,7 @@ class ContaRepository extends BaseRepository
      * Busca contas ativas de um usuário.
      * 
      * @param int $userId
-     * @return Collection
+     * @return Collection<int, Conta>
      */
     public function findActive(int $userId): Collection
     {

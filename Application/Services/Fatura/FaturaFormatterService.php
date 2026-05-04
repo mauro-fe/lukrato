@@ -193,8 +193,12 @@ class FaturaFormatterService
         ];
     }
 
-    private function formatarCartao(CartaoCredito $cartao): array
+    private function formatarCartao(?CartaoCredito $cartao): ?array
     {
+        if ($cartao === null) {
+            return null;
+        }
+
         $cor = $cartao->cor_cartao
             ?? $cartao->conta->instituicaoFinanceira->cor_primaria
             ?? null;

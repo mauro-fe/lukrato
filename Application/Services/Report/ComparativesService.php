@@ -452,7 +452,7 @@ class ComparativesService
 
         usort($map, fn($a, $b) => $b['atual'] <=> $a['atual']);
 
-        return array_values($map);
+        return $map;
     }
 
     private function queryPaymentMethods(Carbon $start, Carbon $end)
