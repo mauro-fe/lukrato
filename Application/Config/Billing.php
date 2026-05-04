@@ -4,6 +4,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Metadados dos tiers
+    |--------------------------------------------------------------------------
+    |
+    | Ordem, rótulo e próximo upgrade recomendado por plano.
+    |
+    */
+
+    'tiers' => [
+        'free' => [
+            'rank' => 0,
+            'label' => 'FREE',
+            'upgrade_target' => 'pro',
+        ],
+        'pro' => [
+            'rank' => 1,
+            'label' => 'PRO',
+            'upgrade_target' => 'ultra',
+        ],
+        'ultra' => [
+            'rank' => 2,
+            'label' => 'ULTRA',
+            'upgrade_target' => null,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Limites de uso por plano
     |--------------------------------------------------------------------------
     |

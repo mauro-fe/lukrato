@@ -12,13 +12,14 @@ class LancamentoController extends WebController
     public function index(): Response
     {
         $user = $this->requireUser();
+        $plan = $user->plan();
 
         return $this->renderAdminResponse(
             'admin/lancamentos/index',
             [
                 'pageTitle' => 'Transações',
                 'subTitle' => 'Gerencie suas transações financeiras',
-                'isPro' => $user->isPro(),
+                'isPro' => $plan->isPro(),
                 'showMonthSelector' => true,
             ]
         );
@@ -27,6 +28,7 @@ class LancamentoController extends WebController
     public function create(): Response
     {
         $user = $this->requireUser();
+        $plan = $user->plan();
 
         $returnPath = $this->normalizeReturnPath($this->getStringQuery('return', ''));
         $backPath = $returnPath !== '' ? $returnPath : 'lancamentos';
@@ -37,7 +39,7 @@ class LancamentoController extends WebController
             [
                 'pageTitle' => 'Nova Transação',
                 'subTitle' => 'Registre receitas, despesas e transferências em uma tela dedicada',
-                'isPro' => $user->isPro(),
+                'isPro' => $plan->isPro(),
                 'menu' => 'lancamentos',
                 'hideLaunchFab' => true,
                 'hideSupportFab' => true,

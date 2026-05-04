@@ -109,6 +109,40 @@ class PlanControllerTest extends TestCase
         $controller->features();
     }
 
+    public function testFeaturesReturnsTierAwarePayload(): void
+    {
+        $this->seedAuthenticatedUserSession(14, 'Ultra User');
+
+        $service = Mockery::mock(PlanLimitService::class);
+        $service
+            ->shouldReceive('getPlanTier')
+            ->once()
+            ->with(14)
+            ->andReturn('ultra');
+        $service
+            ->shouldReceive('getFeatures')
+            ->once()
+            ->with(14)
+            ->andReturn([
+                'reports' => true,
+                'previsao_saldo' => true,
+            ]);
+
+        $controller = new PlanController($service);
+
+        $response = $controller->features();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('ultra', $payload['data']['plan']);
+        $this->assertTrue($payload['data']['is_pro']);
+        $this->assertTrue($payload['data']['is_ultra']);
+        $this->assertSame('ULTRA', $payload['data']['plan_label']);
+        $this->assertNull($payload['data']['upgrade_target']);
+        $this->assertTrue($payload['data']['features']['reports']);
+        $this->assertTrue($payload['data']['features']['previsao_saldo']);
+    }
+
     private function seedAuthenticatedUserSession(int $userId, string $name): void
     {
         $this->startIsolatedSession('plan-controller-test');

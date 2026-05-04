@@ -57,7 +57,8 @@ class AchievementService
         // Obter conquistas disponíveis para o plano do usuário
         // Pro: pode desbloquear todas (free + pro + all)
         // Free: pode desbloquear apenas free + all
-        $isPro = $user->isPro();
+        $plan = $user->plan();
+        $isPro = $plan->isPro();
         \Application\Services\Infrastructure\LogService::safeErrorLog("👤 [ACHIEVEMENT] Usuário é Pro? " . ($isPro ? 'Sim' : 'Não'));
 
         $availableQuery = Achievement::active();
@@ -130,6 +131,9 @@ class AchievementService
             return false;
         }
 
+        $plan = $user->plan();
+        $isPro = $plan->isPro();
+
         $progress = UserProgress::where('user_id', $userId)->first();
 
         try {
@@ -148,12 +152,12 @@ class AchievementService
             AchievementType::TOTAL_5_CATEGORIES => $this->checkTotalCategories($userId, 5),
 
             // ===== PRO =====
-            AchievementType::PREMIUM_USER => $user->isPro(),
+            AchievementType::PREMIUM_USER => $isPro,
             AchievementType::MASTER_ORGANIZATION => $this->checkMasterOrganization($userId, $user),
             AchievementType::ECONOMIST_MASTER => $this->checkEconomistMaster($userId, $user),
-            AchievementType::CONSISTENCY_TOTAL => $this->checkStreak($progress, 30) && $user->isPro(),
+            AchievementType::CONSISTENCY_TOTAL => $this->checkStreak($progress, 30) && $isPro,
             AchievementType::META_ACHIEVED => $this->checkMetaAchieved($userId, $user),
-            AchievementType::LEVEL_8 => $this->checkLevel($progress, 8) && $user->isPro(),
+            AchievementType::LEVEL_8 => $this->checkLevel($progress, 8) && $isPro,
 
             // ===== COMUNS =====
             AchievementType::POSITIVE_MONTH => $this->checkPositiveMonth($userId),
@@ -163,20 +167,20 @@ class AchievementService
             // ===== NOVAS - LANÇAMENTOS =====
             AchievementType::TOTAL_250_LAUNCHES => $this->checkTotalLaunches($userId, 250),
             AchievementType::TOTAL_500_LAUNCHES => $this->checkTotalLaunches($userId, 500),
-            AchievementType::TOTAL_1000_LAUNCHES => $this->checkTotalLaunches($userId, 1000) && $user->isPro(),
+            AchievementType::TOTAL_1000_LAUNCHES => $this->checkTotalLaunches($userId, 1000) && $isPro,
 
             // ===== NOVAS - DIAS ATIVOS =====
             AchievementType::DAYS_50_ACTIVE => $this->checkStreak($progress, 50),
             AchievementType::DAYS_100_ACTIVE => $this->checkStreak($progress, 100),
-            AchievementType::DAYS_365_ACTIVE => $this->checkStreak($progress, 365) && $user->isPro(),
+            AchievementType::DAYS_365_ACTIVE => $this->checkStreak($progress, 365) && $isPro,
 
             // ===== NOVAS - ECONOMIA =====
             AchievementType::SAVER_10 => $this->checkSavingsPercentage($userId, 10),
             AchievementType::SAVER_20 => $this->checkSavingsPercentage($userId, 20),
-            AchievementType::SAVER_30 => $this->checkSavingsPercentage($userId, 30) && $user->isPro(),
+            AchievementType::SAVER_30 => $this->checkSavingsPercentage($userId, 30) && $isPro,
             AchievementType::POSITIVE_3_MONTHS => $this->checkConsecutivePositiveMonths($userId, 3),
-            AchievementType::POSITIVE_6_MONTHS => $this->checkConsecutivePositiveMonths($userId, 6) && $user->isPro(),
-            AchievementType::POSITIVE_12_MONTHS => $this->checkConsecutivePositiveMonths($userId, 12) && $user->isPro(),
+            AchievementType::POSITIVE_6_MONTHS => $this->checkConsecutivePositiveMonths($userId, 6) && $isPro,
+            AchievementType::POSITIVE_12_MONTHS => $this->checkConsecutivePositiveMonths($userId, 12) && $isPro,
 
             // ===== NOVAS - ORGANIZAÇÃO =====
             AchievementType::TOTAL_15_CATEGORIES => $this->checkTotalCategories($userId, 15),
@@ -186,16 +190,16 @@ class AchievementService
             // ===== NOVAS - CARTÕES =====
             AchievementType::FIRST_CARD => $this->checkFirstCard($userId),
             AchievementType::FIRST_INVOICE_PAID => $this->checkFirstInvoicePaid($userId),
-            AchievementType::INVOICES_12_PAID => $this->checkInvoicesPaidInYear($userId, 12) && $user->isPro(),
+            AchievementType::INVOICES_12_PAID => $this->checkInvoicesPaidInYear($userId, 12) && $isPro,
 
             // ===== NOVAS - TEMPO DE USO =====
             AchievementType::ANNIVERSARY_1_YEAR => $this->checkDaysUsing($user, 365),
-            AchievementType::ANNIVERSARY_2_YEARS => $this->checkDaysUsing($user, 730) && $user->isPro(),
+            AchievementType::ANNIVERSARY_2_YEARS => $this->checkDaysUsing($user, 730) && $isPro,
 
             // ===== NOVAS - NÍVEIS =====
             AchievementType::LEVEL_10 => $this->checkLevel($progress, 10),
-            AchievementType::LEVEL_12 => $this->checkLevel($progress, 12) && $user->isPro(),
-            AchievementType::LEVEL_15 => $this->checkLevel($progress, 15) && $user->isPro(),
+            AchievementType::LEVEL_12 => $this->checkLevel($progress, 12) && $isPro,
+            AchievementType::LEVEL_15 => $this->checkLevel($progress, 15) && $isPro,
 
             // ===== NOVAS - ESPECIAIS =====
             AchievementType::EARLY_BIRD => $this->checkEarlyBird($userId),
@@ -309,7 +313,7 @@ class AchievementService
             return [];
         }
 
-        $isPro = $user->isPro();
+        $isPro = $user->plan()->isPro();
 
         // Buscar conquistas baseado no plano:
         // - Pro: vê TODAS as conquistas (free + pro + all)
@@ -526,7 +530,7 @@ class AchievementService
 
     private function checkMasterOrganization(int $userId, Usuario $user): bool
     {
-        if (!$user->isPro()) return false;
+        if (!$user->plan()->isPro()) return false;
 
         // Critérios: 50+ lançamentos, 10+ categorias personalizadas, streak de 7 dias
         $launches = Lancamento::where('user_id', $userId)->count();
@@ -539,7 +543,7 @@ class AchievementService
 
     private function checkEconomistMaster(int $userId, Usuario $user): bool
     {
-        if (!$user->isPro()) return false;
+        if (!$user->plan()->isPro()) return false;
 
         // Critérios: economizar 25% da receita em pelo menos 3 meses
         // Reutiliza checkConsecutivePositiveMonths para 3 meses + checkSavingsPercentage para 25%
@@ -548,7 +552,7 @@ class AchievementService
 
     private function checkMetaAchieved(int $userId, Usuario $user): bool
     {
-        if (!$user->isPro()) return false;
+        if (!$user->plan()->isPro()) return false;
 
         // Verifica se o usuário tem ao menos 1 meta concluída
         return \Application\Models\Meta::where('user_id', $userId)

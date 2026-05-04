@@ -9,7 +9,6 @@ use Application\Core\Request;
 use Application\Core\Response;
 use Application\Lib\Auth;
 use Application\Services\AI\AIQuotaService;
-use Application\Services\Plan\FeatureGate;
 
 /**
  * Middleware que verifica quota de IA antes de processar requisições.
@@ -32,12 +31,17 @@ final class AIQuotaMiddleware
             throw new HttpResponseException(Response::unauthorizedResponse('Não autenticado'));
         }
 
+        $plan = $user->plan();
+
         if (!AIQuotaService::canUseAI($user)) {
+            $requiredTier = $plan->upgradeTarget() ?? 'pro';
+            $requiredLabel = $requiredTier === 'ultra' ? 'Ultra' : 'Pro';
+
             throw new HttpResponseException(Response::jsonResponse([
                 'success' => false,
                 'upgrade_required' => true,
-                'plan_needed' => 'pro',
-                'message' => 'O assistente IA está disponível a partir do plano Pro.',
+                'plan_needed' => $requiredTier,
+                'message' => "O assistente IA está disponível a partir do plano {$requiredLabel}.",
             ], 403));
         }
 
@@ -46,13 +50,13 @@ final class AIQuotaMiddleware
 
         if (!AIQuotaService::hasQuotaRemaining($user, $bucket)) {
             $usage = AIQuotaService::getUsage($user);
-            $tier = FeatureGate::planTier($user);
 
             $bucketData = $bucket === 'categorization'
                 ? $usage['categorization']
                 : $usage['chat'];
 
-            $upgradeTarget = $tier === 'free' ? 'pro' : 'ultra';
+            $upgradeTarget = $plan->upgradeTarget() ?? 'ultra';
+            $upgradeLabel = $upgradeTarget === 'ultra' ? 'Ultra' : 'Pro';
             $bucketLabel = $bucket === 'categorization'
                 ? 'sugestões de categoria com IA'
                 : 'mensagens com IA';
@@ -63,7 +67,7 @@ final class AIQuotaMiddleware
                 'bucket' => $bucket,
                 'upgrade_to' => $upgradeTarget,
                 'usage' => $usage,
-                'message' => "Você atingiu o limite de {$bucketData['limit']} {$bucketLabel} este mês. Faça upgrade para o " . ucfirst($upgradeTarget) . ' e tenha IA ilimitada.',
+                'message' => "Você atingiu o limite de {$bucketData['limit']} {$bucketLabel} este mês. Faça upgrade para o {$upgradeLabel} e tenha IA ilimitada.",
             ], 429));
         }
     }

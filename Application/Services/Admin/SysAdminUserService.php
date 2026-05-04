@@ -10,6 +10,7 @@ use Application\Models\Endereco;
 use Application\Models\Plano;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\Plan\PlanContext;
 use Application\Validators\PasswordStrengthValidator;
 use Carbon\Carbon;
 
@@ -506,6 +507,14 @@ class SysAdminUserService
      */
     private function mapUserListItem(object $user): array
     {
+        $plan = method_exists($user, 'plan') ? $user->plan() : null;
+        $isPro = $plan?->isPro() ?? (method_exists($user, 'isPro') ? (bool) $user->isPro() : false);
+        $planTier = $plan?->tier() ?? ($isPro ? 'pro' : 'free');
+        $planSummary = $plan && method_exists($plan, 'summary')
+            ? $plan->summary('plan_tier')
+            : PlanContext::summaryForTier($planTier, 'plan_tier');
+        $planLabel = (string) ($planSummary['plan_label'] ?? 'FREE');
+
         return [
             'id' => $user->id,
             'support_code' => $user->support_code,
@@ -513,8 +522,8 @@ class SysAdminUserService
             'email' => $user->email,
             'avatar' => $user->avatar ? rtrim(BASE_URL, '/') . '/' . $user->avatar : '',
             'is_admin' => $user->is_admin,
-            'is_pro' => $user->isPro(),
-            'plano_nome' => $user->isPro() ? 'Pro' : 'Free',
+            ...$planSummary,
+            'plano_nome' => ucfirst(strtolower($planLabel)),
             'email_verified' => $user->email_verified_at !== null,
             'created_at' => $user->created_at,
         ];

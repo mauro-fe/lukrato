@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Plan;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Usuario;
 use Application\Models\Conta;
 use Application\Models\CartaoCredito;
@@ -29,12 +30,12 @@ class PlanLimitService
     ];
 
     private array $config;
-    private ?bool $isPro = null;
-    private ?int $userId = null;
+    private PlanContextResolver $planResolver;
 
-    public function __construct()
+    public function __construct(?PlanContextResolver $planResolver = null)
     {
-        $this->config = require __DIR__ . '/../../Config/Billing.php';
+        $this->config = PlanContext::config();
+        $this->planResolver = ApplicationContainer::resolveOrNew($planResolver, PlanContextResolver::class);
     }
 
     /**
@@ -45,36 +46,28 @@ class PlanLimitService
         return $this->config;
     }
 
+    private function resolvePlanContext(int $userId): ?PlanContext
+    {
+        return $this->planResolver->resolve($userId);
+    }
+
     /**
      * Verifica se o usuário possui plano Pro ativo.
-     * Delega para Usuario::isPro() que trata corretamente:
-     * - Período de carência (3 dias após vencimento)
-     * - Assinaturas canceladas com período pago restante
-     * - Códigos de plano 'free' e 'gratuito'
+     * Delega para a API central de plano do usuário.
      */
     public function isPro(int $userId): bool
     {
-        // Cache para evitar consultas repetidas
-        if ($this->userId === $userId && $this->isPro !== null) {
-            return $this->isPro;
-        }
+        return $this->planResolver->isPro($userId);
+    }
 
-        $this->userId = $userId;
+    public function isUltra(int $userId): bool
+    {
+        return $this->planResolver->isUltra($userId);
+    }
 
-        try {
-            /** @var Usuario|null $user */
-            $user = Usuario::find($userId);
-            if (!$user) {
-                $this->isPro = false;
-                return false;
-            }
-
-            $this->isPro = $user->isPro();
-            return $this->isPro;
-        } catch (\Throwable) {
-            $this->isPro = false;
-            return false;
-        }
+    public function getPlanTier(int $userId): string
+    {
+        return $this->planResolver->tier($userId);
     }
 
     /**
@@ -82,8 +75,13 @@ class PlanLimitService
      */
     public function getLimit(int $userId, string $limitKey): ?int
     {
-        $plan = $this->isPro($userId) ? 'pro' : 'free';
-        return $this->config['limits'][$plan][$limitKey] ?? null;
+        $context = $this->resolvePlanContext($userId);
+
+        if ($context !== null) {
+            return $context->limit($limitKey);
+        }
+
+        return $this->config['limits']['free'][$limitKey] ?? null;
     }
 
     /**
@@ -660,8 +658,13 @@ class PlanLimitService
      */
     public function hasFeature(int $userId, string $featureName): bool
     {
-        $plan = $this->isPro($userId) ? 'pro' : 'free';
-        return (bool) ($this->config['features'][$plan][$featureName] ?? false);
+        $context = $this->resolvePlanContext($userId);
+
+        if ($context !== null) {
+            return $context->allows($featureName);
+        }
+
+        return (bool) ($this->config['features']['free'][$featureName] ?? false);
     }
 
     /**
@@ -669,8 +672,7 @@ class PlanLimitService
      */
     public function getFeatures(int $userId): array
     {
-        $plan = $this->isPro($userId) ? 'pro' : 'free';
-        return $this->config['features'][$plan] ?? [];
+        return $this->config['features'][$this->getPlanTier($userId)] ?? [];
     }
 
     // ============================================================
@@ -682,11 +684,11 @@ class PlanLimitService
      */
     public function getLimitsSummary(int $userId): array
     {
-        $isPro = $this->isPro($userId);
+        $context = $this->resolvePlanContext($userId);
+        $planSummary = $context?->summary() ?? PlanContext::summaryForTier('free');
 
         return [
-            'plan' => $isPro ? 'pro' : 'free',
-            'is_pro' => $isPro,
+            ...$planSummary,
             'contas' => $this->canCreateConta($userId),
             'cartoes' => $this->canCreateCartao($userId),
             'categorias' => $this->canCreateCategoria($userId),

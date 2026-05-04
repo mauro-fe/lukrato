@@ -6,7 +6,7 @@ use Application\Container\ApplicationContainer;
 use Illuminate\Database\Eloquent\Model;
 use Application\Services\Auth\TokenPairService;
 use Application\Services\Infrastructure\LogService;
-use Application\Services\Plan\FeatureGate;
+use Application\Services\Plan\PlanContext;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -28,6 +28,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read bool $is_pro
  * @property-read bool $is_ultra
  * @property-read string $plan_tier
+ * @property-read string $plan_label
+ * @property-read string|null $upgrade_target
  *
  * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
  * @method static \Illuminate\Database\Eloquent\Model|static find(int|string $id)
@@ -90,7 +92,7 @@ class Usuario extends Model
         'email_verification_reminder_sent_at' => 'datetime',
         'telegram_verified' => 'boolean',
     ];
-    protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'is_ultra', 'plan_tier'];
+    protected $appends = ['primeiro_nome', 'plan_renews_at', 'is_pro', 'is_gratuito', 'is_ultra', 'plan_tier', 'plan_label', 'upgrade_target'];
 
     use SoftDeletes;
 
@@ -142,6 +144,19 @@ class Usuario extends Model
     public function getPlanTierAttribute(): string
     {
         return $this->planTier();
+    }
+    public function getPlanLabelAttribute(): string
+    {
+        return $this->planLabel();
+    }
+    public function getUpgradeTargetAttribute(): ?string
+    {
+        return $this->upgradeTarget();
+    }
+
+    public function plan(): PlanContext
+    {
+        return PlanContext::forUser($this);
     }
 
     /** @return HasMany<AssinaturaUsuario, $this> */
@@ -413,12 +428,12 @@ class Usuario extends Model
 
     public function isGratuito(): bool
     {
-        return !$this->isPro();
+        return $this->plan()->isFree();
     }
 
     public function isUltra(): bool
     {
-        return $this->isPro() && strtolower((string) ($this->resolvedAssinatura()->plano->code ?? '')) === 'ultra';
+        return $this->plan()->isUltra();
     }
 
     /**
@@ -426,7 +441,17 @@ class Usuario extends Model
      */
     public function planTier(): string
     {
-        return FeatureGate::planTier($this);
+        return $this->plan()->tier();
+    }
+
+    public function planLabel(): string
+    {
+        return $this->plan()->label();
+    }
+
+    public function upgradeTarget(): ?string
+    {
+        return $this->plan()->upgradeTarget();
     }
 
     public function getPlanRenewsAtAttribute(): ?string
@@ -436,7 +461,7 @@ class Usuario extends Model
 
     public function podeAcessar(string $feature): bool
     {
-        return FeatureGate::allows($this, $feature);
+        return $this->plan()->allows($feature);
     }
 
     public function getPrimeiroNomeAttribute(): string

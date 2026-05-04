@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Application\Services\Lancamento;
 
+use Application\Container\ApplicationContainer;
 use Application\Models\Lancamento;
-use Application\Models\Usuario;
+use Application\Services\Plan\PlanContext;
+use Application\Services\Plan\PlanContextResolver;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -14,10 +16,12 @@ use Illuminate\Database\Capsule\Manager as DB;
 class LancamentoLimitService
 {
     private array $config;
+    private PlanContextResolver $planResolver;
 
-    public function __construct()
+    public function __construct(?PlanContextResolver $planResolver = null)
     {
-        $this->config = require __DIR__ . '/../../Config/Billing.php';
+        $this->config = PlanContext::config();
+        $this->planResolver = ApplicationContainer::resolveOrNew($planResolver, PlanContextResolver::class);
     }
 
     /**
@@ -36,26 +40,22 @@ class LancamentoLimitService
         return (int) ($this->config['limits']['free']['warning_at'] ?? 40);
     }
 
+    private function resolvePlanContext(int $userId): ?PlanContext
+    {
+        return $this->planResolver->resolve($userId);
+    }
+
     /**
      * Verifica se o usuário possui plano Pro ativo.
-     * Delega para Usuario::isPro() que trata corretamente:
-     * - Período de carência (3 dias após vencimento)
-     * - Assinaturas canceladas com período pago restante
-     * - Códigos de plano 'free' e 'gratuito'
      */
     public function isPro(int $userId): bool
     {
-        try {
-            /** @var Usuario|null $user */
-            $user = Usuario::find($userId);
-            if (!$user) {
-                return false;
-            }
+        return $this->planResolver->isPro($userId);
+    }
 
-            return $user->isPro();
-        } catch (\Throwable) {
-            return false;
-        }
+    public function getPlanTier(int $userId): string
+    {
+        return $this->planResolver->tier($userId);
     }
 
     /**
@@ -77,22 +77,30 @@ class LancamentoLimitService
      */
     public function usage(int $userId, string $ym): array
     {
-        $isPro = $this->isPro($userId);
+        $plan = $this->resolvePlanContext($userId);
+        $planSummary = $plan?->summary();
+
+        if ($planSummary === null) {
+            $planSummary = PlanContext::summaryForTier('free');
+        }
+
+        $planTier = (string) $planSummary['plan'];
+        $isPaidPlan = $planTier !== 'free';
         $limit = $this->getFreeLimit();
         $warn  = $this->getWarningAt();
         $used  = $this->countUsedInMonth($userId, $ym);
-        $remaining = $isPro ? null : max(0, $limit - $used);
+        $remaining = $isPaidPlan ? null : max(0, $limit - $used);
 
         return [
             'month'       => $ym,
-            'plan'        => $isPro ? 'pro' : 'free',
-            'limit'       => $isPro ? null : $limit,
+            ...$planSummary,
+            'limit'       => $isPaidPlan ? null : $limit,
             'used'        => $used,
             'remaining'   => $remaining,
             'warning_at'  => $warn,
-            'should_warn' => (!$isPro && $used >= $warn && $used < $limit),
-            'blocked'     => (!$isPro && $used >= $limit),
-            'percentage'  => $isPro ? null : (int) (($used / $limit) * 100),
+            'should_warn' => (!$isPaidPlan && $used >= $warn && $used < $limit),
+            'blocked'     => (!$isPaidPlan && $used >= $limit),
+            'percentage'  => $isPaidPlan ? null : (int) (($used / $limit) * 100),
         ];
     }
 

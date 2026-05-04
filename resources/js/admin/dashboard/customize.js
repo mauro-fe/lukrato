@@ -6,48 +6,51 @@
 import { Modules } from './state.js';
 import { createPageCustomizer } from '../shared/page-customizer.js';
 import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-preferences.js';
+import { buildAppUrl } from '../shared/api.js';
+import { getRuntimeConfig } from '../global/runtime-config.js';
 
-/** Map: checkbox ID -> dashboard section ID */
-const SECTION_MAP = {
-    // Main
-    toggleHealthScore: 'sectionHealthScore',
-    toggleAiTip: 'sectionAiTip',
-    toggleEvolucao: 'sectionEvolucao',
-    toggleAlertas: 'sectionAlertas',
-    toggleGrafico: 'chart-section',
-    togglePrevisao: 'sectionPrevisao',
-    // Extra grid
-    toggleMetas: 'sectionMetas',
-    toggleCartoes: 'sectionCartoes',
-    toggleContas: 'sectionContas',
-    toggleOrcamentos: 'sectionOrcamentos',
-    toggleFaturas: 'sectionFaturas',
-    // Standalone
-    toggleGamificacao: 'sectionGamificacao'
-};
+const runtimeConfig = getRuntimeConfig();
+const dashboardCustomizerCapabilities = runtimeConfig?.pageCapabilities?.pageKey === 'dashboard'
+    && runtimeConfig?.pageCapabilities?.customizer
+    && typeof runtimeConfig.pageCapabilities.customizer === 'object'
+    ? runtimeConfig.pageCapabilities.customizer
+    : null;
 
-const COMPLETE_DEFAULTS = {
-    toggleHealthScore: true,
-    toggleAiTip: true,
-    toggleEvolucao: true,
-    toggleAlertas: true,
-    toggleGrafico: true,
-    togglePrevisao: true,
-    toggleMetas: false,
-    toggleCartoes: false,
-    toggleContas: false,
-    toggleOrcamentos: false,
-    toggleFaturas: false,
-    toggleGamificacao: false
-};
+const dashboardCustomizerDescriptor = dashboardCustomizerCapabilities?.descriptor
+    && typeof dashboardCustomizerCapabilities.descriptor === 'object'
+    ? dashboardCustomizerCapabilities.descriptor
+    : null;
 
-const ESSENTIAL_DEFAULTS = {
-    ...COMPLETE_DEFAULTS,
-    toggleHealthScore: false,
-    toggleAiTip: false,
-    toggleEvolucao: false,
-    togglePrevisao: false
-};
+const SECTION_MAP = dashboardCustomizerDescriptor?.sectionMap
+    && typeof dashboardCustomizerDescriptor.sectionMap === 'object'
+    ? dashboardCustomizerDescriptor.sectionMap
+    : {};
+
+const COMPLETE_DEFAULTS = dashboardCustomizerCapabilities?.completePreferences
+    && typeof dashboardCustomizerCapabilities.completePreferences === 'object'
+    ? dashboardCustomizerCapabilities.completePreferences
+    : {};
+
+const ESSENTIAL_DEFAULTS = dashboardCustomizerCapabilities?.essentialPreferences
+    && typeof dashboardCustomizerCapabilities.essentialPreferences === 'object'
+    ? dashboardCustomizerCapabilities.essentialPreferences
+    : {};
+
+const GRID_TOGGLE_KEYS = Array.isArray(dashboardCustomizerDescriptor?.gridToggleKeys)
+    ? dashboardCustomizerDescriptor.gridToggleKeys
+    : [];
+
+const MODAL_CONFIG = dashboardCustomizerDescriptor?.ids
+    && typeof dashboardCustomizerDescriptor.ids === 'object'
+    ? {
+        overlayId: dashboardCustomizerDescriptor.ids.overlay,
+        openButtonId: dashboardCustomizerDescriptor.trigger?.id || 'btnCustomizeDashboard',
+        closeButtonId: dashboardCustomizerDescriptor.ids.close,
+        saveButtonId: dashboardCustomizerDescriptor.ids.save,
+        presetEssentialButtonId: dashboardCustomizerDescriptor.ids.presetEssential,
+        presetCompleteButtonId: dashboardCustomizerDescriptor.ids.presetComplete,
+    }
+    : undefined;
 
 async function loadDashboardPrefs() {
     return fetchUiPagePreferences('dashboard');
@@ -55,6 +58,10 @@ async function loadDashboardPrefs() {
 
 async function saveDashboardPrefs(prefs) {
     await persistUiPagePreferences('dashboard', prefs);
+}
+
+function goToDashboardUpgrade() {
+    window.location.href = buildAppUrl('billing');
 }
 
 function isVisible(element) {
@@ -126,25 +133,35 @@ function syncDashboardLayout(prefs = COMPLETE_DEFAULTS) {
     syncStage(secondaryStage, optionalGridCount > 0 ? 1 : 0);
 }
 
-const dashboardCustomizer = createPageCustomizer({
-    storageKey: 'lk_dashboard_prefs',
-    sectionMap: SECTION_MAP,
-    completeDefaults: COMPLETE_DEFAULTS,
-    essentialDefaults: ESSENTIAL_DEFAULTS,
-    gridContainerId: 'optionalGrid',
-    gridToggleKeys: ['toggleMetas', 'toggleCartoes', 'toggleContas', 'toggleOrcamentos', 'toggleFaturas'],
-    loadPreferences: loadDashboardPrefs,
-    savePreferences: saveDashboardPrefs,
-    onApply: syncDashboardLayout
-});
+const dashboardCustomizer = Object.keys(SECTION_MAP).length > 0
+    ? createPageCustomizer({
+        storageKey: 'lk_dashboard_prefs',
+        sectionMap: SECTION_MAP,
+        completeDefaults: COMPLETE_DEFAULTS,
+        essentialDefaults: ESSENTIAL_DEFAULTS,
+        gridContainerId: 'optionalGrid',
+        gridToggleKeys: GRID_TOGGLE_KEYS,
+        capabilities: dashboardCustomizerCapabilities,
+        loadPreferences: loadDashboardPrefs,
+        savePreferences: saveDashboardPrefs,
+        onApply: syncDashboardLayout,
+        onLockedOpen: goToDashboardUpgrade,
+        modal: MODAL_CONFIG,
+    })
+    : null;
 
 export function initCustomize() {
+    if (!dashboardCustomizer) {
+        syncDashboardLayout(ESSENTIAL_DEFAULTS);
+        return;
+    }
+
     dashboardCustomizer.init();
 }
 
 Modules.Customize = {
     init: initCustomize,
-    open: dashboardCustomizer.open,
-    close: dashboardCustomizer.close
+    open: () => dashboardCustomizer?.open?.(),
+    close: () => dashboardCustomizer?.close?.()
 };
 

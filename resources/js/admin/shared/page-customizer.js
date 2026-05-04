@@ -39,6 +39,31 @@ function mergeWithDefaults(raw, defaults, toggleKeys) {
     };
 }
 
+function normalizeCustomizerCapabilities(raw, toggleKeys, essentialDefaults) {
+    if (!raw || typeof raw !== 'object') {
+        return {
+            enabled: true,
+            canCustomize: true,
+            availableToggleKeys: [...toggleKeys],
+            forcedPreferences: null,
+        };
+    }
+
+    const canCustomize = raw.canCustomize !== false;
+    const availableToggleKeys = Array.isArray(raw.availableToggles) && raw.availableToggles.length > 0
+        ? raw.availableToggles.filter((key) => toggleKeys.includes(key))
+        : [...toggleKeys];
+
+    return {
+        enabled: raw.enabled !== false,
+        canCustomize,
+        availableToggleKeys: canCustomize ? availableToggleKeys : [],
+        forcedPreferences: raw.forcedPreferences && typeof raw.forcedPreferences === 'object'
+            ? mergeWithDefaults(raw.forcedPreferences, essentialDefaults, toggleKeys)
+            : null,
+    };
+}
+
 function safeRun(callback, fallback = null) {
     try {
         return callback();
@@ -57,6 +82,7 @@ export function createPageCustomizer(config) {
 
     const completeDefaults = mergeWithDefaults(config?.completeDefaults ?? {}, {}, toggleKeys);
     const essentialDefaults = mergeWithDefaults(config?.essentialDefaults ?? completeDefaults, completeDefaults, toggleKeys);
+    const capabilityState = normalizeCustomizerCapabilities(config?.capabilities, toggleKeys, essentialDefaults);
     const storageKey = String(config?.storageKey || 'lk_ui_page_prefs');
     const modal = { ...DEFAULT_MODAL_CONFIG, ...(config?.modal ?? {}) };
     const gridContainerId = config?.gridContainerId ? String(config.gridContainerId) : null;
@@ -69,6 +95,8 @@ export function createPageCustomizer(config) {
         keydownHandler: null,
         lastFocusedElement: null
     };
+
+    const persistedToggleKeys = capabilityState.availableToggleKeys;
 
     function getOverlayElement() {
         const overlay = document.getElementById(modal.overlayId);
@@ -183,16 +211,20 @@ export function createPageCustomizer(config) {
     function loadLocalCache() {
         const raw = loadLocalCacheRaw();
         if (!raw) return null;
-        return mergeWithDefaults(raw, completeDefaults, toggleKeys);
+        return mergeWithDefaults(raw, completeDefaults, persistedToggleKeys);
     }
 
     function hasSavedLocalPrefs() {
-        return hasKnownPrefs(loadLocalCacheRaw(), toggleKeys);
+        return hasKnownPrefs(loadLocalCacheRaw(), persistedToggleKeys);
     }
 
     function saveLocalCache(prefs) {
+        if (!capabilityState.canCustomize) {
+            return;
+        }
+
         safeRun(() => {
-            localStorage.setItem(storageKey, JSON.stringify(prefs));
+            localStorage.setItem(storageKey, JSON.stringify(pickKnownPrefs(prefs, persistedToggleKeys)));
         });
     }
 
@@ -204,8 +236,8 @@ export function createPageCustomizer(config) {
         try {
             const rawPrefs = await config.loadPreferences();
 
-            if (hasKnownPrefs(rawPrefs, toggleKeys)) {
-                const merged = mergeWithDefaults(rawPrefs, completeDefaults, toggleKeys);
+            if (hasKnownPrefs(rawPrefs, persistedToggleKeys)) {
+                const merged = mergeWithDefaults(rawPrefs, completeDefaults, persistedToggleKeys);
                 saveLocalCache(merged);
                 return { hasRemotePrefs: true, prefs: merged };
             }
@@ -217,6 +249,10 @@ export function createPageCustomizer(config) {
     }
 
     async function savePrefsToRemote(prefs) {
+        if (!capabilityState.canCustomize) {
+            return;
+        }
+
         saveLocalCache(prefs);
 
         if (typeof config?.savePreferences !== 'function') {
@@ -224,13 +260,17 @@ export function createPageCustomizer(config) {
         }
 
         try {
-            await config.savePreferences(prefs);
+            await config.savePreferences(pickKnownPrefs(prefs, persistedToggleKeys));
         } catch {
             // Keep local cache; sync can happen later.
         }
     }
 
     function loadPrefs() {
+        if (capabilityState.forcedPreferences) {
+            return { ...capabilityState.forcedPreferences };
+        }
+
         return loadLocalCache() ?? { ...essentialDefaults };
     }
 
@@ -266,12 +306,18 @@ export function createPageCustomizer(config) {
     }
 
     function collectPrefsFromModal() {
-        const prefs = {};
-        toggleKeys.forEach((checkboxId) => {
+        const prefs = loadPrefs();
+        persistedToggleKeys.forEach((checkboxId) => {
             const checkbox = document.getElementById(checkboxId);
             prefs[checkboxId] = checkbox ? checkbox.checked : !!completeDefaults[checkboxId];
         });
         return prefs;
+    }
+
+    function handleLockedOpen() {
+        if (typeof config?.onLockedOpen === 'function') {
+            config.onLockedOpen(capabilityState);
+        }
     }
 
     function openModal() {
@@ -362,7 +408,15 @@ export function createPageCustomizer(config) {
         const overlay = getOverlayElement();
 
         if (btnOpen) {
-            btnOpen.addEventListener('click', openModal);
+            btnOpen.addEventListener('click', (event) => {
+                if (!capabilityState.canCustomize) {
+                    event.preventDefault();
+                    handleLockedOpen();
+                    return;
+                }
+
+                openModal();
+            });
         }
 
         if (btnClose) {
@@ -393,8 +447,14 @@ export function createPageCustomizer(config) {
         const localPrefs = loadLocalCache();
         const hasLocalPrefs = hasSavedLocalPrefs();
 
-        // Fast paint: use local cache; fallback to essential.
-        applyPrefs(localPrefs ?? { ...essentialDefaults });
+        // Fast paint: use forced prefs for gated pages, else local cache; fallback to essential.
+        applyPrefs(capabilityState.forcedPreferences ?? localPrefs ?? { ...essentialDefaults });
+
+        bindModalActions();
+
+        if (!capabilityState.canCustomize) {
+            return;
+        }
 
         const initialVersion = state.prefsVersion;
         loadPrefsFromRemote().then((remote) => {
@@ -421,14 +481,13 @@ export function createPageCustomizer(config) {
             }
         });
 
-        bindModalActions();
         bindPresetActions();
         bindToggleChangeActions();
     }
 
     return {
         init,
-        open: openModal,
+        open: capabilityState.canCustomize ? openModal : handleLockedOpen,
         close: closeModal,
         applyPreset: applyPresetToModal
     };

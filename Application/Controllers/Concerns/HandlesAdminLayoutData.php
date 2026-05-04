@@ -9,6 +9,7 @@ use Application\Models\BlogCategoria;
 use Application\Models\Telefone;
 use Application\Models\Usuario;
 use Application\Support\Admin\AdminModuleRegistry;
+use Application\Support\Admin\PageCapabilityResolver;
 use Application\Support\Engagement\FeedbackVisibility;
 
 trait HandlesAdminLayoutData
@@ -20,24 +21,27 @@ trait HandlesAdminLayoutData
     protected function injectAdminLayoutData(array $data): array
     {
         $currentUser = $data['currentUser'] ?? Auth::user();
+        $planContext = $currentUser && method_exists($currentUser, 'plan') ? $currentUser->plan() : null;
         $displayName = $this->resolveAdminDisplayName($currentUser);
         $currentViewPath = trim((string) ($data['currentViewPath'] ?? ''), '/');
 
         $isPro = $data['isPro'] ?? (
-            $currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro()
+            $planContext ? $planContext->isPro() : ($currentUser && method_exists($currentUser, 'isPro') && $currentUser->isPro())
         );
 
         $data['currentUser'] = $currentUser;
         $data['username'] = $data['username'] ?? $displayName;
         $data['isSysAdmin'] = $data['isSysAdmin'] ?? (((int) ($currentUser->is_admin ?? 0)) === 1);
         $data['isPro'] = $isPro;
-        $data['planTier'] = $data['planTier'] ?? ($currentUser && method_exists($currentUser, 'planTier') ? $currentUser->planTier() : 'free');
-        $data['planLabel'] = $data['planLabel'] ?? match ($data['planTier']) {
+        $data['isUltra'] = $data['isUltra'] ?? ($planContext ? $planContext->isUltra() : ($currentUser && method_exists($currentUser, 'isUltra') && $currentUser->isUltra()));
+        $data['planTier'] = $data['planTier'] ?? ($planContext ? $planContext->tier() : ($currentUser && method_exists($currentUser, 'planTier') ? $currentUser->planTier() : 'free'));
+        $data['planLabel'] = $data['planLabel'] ?? ($planContext ? strtoupper($planContext->label()) : match ($data['planTier']) {
             'ultra' => 'ULTRA',
             'pro' => 'PRO',
             default => 'FREE',
-        };
-        $data['showUpgradeCTA'] = $data['showUpgradeCTA'] ?? (!$isPro);
+        });
+        $data['upgradeTarget'] = $data['upgradeTarget'] ?? ($planContext ? $planContext->upgradeTarget() : ($currentUser && method_exists($currentUser, 'upgradeTarget') ? $currentUser->upgradeTarget() : 'pro'));
+        $data['showUpgradeCTA'] = $data['showUpgradeCTA'] ?? ($planContext ? $planContext->upgradeTarget() !== null : !$isPro);
 
         if (!isset($data['userTheme'])) {
             $data['userTheme'] = 'dark';
@@ -113,6 +117,7 @@ trait HandlesAdminLayoutData
         $data['bundle'] = $data['bundle'] ?? $bundle;
         $data['sidebarModules'] = $data['sidebarModules'] ?? $sidebarModules;
         $data['footerModules'] = $data['footerModules'] ?? $footerModules;
+        $data['pageCapabilities'] = $data['pageCapabilities'] ?? $this->buildAdminPageCapabilities($data, $currentUser);
         $data['adminPageContext'] = $data['adminPageContext'] ?? [
             'currentMenu' => $data['menu'] ?? null,
             'currentViewId' => $currentViewId,
@@ -144,9 +149,11 @@ trait HandlesAdminLayoutData
             'apiBaseUrl' => rtrim(BASE_URL, '/') . '/',
             'csrfTtl' => (int) \Application\Middlewares\CsrfMiddleware::TOKEN_TTL,
             'isPro' => (bool) ($data['isPro'] ?? false),
+            'isUltra' => (bool) ($data['isUltra'] ?? false),
             'isSysAdmin' => (bool) ($data['isSysAdmin'] ?? false),
             'planTier' => (string) ($data['planTier'] ?? 'free'),
             'planLabel' => (string) ($data['planLabel'] ?? 'FREE'),
+            'upgradeTarget' => array_key_exists('upgradeTarget', $data) ? $data['upgradeTarget'] : 'pro',
             'showUpgradeCTA' => (bool) ($data['showUpgradeCTA'] ?? true),
             'userTheme' => (string) ($data['userTheme'] ?? 'dark'),
             'userId' => $currentUser->id ?? $currentUser->id_usuario ?? null,
@@ -165,7 +172,23 @@ trait HandlesAdminLayoutData
             'userAvatarSettings' => $this->buildAdminAvatarSettings($currentUser),
             'feedback' => $this->buildAdminFeedbackConfig($currentUser),
             'pageContext' => is_array($data['adminPageContext'] ?? null) ? $data['adminPageContext'] : null,
+            'pageCapabilities' => is_array($data['pageCapabilities'] ?? null) ? $data['pageCapabilities'] : [],
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    protected function buildAdminPageCapabilities(array $data, ?Usuario $currentUser = null): array
+    {
+        $pageKey = trim((string) (($data['menu'] ?? '') ?: 'dashboard'));
+        $resolvedUser = $currentUser ?? ($data['currentUser'] ?? null);
+        $planContext = $resolvedUser && method_exists($resolvedUser, 'plan')
+            ? $resolvedUser->plan()
+            : null;
+
+        return PageCapabilityResolver::resolve($pageKey, $planContext);
     }
 
     /**

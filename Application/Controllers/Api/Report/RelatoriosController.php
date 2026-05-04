@@ -59,7 +59,7 @@ class RelatoriosController extends ApiController
 
         try {
             $user = $this->getCurrentUser();
-            if (!$user || !$user->isPro()) {
+            if (!$user || !$user->plan()->isPro()) {
                 return Response::errorResponse('Exportação de relatórios é um recurso exclusivo do plano PRO.', 403);
             }
 

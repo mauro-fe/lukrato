@@ -164,7 +164,7 @@ class StreakService
         }
 
         $user = Usuario::find($userId);
-        $isPro = $user ? $user->isPro() : false;
+        $isPro = $user?->plan()->isPro() ?? false;
 
         return [
             'current_streak' => $progress->current_streak,

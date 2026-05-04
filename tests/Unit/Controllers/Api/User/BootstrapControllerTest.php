@@ -56,6 +56,12 @@ class BootstrapControllerTest extends TestCase
         $this->assertSame('perfil', $payload['data']['currentViewId']);
         $this->assertSame('perfil', $payload['data']['currentViewPath']);
         $this->assertSame('light', $payload['data']['userTheme']);
+        $this->assertFalse($payload['data']['isPro']);
+        $this->assertFalse($payload['data']['isUltra']);
+        $this->assertSame('free', $payload['data']['planTier']);
+        $this->assertSame('FREE', $payload['data']['planLabel']);
+        $this->assertSame('pro', $payload['data']['upgradeTarget']);
+        $this->assertTrue($payload['data']['showUpgradeCTA']);
         $this->assertTrue($payload['data']['tourCompleted']);
         $this->assertFalse($payload['data']['needsDisplayNamePrompt']);
         $this->assertSame(rtrim(BASE_URL, '/') . '/uploads/avatar-maria.png', $payload['data']['userAvatar']);
@@ -116,6 +122,50 @@ class BootstrapControllerTest extends TestCase
         $this->assertFalse($payload['data']['feedback']['generalFeedbackEnabled']);
         $this->assertSame(7, $payload['data']['feedback']['minimumAccountAgeDays']);
         $this->assertNotEmpty($payload['data']['feedback']['generalFeedbackAvailableAt']);
+    }
+
+    public function testShowIncludesDashboardPageCapabilitiesForFreeUsers(): void
+    {
+        $this->seedAuthenticatedSession();
+        $_GET = [
+            'menu' => 'dashboard',
+            'view_path' => 'dashboard',
+            'view_id' => 'dashboard',
+        ];
+
+        $controller = new BootstrapController();
+
+        $response = $controller->show();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('dashboard', $payload['data']['pageCapabilities']['pageKey']);
+        $this->assertSame('essential', $payload['data']['pageCapabilities']['customizer']['mode']);
+        $this->assertFalse($payload['data']['pageCapabilities']['customizer']['canCustomize']);
+        $this->assertFalse($payload['data']['pageCapabilities']['customizer']['canAccessComplete']);
+        $this->assertFalse($payload['data']['pageCapabilities']['customizer']['renderOverlay']);
+        $this->assertSame('Desbloquear dashboard completo', $payload['data']['pageCapabilities']['customizer']['trigger']['label']);
+        $this->assertSame('upgrade', $payload['data']['pageCapabilities']['customizer']['trigger']['action']);
+        $this->assertSame('pro', $payload['data']['pageCapabilities']['customizer']['trigger']['target']);
+        $this->assertSame([
+            'essential',
+        ], $payload['data']['pageCapabilities']['customizer']['availablePresets']);
+        $this->assertSame([], $payload['data']['pageCapabilities']['customizer']['availableToggles']);
+        $this->assertSame([
+            'toggleAlertas' => true,
+            'toggleHealthScore' => false,
+            'toggleAiTip' => false,
+            'toggleEvolucao' => false,
+            'togglePrevisao' => false,
+            'toggleGrafico' => true,
+            'toggleMetas' => false,
+            'toggleCartoes' => false,
+            'toggleContas' => false,
+            'toggleOrcamentos' => false,
+            'toggleFaturas' => false,
+            'toggleGamificacao' => false,
+        ], $payload['data']['pageCapabilities']['customizer']['forcedPreferences']);
+        $this->assertSame('btnCustomizeDashboard', $payload['data']['pageCapabilities']['customizer']['descriptor']['trigger']['id']);
     }
 
     private function seedAuthenticatedSession(): void

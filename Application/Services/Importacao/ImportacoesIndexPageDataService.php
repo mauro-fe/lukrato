@@ -6,6 +6,7 @@ namespace Application\Services\Importacao;
 
 use Application\Models\CartaoCredito;
 use Application\Repositories\ContaRepository;
+use Application\Services\Plan\PlanContext;
 use Application\Services\Plan\PlanLimitService;
 
 class ImportacoesIndexPageDataService
@@ -58,8 +59,7 @@ class ImportacoesIndexPageDataService
         } catch (\Throwable) {
             $freeConfig = $this->planLimitService->getConfig()['limits']['free'] ?? [];
             $planLimits = [
-                'plan' => 'free',
-                'is_pro' => false,
+                ...PlanContext::summaryForTier('free'),
                 'importacoes' => [
                     'import_conta_ofx' => ['allowed' => true, 'limit' => $freeConfig['import_conta_ofx'] ?? 1, 'used' => 0, 'remaining' => $freeConfig['import_conta_ofx'] ?? 1],
                     'import_conta_csv' => ['allowed' => true, 'limit' => $freeConfig['import_conta_csv'] ?? 1, 'used' => 0, 'remaining' => $freeConfig['import_conta_csv'] ?? 1],

@@ -25,7 +25,7 @@ class ExportController extends ApiController
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
 
         $user = Usuario::find($userId);
-        if (!$user || !$user->isPro()) {
+        if (!$user || !$user->plan()->isPro()) {
             return Response::errorResponse('Exportação de lançamentos é um recurso exclusivo do plano PRO.', 403);
         }
 

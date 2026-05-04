@@ -328,12 +328,9 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   align-items: center;
   justify-content: center;
   padding: var(--spacing-5);
-  background:
-    radial-gradient(circle at 20% 18%, color-mix(in srgb, var(--surface-modal-accent, var(--color-primary)) 12%, transparent), transparent 28%),
-    radial-gradient(circle at 82% 12%, color-mix(in srgb, var(--color-secondary, #2c3e50) 14%, transparent), transparent 32%),
-    color-mix(in srgb, var(--color-bg, #0f172a) 76%, rgba(2, 6, 23, 0.9));
-  backdrop-filter: blur(18px) saturate(1.08);
-  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  background: color-mix(in srgb, var(--color-bg, #0f172a) 78%, rgba(2, 6, 23, 0.92));
+  backdrop-filter: blur(14px) saturate(1.04);
+  -webkit-backdrop-filter: blur(14px) saturate(1.04);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -344,30 +341,26 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 
 .lk-customize-modal {
   --lk-customize-accent: var(--surface-modal-accent, var(--color-primary));
-  --lk-customize-border: color-mix(in srgb, var(--lk-customize-accent) 14%, var(--surface-modal-border));
-  --lk-customize-border-strong: color-mix(in srgb, var(--lk-customize-accent) 24%, var(--surface-modal-border));
-  --lk-customize-panel-bg: color-mix(in srgb, var(--color-bg) 46%, transparent);
-  --lk-customize-panel-bg-strong: color-mix(in srgb, var(--color-bg) 58%, transparent);
-  --lk-customize-chip-bg: color-mix(in srgb, var(--lk-customize-accent) 10%, transparent);
-  --lk-customize-chip-border: color-mix(in srgb, var(--lk-customize-accent) 18%, transparent);
+  --lk-customize-border: var(--surface-modal-border);
+  --lk-customize-border-strong: var(--theme-control-border-strong);
+  --lk-customize-panel-bg: var(--theme-control-bg);
+  --lk-customize-panel-bg-strong: var(--theme-control-bg-hover);
+  --lk-customize-group-bg: var(--theme-surface-card-bg);
+  --lk-customize-chip-bg: var(--theme-control-bg);
+  --lk-customize-chip-border: var(--theme-control-border);
+  --lk-customize-chip-text: color-mix(in srgb, var(--theme-control-text) 68%, var(--color-text-muted));
 
   width: min(100%, 680px);
   max-height: min(86vh, 760px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background:
-    linear-gradient(120deg, color-mix(in srgb, var(--surface-modal-bg) 98%, #fff 12%), color-mix(in srgb, var(--surface-modal-bg) 92%, #fff 4%) 80%, color-mix(in srgb, var(--surface-modal-bg) 98%, transparent)),
-    color-mix(in srgb, #fff 8%, var(--surface-modal-bg) 92%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--lk-customize-accent) 10%, var(--lk-customize-border));
-  border-radius: calc(var(--surface-modal-radius) + 8px);
-  box-shadow:
-    0 8px 32px 0 rgba(0,0,0,0.32),
-    0 1.5px 8px 0 color-mix(in srgb, var(--lk-customize-accent) 10%, transparent),
-    0 0 0 1.5px color-mix(in srgb, var(--lk-customize-accent) 8%, transparent),
-    var(--surface-modal-shadow);
-  backdrop-filter: blur(18px) saturate(1.12);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  background: var(--surface-modal-bg);
+  border: 1px solid var(--lk-customize-border);
+  border-radius: calc(var(--surface-modal-radius) + 4px);
+  box-shadow: var(--surface-modal-shadow);
+  backdrop-filter: blur(12px) saturate(1.05);
+  -webkit-backdrop-filter: blur(12px) saturate(1.05);
   transform: translateY(8px) scale(0.98);
   transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
@@ -388,10 +381,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   gap: var(--spacing-4);
   padding: var(--spacing-6) var(--spacing-6) var(--spacing-5);
   border-bottom: 1px solid var(--lk-customize-border);
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--lk-customize-accent) 18%, transparent) 0%, transparent 100%),
-    linear-gradient(180deg, color-mix(in srgb, var(--lk-customize-accent) 10%, transparent) 0%, transparent 100%),
-    transparent;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--lk-customize-panel-bg) 94%, transparent), transparent 100%);
 }
 
 .lk-customize-header::after {
@@ -401,7 +391,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   right: var(--spacing-6);
   bottom: -1px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--lk-customize-accent) 52%, transparent), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--lk-customize-border-strong) 56%, transparent), transparent);
   pointer-events: none;
 }
 
@@ -413,17 +403,17 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 }
 
 .lk-customize-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  border: 1px solid color-mix(in srgb, var(--lk-customize-accent) 22%, transparent);
+  border: 1px solid var(--theme-control-border);
   border-radius: calc(var(--radius-md) + 2px);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--lk-customize-accent) 88%, #ffffff 12%), color-mix(in srgb, var(--lk-customize-accent) 76%, #000000 24%));
-  color: #fff;
-  box-shadow: 0 16px 32px color-mix(in srgb, var(--lk-customize-accent) 24%, transparent);
+  background: var(--lk-customize-panel-bg);
+  color: var(--lk-customize-accent);
+  box-shadow: var(--theme-control-shadow);
 }
 
 .lk-customize-icon svg,
@@ -440,7 +430,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   margin: 0;
   color: var(--color-text);
   font-size: clamp(var(--font-size-xl), 2vw, var(--font-size-2xl));
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.15;
 }
 
@@ -449,7 +439,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   margin: var(--spacing-2) 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .lk-customize-close {
@@ -459,9 +449,9 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  border: 1px solid color-mix(in srgb, var(--lk-customize-accent) 14%, var(--surface-modal-border));
+  border: 1px solid var(--theme-control-border);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--lk-customize-panel-bg) 72%, transparent);
+  background: var(--lk-customize-panel-bg);
   color: var(--color-text-muted);
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
@@ -474,10 +464,9 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 }
 
 .lk-customize-close:hover {
-  background: color-mix(in srgb, var(--lk-customize-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--lk-customize-accent) 30%, transparent);
+  background: var(--lk-customize-panel-bg-strong);
+  border-color: var(--lk-customize-border-strong);
   color: var(--color-text);
-  transform: translateY(-1px);
 }
 
 .lk-customize-body {
@@ -488,7 +477,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   padding: var(--spacing-4) var(--spacing-6) var(--spacing-5);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--surface-modal-accent) 54%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--lk-customize-border-strong) 68%, transparent) transparent;
 }
 
 .lk-customize-body::-webkit-scrollbar {
@@ -500,7 +489,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 }
 
 .lk-customize-body::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--surface-modal-accent) 44%, transparent);
+  background: color-mix(in srgb, var(--lk-customize-border-strong) 76%, transparent);
   border-radius: var(--radius-full);
 }
 
@@ -511,8 +500,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   padding: 6px;
   border: 1px solid var(--lk-customize-border);
   border-radius: calc(var(--radius-md) + 2px);
-  background: color-mix(in srgb, var(--lk-customize-panel-bg-strong) 92%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--lk-customize-panel-bg) 90%, transparent);
 }
 
 .lk-customize-preset {
@@ -542,15 +530,13 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 
 .lk-customize-preset:hover,
 .lk-customize-preset.is-active {
-  background: color-mix(in srgb, var(--lk-customize-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--lk-customize-accent) 22%, transparent);
+  background: var(--lk-customize-panel-bg-strong);
+  border-color: var(--lk-customize-border-strong);
   color: var(--color-text);
 }
 
 .lk-customize-preset.is-active {
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--lk-customize-accent) 20%, transparent),
-    0 10px 20px color-mix(in srgb, var(--lk-customize-accent) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lk-customize-accent) 18%, transparent);
 }
 
 .lk-customize-groups {
@@ -562,14 +548,10 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 
 .lk-customize-group {
   min-width: 0;
-  border: 1px solid var(--lk-customize-border);
+  border: 1px solid var(--theme-surface-card-border);
   border-radius: calc(var(--radius-lg) + 2px);
-  border: 1.5px solid color-mix(in srgb, var(--lk-customize-accent) 8%, var(--lk-customize-border));
-  border-radius: calc(var(--radius-lg) + 4px);
-  background:
-    linear-gradient(120deg, color-mix(in srgb, var(--lk-customize-panel-bg) 98%, #fff 8%), color-mix(in srgb, var(--lk-customize-panel-bg) 92%, #fff 2%) 80%, color-mix(in srgb, var(--lk-customize-panel-bg) 98%, transparent)),
-    color-mix(in srgb, #fff 4%, var(--lk-customize-panel-bg) 96%, transparent);
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.10), 0 0.5px 2px 0 color-mix(in srgb, var(--lk-customize-accent) 6%, transparent), inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--lk-customize-group-bg);
+  box-shadow: var(--theme-surface-card-shadow);
   overflow: hidden;
 }
 
@@ -580,7 +562,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
   border-bottom: 1px solid var(--lk-customize-border);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--lk-customize-accent) 7%, transparent), transparent 100%);
+  background: color-mix(in srgb, var(--lk-customize-panel-bg) 76%, transparent);
 }
 
 .lk-customize-group__title {
@@ -597,7 +579,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   border: 1px solid var(--lk-customize-chip-border);
   border-radius: var(--radius-full);
   background: var(--lk-customize-chip-bg);
-  color: color-mix(in srgb, var(--lk-customize-accent) 58%, var(--color-text));
+  color: var(--lk-customize-chip-text);
   font-size: var(--font-size-xs);
   font-weight: 800;
 }
@@ -616,27 +598,26 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   justify-content: space-between;
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--lk-customize-border) 78%, transparent);
+  border: 1px solid var(--theme-control-border);
   border-radius: calc(var(--radius-md) + 2px);
-  background: color-mix(in srgb, var(--lk-customize-panel-bg-strong) 92%, transparent);
+  background: color-mix(in srgb, var(--lk-customize-panel-bg) 88%, transparent);
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .lk-customize-toggle:last-child {
-  border-bottom: 1px solid color-mix(in srgb, var(--lk-customize-border) 78%, transparent);
+  border-bottom: 1px solid var(--theme-control-border);
 }
 
 .lk-customize-toggle:hover {
-  background: color-mix(in srgb, var(--lk-customize-accent) 8%, transparent);
-  border-color: color-mix(in srgb, var(--lk-customize-accent) 22%, transparent);
-  transform: translateY(-1px);
+  background: var(--lk-customize-panel-bg-strong);
+  border-color: var(--lk-customize-border-strong);
 }
 
 .lk-customize-toggle:has(.lk-customize-toggle__input:checked) {
-  background: color-mix(in srgb, var(--lk-customize-accent) 10%, transparent);
-  border-color: color-mix(in srgb, var(--lk-customize-accent) 24%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lk-customize-accent) 14%, transparent);
+  background: color-mix(in srgb, var(--lk-customize-accent) 8%, var(--lk-customize-panel-bg));
+  border-color: color-mix(in srgb, var(--lk-customize-accent) 18%, var(--lk-customize-border-strong));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lk-customize-accent) 10%, transparent);
 }
 
 .lk-customize-toggle__copy {
@@ -649,7 +630,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 .lk-customize-toggle__title {
   color: var(--color-text);
   font-size: var(--font-size-sm);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.35;
 }
 
@@ -680,9 +661,9 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
 .lk-customize-switch {
   position: absolute;
   inset: 0;
-  border: 1px solid color-mix(in srgb, var(--color-text-muted) 24%, transparent);
+  border: 1px solid var(--theme-control-border);
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
+  background: color-mix(in srgb, var(--lk-customize-panel-bg) 84%, transparent);
   transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -694,15 +675,15 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   width: 20px;
   height: 20px;
   border-radius: var(--radius-full);
-  background: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-text-muted) 84%, #ffffff 16%);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
   transition: transform var(--transition-fast), background var(--transition-fast);
 }
 
 .lk-customize-toggle__input:checked + .lk-customize-switch {
-  border-color: color-mix(in srgb, var(--lk-customize-accent) 78%, transparent);
-  background: linear-gradient(135deg, var(--lk-customize-accent), color-mix(in srgb, var(--lk-customize-accent) 78%, #000));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lk-customize-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--lk-customize-accent) 32%, var(--lk-customize-border-strong));
+  background: color-mix(in srgb, var(--lk-customize-accent) 74%, var(--lk-customize-panel-bg));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lk-customize-accent) 8%, transparent);
 }
 
 .lk-customize-toggle__input:checked + .lk-customize-switch::before {
@@ -721,9 +702,7 @@ body.lk-page-modal-open :is(.sidebar, .top-navbar, #edgeMenuBtn, .fab-container,
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-6) var(--spacing-5);
   border-top: 1px solid var(--lk-customize-border);
-  background:
-    linear-gradient(180deg, transparent, color-mix(in srgb, var(--lk-customize-panel-bg-strong) 96%, transparent) 42%);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--lk-customize-panel-bg) 94%, transparent) 58%);
 }
 
 .lk-customize-save {

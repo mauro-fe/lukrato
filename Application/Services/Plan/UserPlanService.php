@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Services\Plan;
 
-use Application\Models\Usuario;
+use Application\Container\ApplicationContainer;
 
 /**
  * Serviço para gerenciar plano e limites de usuários.
@@ -12,32 +12,25 @@ use Application\Models\Usuario;
 class UserPlanService
 {
     private array $config;
+    private PlanContextResolver $planResolver;
 
-    public function __construct()
+    public function __construct(?PlanContextResolver $planResolver = null)
     {
-        $this->config = require __DIR__ . '/../../Config/Billing.php';
+        $this->config = PlanContext::config();
+        $this->planResolver = ApplicationContainer::resolveOrNew($planResolver, PlanContextResolver::class);
     }
 
     /**
      * Verifica se o usuário tem plano Pro.
-     * Delega para Usuario::isPro() que trata corretamente:
-     * - Período de carência (3 dias após vencimento)
-     * - Assinaturas canceladas com período pago restante
-     * - Códigos de plano 'free' e 'gratuito'
      */
     public function isProUser(int $userId): bool
     {
-        try {
-            /** @var Usuario|null $user */
-            $user = Usuario::find($userId);
-            if (!$user) {
-                return false;
-            }
+        return $this->planResolver->isPro($userId);
+    }
 
-            return $user->isPro();
-        } catch (\Throwable) {
-            return false;
-        }
+    public function getPlanTier(int $userId): string
+    {
+        return $this->planResolver->tier($userId);
     }
 
     /**
@@ -61,20 +54,23 @@ class UserPlanService
      */
     public function buildUsageMeta(int $userId, string $month, int $usedCount): array
     {
-        $isPro = $this->isProUser($userId);
+        $plan = $this->planResolver->resolve($userId);
+        $planSummary = $plan?->summary() ?? PlanContext::summaryForTier('free');
+        $planTier = (string) $planSummary['plan'];
+        $isPaidPlan = $planTier !== 'free';
         $limit = $this->getFreeLancamentosLimit();
         $warn = $this->getFreeLancamentosWarningAt();
 
         return [
             'month' => $month,
-            'plan' => $isPro ? 'pro' : 'free',
-            'limit' => $isPro ? null : $limit,
+            ...$planSummary,
+            'limit' => $isPaidPlan ? null : $limit,
             'used' => $usedCount,
-            'remaining' => $isPro ? null : max(0, $limit - $usedCount),
+            'remaining' => $isPaidPlan ? null : max(0, $limit - $usedCount),
             'warning_at' => $warn,
-            'should_warn' => (!$isPro && $usedCount >= $warn && $usedCount < $limit),
-            'blocked' => (!$isPro && $usedCount >= $limit),
-            'percentage' => $isPro ? null : (int) (($usedCount / $limit) * 100),
+            'should_warn' => (!$isPaidPlan && $usedCount >= $warn && $usedCount < $limit),
+            'blocked' => (!$isPaidPlan && $usedCount >= $limit),
+            'percentage' => $isPaidPlan ? null : (int) (($usedCount / $limit) * 100),
         ];
     }
 

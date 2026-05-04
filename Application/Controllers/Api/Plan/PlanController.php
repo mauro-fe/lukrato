@@ -8,6 +8,7 @@ use Application\Controllers\ApiController;
 use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Services\Infrastructure\LogService;
+use Application\Services\Plan\PlanContext;
 use Application\Services\Plan\PlanLimitService;
 
 /**
@@ -44,8 +45,7 @@ class PlanController extends ApiController
             $freeConfig = $this->limitService->getConfig()['limits']['free'] ?? [];
 
             return Response::successResponse([
-                'plan' => 'free',
-                'is_pro' => false,
+                ...PlanContext::summaryForTier('free'),
                 'contas' => ['allowed' => true, 'limit' => $freeConfig['max_contas'] ?? 2, 'used' => 0],
                 'cartoes' => ['allowed' => true, 'limit' => $freeConfig['max_cartoes'] ?? 1, 'used' => 0],
                 'categorias' => ['allowed' => true, 'limit' => $freeConfig['max_categorias_custom'] ?? 10, 'used' => 0],
@@ -58,6 +58,7 @@ class PlanController extends ApiController
                 ],
                 'features' => [],
                 'upgrade_url' => '/assinatura',
+                'upgrade_target' => 'pro',
             ]);
         }
     }
@@ -69,12 +70,11 @@ class PlanController extends ApiController
     public function features(): Response
     {
         $userId = $this->requireApiUserIdAndReleaseSessionOrFail();
-        $isPro = $this->limitService->isPro($userId);
+        $plan = $this->limitService->getPlanTier($userId);
         $features = $this->limitService->getFeatures($userId);
 
         return Response::successResponse([
-            'plan' => $isPro ? 'pro' : 'free',
-            'is_pro' => $isPro,
+            ...PlanContext::summaryForTier($plan),
             'features' => $features,
         ]);
     }

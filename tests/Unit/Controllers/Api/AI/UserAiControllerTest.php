@@ -8,6 +8,7 @@ use Application\Controllers\Api\AI\UserAiController;
 use Application\Core\Exceptions\AuthException;
 use Application\DTO\AI\AIResponseDTO;
 use Application\Enums\AI\IntentType;
+use Application\Lib\Auth;
 use Application\Models\Usuario;
 use Application\Services\AI\UserAiWorkflowService;
 use Mockery;
@@ -24,6 +25,7 @@ class UserAiControllerTest extends TestCase
     {
         parent::setUp();
         $this->resetSessionState();
+        Auth::resolveUserUsing(null);
         $_GET = [];
         $_POST = [];
         $_REQUEST = [];
@@ -35,6 +37,7 @@ class UserAiControllerTest extends TestCase
         $_GET = [];
         $_POST = [];
         $_REQUEST = [];
+        Auth::resolveUserUsing(null);
         unset($_SERVER['REQUEST_METHOD']);
         $this->resetSessionState();
         parent::tearDown();
@@ -149,6 +152,43 @@ class UserAiControllerTest extends TestCase
         $this->assertStringNotContainsString('Could not resolve host', $response->getContent());
     }
 
+    public function testGetQuotaReturnsRichPlanMetadata(): void
+    {
+        $this->startIsolatedSession('user-ai-controller-quota-test');
+
+        $user = new TestUserAiQuotaUser();
+        $user->id = 1905;
+        $user->nome = 'AI User';
+        $user->is_admin = 0;
+        $user->planCode = 'ultra';
+        $user->paidAccess = true;
+
+        $_SESSION['usuario_logged_in'] = true;
+        $_SESSION['user_id'] = 1905;
+        $_SESSION['usuario_nome'] = 'AI User';
+        $_SESSION['usuario_cache'] = [
+            'id' => 1905,
+            'data' => $user,
+        ];
+
+        Auth::resolveUserUsing(static fn(int $id): ?Usuario => $id === 1905 ? $user : null);
+
+        $controller = new UserAiController();
+        $response = $controller->getQuota();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertTrue($payload['success']);
+        $this->assertSame('ultra', $payload['data']['plan']);
+        $this->assertTrue($payload['data']['is_pro']);
+        $this->assertTrue($payload['data']['is_ultra']);
+        $this->assertSame('ULTRA', $payload['data']['plan_label']);
+        $this->assertNull($payload['data']['upgrade_target']);
+        $this->assertTrue($payload['data']['can_use']);
+        $this->assertTrue($payload['data']['chat']['unlimited']);
+        $this->assertTrue($payload['data']['categorization']['unlimited']);
+    }
+
     private function seedAuthenticatedSession(int $userId, string $name): void
     {
         $this->startIsolatedSession('user-ai-controller-test');
@@ -165,5 +205,21 @@ class UserAiControllerTest extends TestCase
             'id' => $userId,
             'data' => $user,
         ];
+    }
+}
+
+final class TestUserAiQuotaUser extends Usuario
+{
+    public ?string $planCode = null;
+    public bool $paidAccess = false;
+
+    public function planoAtual()
+    {
+        return $this->planCode === null ? null : (object) ['code' => $this->planCode];
+    }
+
+    public function isPro(): bool
+    {
+        return $this->paidAccess;
     }
 }

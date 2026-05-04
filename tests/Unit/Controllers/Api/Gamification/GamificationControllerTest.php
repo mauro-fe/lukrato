@@ -77,7 +77,11 @@ class GamificationControllerTest extends TestCase
                 'progress_percentage' => 0,
                 'current_streak' => 0,
                 'best_streak' => 0,
+                'plan_tier' => 'free',
                 'is_pro' => false,
+                'is_ultra' => false,
+                'plan_label' => 'FREE',
+                'upgrade_target' => 'pro',
                 'streak_protection_available' => false,
                 'streak_protection_used' => false,
             ],
@@ -102,6 +106,42 @@ class GamificationControllerTest extends TestCase
         ], json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testGetProgressReturnsProFlagWhenSessionUserHasPaidPlan(): void
+    {
+        $this->seedAuthenticatedUserSession(703, 'Gamification Pro', true);
+
+        $achievementService = Mockery::mock(AchievementService::class);
+        $achievementService
+            ->shouldReceive('checkAndUnlockAchievements')
+            ->once()
+            ->with(703, 'dashboard_load')
+            ->andReturn([]);
+
+        $streakService = Mockery::mock(StreakService::class);
+        $userProgressModel = Mockery::mock('alias:Application\Models\UserProgress');
+        $userProgressModel
+            ->shouldReceive('where')
+            ->once()
+            ->with('user_id', 703)
+            ->andReturnSelf();
+        $userProgressModel
+            ->shouldReceive('first')
+            ->once()
+            ->andReturn(null);
+
+        $controller = new GamificationController($achievementService, $streakService);
+
+        $response = $controller->getProgress();
+        $payload = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertTrue($payload['data']['is_pro']);
+        $this->assertFalse($payload['data']['is_ultra']);
+        $this->assertSame('pro', $payload['data']['plan_tier']);
+        $this->assertSame('PRO', $payload['data']['plan_label']);
+        $this->assertSame('ultra', $payload['data']['upgrade_target']);
+    }
+
     public function testGetProgressThrowsAuthExceptionWhenSessionIsMissing(): void
     {
         $controller = new GamificationController(
@@ -115,7 +155,7 @@ class GamificationControllerTest extends TestCase
         $controller->getProgress();
     }
 
-    private function seedAuthenticatedUserSession(int $userId, string $name): void
+    private function seedAuthenticatedUserSession(int $userId, string $name, bool $isPro = false): void
     {
         $this->startIsolatedSession('gamification-controller-test');
 
@@ -124,7 +164,7 @@ class GamificationControllerTest extends TestCase
         $user->nome = $name;
         $user->is_admin = 0;
         $user->senha = password_hash('Senha@123', PASSWORD_DEFAULT);
-        $user->pro = false;
+        $user->pro = $isPro;
 
         $_SESSION['usuario_logged_in'] = true;
         $_SESSION['user_id'] = $userId;
@@ -139,6 +179,12 @@ class GamificationControllerTest extends TestCase
 final class TestGamificationUser extends Usuario
 {
     public bool $pro = false;
+    public ?string $planCode = null;
+
+    public function planoAtual()
+    {
+        return $this->planCode === null ? null : (object) ['code' => $this->planCode];
+    }
 
     public function isPro(): bool
     {

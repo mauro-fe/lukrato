@@ -6,7 +6,6 @@ namespace Application\Services\AI;
 
 use Application\Models\AiLog;
 use Application\Models\Usuario;
-use Application\Services\Plan\FeatureGate;
 use Carbon\Carbon;
 
 /**
@@ -26,7 +25,7 @@ final class AIQuotaService
      */
     public static function canUseAI(Usuario $user): bool
     {
-        return FeatureGate::allows($user, 'ai_chat');
+        return $user->plan()->allows('ai_chat');
     }
 
     /**
@@ -40,7 +39,7 @@ final class AIQuotaService
             ? 'ai_categorization_per_month'
             : 'ai_messages_per_month';
 
-        $limit = FeatureGate::limit($user, $limitKey);
+        $limit = $user->plan()->limit($limitKey);
 
         // null = ilimitado
         if ($limit === null) {
@@ -61,10 +60,10 @@ final class AIQuotaService
      */
     public static function getUsage(Usuario $user): array
     {
-        $tier = FeatureGate::planTier($user);
+        $plan = $user->plan();
 
         return [
-            'plan'           => $tier,
+            ...$plan->summary(),
             'can_use'        => self::canUseAI($user),
             'chat'           => self::getBucketUsage($user, 'chat'),
             'categorization' => self::getBucketUsage($user, 'categorization'),
@@ -80,7 +79,7 @@ final class AIQuotaService
             ? 'ai_categorization_per_month'
             : 'ai_messages_per_month';
 
-        $limit = FeatureGate::limit($user, $limitKey);
+        $limit = $user->plan()->limit($limitKey);
         $used  = self::getMonthlyUsageByType($user->id, $bucket);
 
         return [

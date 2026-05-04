@@ -14,6 +14,7 @@ use Application\Models\Categoria;
 use Application\Enums\GamificationAction;
 use Application\Enums\AchievementType;
 use Application\Enums\LogCategory;
+use Application\Services\Plan\PlanContext;
 use Carbon\Carbon;
 use Exception;
 use Application\Services\Infrastructure\LogService;
@@ -79,7 +80,8 @@ class GamificationService
 
             // Obter plano do usuário
             $user = \Application\Models\Usuario::find($userId);
-            $isPro = $user ? $user->isPro() : false;
+            $planSummary = $user?->plan()->summary() ?? PlanContext::summaryForTier('free');
+            $isPro = (bool) ($planSummary['is_pro'] ?? false);
 
             // Calcular pontos com base no plano
             // Pro já recebe pontos maiores via GamificationAction::points($isPro)
@@ -109,8 +111,7 @@ class GamificationService
                 'action' => $action->value,
                 'points' => $points,
                 'description' => $action->description(),
-                'metadata' => array_merge($metadata, [
-                    'is_pro' => $isPro,
+                'metadata' => array_merge($metadata, $planSummary, [
                     'base_points' => $points,
                 ]),
                 'related_id' => $relatedId,
@@ -133,7 +134,7 @@ class GamificationService
                 'success' => true,
                 'points_gained' => $points,
                 'base_points' => $points,
-                'is_pro' => $isPro,
+                ...$planSummary,
                 'total_points' => $progress->total_points,
                 'level' => $levelData['current_level'],
                 'level_up' => $levelData['level_up'],

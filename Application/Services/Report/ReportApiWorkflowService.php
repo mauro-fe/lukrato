@@ -142,11 +142,12 @@ class ReportApiWorkflowService
         [$year, $month] = $this->resolveYearMonth($query);
         $allInsights = $this->insightsService->generate($userId, $year, $month);
         $teaser = array_slice($allInsights, 0, 3);
+        $plan = $user->plan();
 
         return [
             'insights' => InsightsService::toArrayList($teaser),
             'totalCount' => count($allInsights),
-            'isTeaser' => !$user->isPro(),
+            'isTeaser' => !$plan->allows('reports'),
         ];
     }
 
@@ -409,12 +410,14 @@ class ReportApiWorkflowService
 
     private function shouldIncludeDetails(ReportType $type, Usuario $user): bool
     {
+        $plan = $user->plan();
+
         return in_array($type, [
             ReportType::DESPESAS_POR_CATEGORIA,
             ReportType::RECEITAS_POR_CATEGORIA,
             ReportType::DESPESAS_ANUAIS_POR_CATEGORIA,
             ReportType::RECEITAS_ANUAIS_POR_CATEGORIA,
-        ], true) && $user->isPro();
+        ], true) && $plan->allows('relatorios_avancados');
     }
 
     private function buildExportFilename(ReportType $type, ReportParameters $params, string $extension): string

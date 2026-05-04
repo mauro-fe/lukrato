@@ -6,6 +6,7 @@ namespace Application\UseCases\Configuracoes;
 
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
+use Application\Support\Admin\PageCapabilityResolver;
 use Throwable;
 
 class PreferenciasUsuarioUseCase
@@ -579,7 +580,13 @@ class PreferenciasUsuarioUseCase
             ? $dashboardPreferences['ui_pages']
             : [];
 
-        return $this->normalizeUiPreferencesPayload($uiPages[$pageKey] ?? []);
+        $preferences = $this->normalizeUiPreferencesPayload($uiPages[$pageKey] ?? []);
+
+        return PageCapabilityResolver::filterPreferences(
+            $pageKey,
+            $preferences,
+            method_exists($user, 'plan') ? $user->plan() : null
+        );
     }
 
     /**
@@ -591,6 +598,12 @@ class PreferenciasUsuarioUseCase
         $uiPages = is_array($dashboardPreferences['ui_pages'] ?? null)
             ? $dashboardPreferences['ui_pages']
             : [];
+
+        $preferences = PageCapabilityResolver::filterPreferences(
+            $pageKey,
+            $preferences,
+            method_exists($user, 'plan') ? $user->plan() : null
+        );
 
         if ($preferences === []) {
             unset($uiPages[$pageKey]);

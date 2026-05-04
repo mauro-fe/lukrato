@@ -65,7 +65,16 @@ class AIQuotaServiceTest extends TestCase
 
         $usage = AIQuotaService::getUsage($this->createUserMock('pro'));
 
-        $this->assertSame(['plan', 'can_use', 'chat', 'categorization'], array_keys($usage));
+        $this->assertSame([
+            'plan',
+            'is_pro',
+            'is_ultra',
+            'plan_label',
+            'upgrade_target',
+            'can_use',
+            'chat',
+            'categorization',
+        ], array_keys($usage));
         $this->assertArrayHasKey('used', $usage['chat']);
         $this->assertArrayHasKey('limit', $usage['chat']);
         $this->assertArrayHasKey('remaining', $usage['chat']);
@@ -85,6 +94,10 @@ class AIQuotaServiceTest extends TestCase
         $usage = AIQuotaService::getUsage($this->createUserMock('pro'));
 
         $this->assertSame('pro', $usage['plan']);
+        $this->assertTrue($usage['is_pro']);
+        $this->assertFalse($usage['is_ultra']);
+        $this->assertSame('PRO', $usage['plan_label']);
+        $this->assertSame('ultra', $usage['upgrade_target']);
         $this->assertTrue($usage['can_use']);
         $this->assertTrue($usage['chat']['unlimited']);
         $this->assertNull($usage['chat']['limit']);
@@ -101,6 +114,10 @@ class AIQuotaServiceTest extends TestCase
         $usage = AIQuotaService::getUsage($this->createUserMock('free'));
 
         $this->assertSame('free', $usage['plan']);
+        $this->assertFalse($usage['is_pro']);
+        $this->assertFalse($usage['is_ultra']);
+        $this->assertSame('FREE', $usage['plan_label']);
+        $this->assertSame('pro', $usage['upgrade_target']);
         $this->assertTrue($usage['can_use']);
         $this->assertFalse($usage['chat']['unlimited']);
         $this->assertSame(5, $usage['chat']['limit']);
@@ -108,6 +125,21 @@ class AIQuotaServiceTest extends TestCase
         $this->assertIsInt($usage['chat']['remaining']);
         $this->assertFalse($usage['categorization']['unlimited']);
         $this->assertSame(5, $usage['categorization']['limit']);
+    }
+
+    public function testGetUsageForUltraPreservesTopTierMetadata(): void
+    {
+        $this->requireAiLogsSchema();
+
+        $usage = AIQuotaService::getUsage($this->createUserMock('ultra'));
+
+        $this->assertSame('ultra', $usage['plan']);
+        $this->assertTrue($usage['is_pro']);
+        $this->assertTrue($usage['is_ultra']);
+        $this->assertSame('ULTRA', $usage['plan_label']);
+        $this->assertNull($usage['upgrade_target']);
+        $this->assertTrue($usage['chat']['unlimited']);
+        $this->assertTrue($usage['categorization']['unlimited']);
     }
 
     public function testChatBucketCountsOnlySuccessfulLlmOrTokenUsage(): void

@@ -42,6 +42,7 @@ class GamificationController extends ApiController
     public function getProgress(): Response
     {
         $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $plan = $user->plan();
 
         try {
             $progress = UserProgress::where('user_id', $this->userId)->first();
@@ -57,7 +58,7 @@ class GamificationController extends ApiController
                     'progress_percentage' => 0,
                     'current_streak' => 0,
                     'best_streak' => 0,
-                    'is_pro' => $user->isPro(),
+                    ...$this->serializePlanMeta($plan),
                     'streak_protection_available' => false,
                     'streak_protection_used' => false,
                 ], 'Progresso do usuário');
@@ -73,7 +74,7 @@ class GamificationController extends ApiController
                 'current_streak' => $progress->current_streak,
                 'best_streak' => $progress->best_streak,
                 'last_activity_date' => $progress->last_activity_date?->format('Y-m-d'),
-                'is_pro' => $user->isPro(),
+                ...$this->serializePlanMeta($plan),
                 'streak_protection_available' => $streakInfo['protection_available'],
                 'streak_protection_used' => $streakInfo['protection_used_this_month'],
                 'level_thresholds' => GamificationService::LEVEL_THRESHOLDS,
@@ -92,9 +93,10 @@ class GamificationController extends ApiController
     public function getAchievements(): Response
     {
         $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $plan = $user->plan();
 
         try {
-            \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] User ID: ' . $this->userId . ', isPro: ' . ($user->isPro() ? 'true' : 'false'));
+            \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] User ID: ' . $this->userId . ', isPro: ' . ($plan->isPro() ? 'true' : 'false'));
 
             $month = $this->getQuery('month');
             \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] Month filter: ' . ($month ?? 'null'));
@@ -111,7 +113,7 @@ class GamificationController extends ApiController
                 'completion_percentage' => $totalCount > 0
                     ? round(($unlockedCount / $totalCount) * 100, 1)
                     : 0,
-                'is_pro' => $user->isPro(),
+                ...$this->serializePlanMeta($plan),
             ];
 
             \Application\Services\Infrastructure\LogService::safeErrorLog('[ACHIEVEMENTS API] Sending response - Total: ' . $totalCount . ', Unlocked: ' . $unlockedCount);
@@ -203,9 +205,10 @@ class GamificationController extends ApiController
     public function getLeaderboard(): Response
     {
         $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $plan = $user->plan();
 
         try {
-            if (!$user->isPro()) {
+            if (!$plan->isPro()) {
                 return Response::errorResponse('Recurso exclusivo para assinantes Pro', 403);
             }
 
@@ -259,6 +262,7 @@ class GamificationController extends ApiController
     public function getStats(): Response
     {
         $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $plan = $user->plan();
 
         try {
             $totalLancamentos = Lancamento::where('user_id', $this->userId)->count();
@@ -278,7 +282,7 @@ class GamificationController extends ApiController
                 'pontos_total' => $progress->total_points ?? 0,
                 'nivel_atual' => $progress->current_level ?? 1,
                 'streak_atual' => $progress->current_streak ?? 0,
-                'is_pro' => $user->isPro(),
+                ...$this->serializePlanMeta($plan),
             ], 'Estatísticas do usuário');
         } catch (Throwable $e) {
             \Application\Services\Infrastructure\LogService::safeErrorLog('[GAMIFICATION] Erro ao buscar estatisticas: ' . $e->getMessage());
@@ -325,6 +329,14 @@ class GamificationController extends ApiController
         }
     }
 
+    /**
+     * @return array{is_pro:bool,is_ultra:bool,plan_tier:string,plan_label:string,upgrade_target:?string}
+     */
+    private function serializePlanMeta(object $plan): array
+    {
+        return $plan->summary('plan_tier');
+    }
+
     private function formatActionName(string $action): string
     {
         $names = [
@@ -350,9 +362,10 @@ class GamificationController extends ApiController
     public function getMissions(): Response
     {
         $user = $this->requireApiUserAndReleaseSessionOrFail();
+        $plan = $user->plan();
 
         try {
-            $missions = $this->missionService->getDailyMissions($this->userId, $user->isPro());
+            $missions = $this->missionService->getDailyMissions($this->userId, $plan->isPro());
             $completedCount = count(array_filter($missions, static fn(array $m): bool => $m['completed']));
 
             return Response::successResponse([
