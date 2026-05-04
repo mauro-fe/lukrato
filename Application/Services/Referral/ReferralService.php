@@ -10,7 +10,6 @@ use Application\Models\Usuario;
 use Application\Models\Indicacao;
 use Application\Models\AssinaturaUsuario;
 use Application\Models\Plano;
-use Application\Services\Gamification\AchievementService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Referral\ReferralAntifraudService;
 use Illuminate\Support\Str;
@@ -28,16 +27,13 @@ class ReferralService
     const REFERRED_REWARD_DAYS = 7;
 
     private ?ReferralAntifraudService $antifraudService;
-    private ?AchievementService $achievementService;
     private readonly Request $request;
 
     public function __construct(
         ?ReferralAntifraudService $antifraudService = null,
-        ?AchievementService $achievementService = null,
         ?Request $request = null
     ) {
         $this->antifraudService = $antifraudService;
-        $this->achievementService = $achievementService;
         $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
     }
 
@@ -197,25 +193,6 @@ class ReferralService
     }
 
     /**
-     * Verifica e desbloqueia conquistas de indicação
-     * 
-     * @param int $userId
-     * @return void
-     */
-    private function checkReferralAchievements(int $userId): void
-    {
-        try {
-            $this->achievementService()->checkAndUnlockAchievements($userId, 'referral');
-        } catch (\Throwable $e) {
-            // Não deixa erro de conquistas impedir o fluxo principal
-            LogService::warning('[ReferralService] Erro ao verificar conquistas de indicação', [
-                'user_id' => $userId,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /**
      * Aplica dias de PRO a um usuário
      * 
      * @param Usuario $user
@@ -344,11 +321,6 @@ class ReferralService
     private function antifraudService(): ReferralAntifraudService
     {
         return $this->antifraudService ??= ApplicationContainer::resolveOrNew(null, ReferralAntifraudService::class);
-    }
-
-    private function achievementService(): AchievementService
-    {
-        return $this->achievementService ??= ApplicationContainer::resolveOrNew(null, AchievementService::class);
     }
 
     /**

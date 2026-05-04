@@ -115,9 +115,4 @@ class LoginHandler implements AuthHandlerInterface
         }
     }
 
-
-    private function findUser(string $email)
-    {
-        return \Application\Models\Usuario::whereRaw('LOWER(email) = ?', [$email])->first();
-    }
 }

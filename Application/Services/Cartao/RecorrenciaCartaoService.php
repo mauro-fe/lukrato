@@ -189,51 +189,6 @@ class RecorrenciaCartaoService
     }
 
     /**
-     * Calcular os meses que precisam ter itens gerados
-     * 
-     * Gera para o mês atual e o próximo (se a freq for mensal).
-     * Para frequências maiores, calcula baseado na última geração.
-     */
-    private function calcularMesesAlvo(FaturaCartaoItem $itemPai, \Carbon\Carbon $agora): array
-    {
-        $freq = Recorrencia::tryFromString($itemPai->recorrencia_freq);
-        if (!$freq) {
-            $freq = Recorrencia::MENSAL;
-        }
-
-        // Encontrar o último item gerado (filho ou pai)
-        $ultimoItem = FaturaCartaoItem::where(function ($q) use ($itemPai) {
-            $q->where('recorrencia_pai_id', $itemPai->id)
-                ->orWhere('id', $itemPai->id);
-        })
-            ->whereNull('cancelado_em')
-            ->orderByRaw('ano_referencia DESC, mes_referencia DESC')
-            ->first();
-
-        $ultimoMes = $ultimoItem->mes_referencia ?? $itemPai->mes_referencia;
-        $ultimoAno = $ultimoItem->ano_referencia ?? $itemPai->ano_referencia;
-
-        $meses = [];
-        $dataIteracao = \Carbon\Carbon::createFromDate($ultimoAno, $ultimoMes, 1);
-
-        // Avançar pela frequência e gerar até 2 meses à frente do mês atual
-        $limite = $agora->copy()->addMonth()->endOfMonth();
-
-        // Avançar uma vez para o próximo período (o último já existe)
-        $this->avancarPorFrequencia($dataIteracao, $freq);
-
-        while ($dataIteracao->lte($limite)) {
-            $meses[] = [
-                'mes' => (int)$dataIteracao->format('n'),
-                'ano' => (int)$dataIteracao->format('Y'),
-            ];
-            $this->avancarPorFrequencia($dataIteracao, $freq);
-        }
-
-        return $meses;
-    }
-
-    /**
      * Avançar data pela frequência de recorrência
      */
     private function avancarPorFrequencia(\Carbon\Carbon $data, Recorrencia $freq): void

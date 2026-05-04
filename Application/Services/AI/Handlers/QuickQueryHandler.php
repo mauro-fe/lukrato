@@ -633,7 +633,7 @@ class QuickQueryHandler implements AIHandlerInterface
 
     // ─── Admin queries ──────────────────────────────────────
 
-    private function getCountUsuarios(?int $userId, ?array $period = null): ?array
+    private function getCountUsuarios(?int $userId, ?array $period = null): array
     {
         // Admin queries requerem isAdmin() no request (verificado em handle())
         $total = (int) DB::table('usuarios')->whereNull('deleted_at')->count();
@@ -648,7 +648,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getMRR(?int $userId, ?array $period = null): ?array
+    private function getMRR(?int $userId, ?array $period = null): array
     {
         $mrr = (float) DB::table('assinaturas_usuarios')
             ->join('planos', 'assinaturas_usuarios.plano_id', '=', 'planos.id')
@@ -672,7 +672,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getCriticalErrors(?int $userId, ?array $period = null): ?array
+    private function getCriticalErrors(?int $userId, ?array $period = null): array
     {
         $count = (int) DB::table('error_logs')
             ->where('level', 'critical')
@@ -697,7 +697,7 @@ class QuickQueryHandler implements AIHandlerInterface
         ];
     }
 
-    private function getRegistrosSemana(?int $userId, ?array $period = null): ?array
+    private function getRegistrosSemana(?int $userId, ?array $period = null): array
     {
         $count = (int) DB::table('usuarios')
             ->whereNull('deleted_at')

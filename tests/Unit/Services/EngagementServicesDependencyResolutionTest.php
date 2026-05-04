@@ -65,7 +65,6 @@ class EngagementServicesDependencyResolutionTest extends TestCase
         $this->assertSame($feedbackRepository, $this->readProperty($feedbackService, 'repo'));
         $this->assertSame($request, $this->readProperty($referralService, 'request'));
         $this->assertSame($antifraudService, $this->invokePrivateMethod($referralService, 'antifraudService'));
-        $this->assertSame($achievementService, $this->invokePrivateMethod($referralService, 'achievementService'));
     }
 
     private function readProperty(object $object, string $property): mixed

@@ -500,11 +500,6 @@ class AchievementService
         return true;
     }
 
-    private function checkFirstMeta(int $userId): bool
-    {
-        return Meta::where('user_id', $userId)->exists();
-    }
-
     private function checkTotalLaunches(int $userId, int $total): bool
     {
         return Lancamento::where('user_id', $userId)->count() >= $total;
