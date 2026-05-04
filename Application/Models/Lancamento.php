@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Application\Casts\MoneyDecimalCast;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -86,11 +87,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read Conta|null $conta
  * @property-read Conta|null $contaDestino
  *
- * @method static \Illuminate\Database\Eloquent\Builder where(string $column, $operator = null, $value = null, string $boolean = 'and')
- * @method static \Illuminate\Database\Eloquent\Model|static create(array $attributes = [])
- * @method static \Illuminate\Database\Eloquent\Builder forUser(int $userId)
+ * @method static Builder<Lancamento> where(string $column, $operator = null, $value = null, string $boolean = 'and')
+ * @method static static create(array<string, mixed> $attributes = [])
+ * @method static Builder<Lancamento> forUser(int $userId)
  *
- * @mixin \Illuminate\Database\Eloquent\Builder
+ * @mixin Builder<Lancamento>
  */
 class Lancamento extends Model
 {
@@ -204,6 +205,9 @@ class Lancamento extends Model
      * Relacionamento com Parcelamento (opcional - apenas para agrupamento)
      * Um lançamento PODE pertencer a um parcelamento (cabeçalho)
      */
+    /**
+     * @return BelongsTo<Parcelamento, $this>
+     */
     public function parcelamento(): BelongsTo
     {
         return $this->belongsTo(Parcelamento::class, 'parcelamento_id');
@@ -213,6 +217,9 @@ class Lancamento extends Model
      * Relacionamento com Cartão de Crédito (opcional)
      * Um lançamento PODE estar vinculado a um cartão de crédito
      */
+    /**
+     * @return BelongsTo<CartaoCredito, $this>
+     */
     public function cartaoCredito(): BelongsTo
     {
         return $this->belongsTo(CartaoCredito::class, 'cartao_credito_id');
@@ -221,6 +228,9 @@ class Lancamento extends Model
     /**
      * Lançamento "pai" da recorrência (primeiro do grupo)
      */
+    /**
+     * @return BelongsTo<Lancamento, $this>
+     */
     public function recorrenciaPai(): BelongsTo
     {
         return $this->belongsTo(self::class, 'recorrencia_pai_id');
@@ -228,6 +238,9 @@ class Lancamento extends Model
 
     /**
      * Lançamentos filhos (gerados por recorrência)
+     */
+    /**
+     * @return HasMany<Lancamento, $this>
      */
     public function recorrenciaFilhos(): HasMany
     {
@@ -261,6 +274,9 @@ class Lancamento extends Model
     /**
      * Relacionamento com Usuário (obrigatório)
      */
+    /**
+     * @return BelongsTo<Usuario, $this>
+     */
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
@@ -268,6 +284,9 @@ class Lancamento extends Model
 
     /**
      * Relacionamento com Categoria (opcional)
+     */
+    /**
+     * @return BelongsTo<Categoria, $this>
      */
     public function categoria(): BelongsTo
     {
@@ -277,11 +296,17 @@ class Lancamento extends Model
     /**
      * Relacionamento com Subcategoria (opcional)
      */
+    /**
+     * @return BelongsTo<Categoria, $this>
+     */
     public function subcategoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'subcategoria_id');
     }
 
+    /**
+     * @return BelongsTo<Meta, $this>
+     */
     public function meta(): BelongsTo
     {
         return $this->belongsTo(Meta::class, 'meta_id');
@@ -289,6 +314,9 @@ class Lancamento extends Model
 
     /**
      * Relacionamento com Conta (opcional)
+     */
+    /**
+     * @return BelongsTo<Conta, $this>
      */
     public function conta(): BelongsTo
     {
@@ -305,6 +333,9 @@ class Lancamento extends Model
 
 
 
+    /**
+     * @return BelongsTo<Conta, $this>
+     */
     public function contaDestino(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id_destino');
@@ -314,33 +345,57 @@ class Lancamento extends Model
 
 
 
-    public function scopeForUser($q, int $userId)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeForUser(Builder $q, int $userId): Builder
     {
         return $q->where('user_id', $userId);
     }
 
-    public function scopeMonth($q, string $yyyy_mm)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeMonth(Builder $q, string $yyyy_mm): Builder
     {
         [$y, $m] = array_map('intval', explode('-', $yyyy_mm));
         return $q->whereYear('data', $y)->whereMonth('data', $m);
     }
 
-    public function scopeBetweenDates($q, string $startDate, string $endDate)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeBetweenDates(Builder $q, string $startDate, string $endDate): Builder
     {
         return $q->whereBetween('data', [$startDate, $endDate]);
     }
 
-    public function scopeNotTransfer($q)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeNotTransfer(Builder $q): Builder
     {
         return $q->where('eh_transferencia', 0);
     }
 
-    public function scopeOnlyTransfer($q)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeOnlyTransfer(Builder $q): Builder
     {
         return $q->where('eh_transferencia', 1);
     }
 
-    public function scopeByAccount($q, int $contaId)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeByAccount(Builder $q, int $contaId): Builder
     {
         return $q->where(function ($w) use ($contaId) {
             $w->where('conta_id', $contaId)
@@ -348,19 +403,27 @@ class Lancamento extends Model
         });
     }
 
-    public function scopeOnlyReceitas($q)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeOnlyReceitas(Builder $q): Builder
     {
         return $q->where('eh_transferencia', 0)
             ->where('tipo', self::TIPO_RECEITA);
     }
 
-    public function scopeOnlyDespesas($q)
+    /**
+     * @param Builder<Lancamento> $q
+     * @return Builder<Lancamento>
+     */
+    public function scopeOnlyDespesas(Builder $q): Builder
     {
         return $q->where('eh_transferencia', 0)
             ->where('tipo', self::TIPO_DESPESA);
     }
 
-    public function setValorAttribute($v): void
+    public function setValorAttribute(mixed $v): void
     {
         // Armazenar como string para evitar deprecation do BigNumber::of() com float
         $this->attributes['valor'] = MoneyDecimalCast::normalize($v) ?? '0.00';
@@ -453,12 +516,12 @@ class Lancamento extends Model
      * Scope para filtrar por mês de competência
      * Usa data_competencia se disponível, senão usa data
      * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder<Lancamento> $query
      * @param string $start Data inicial (Y-m-d)
      * @param string $end Data final (Y-m-d)
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder<Lancamento>
      */
-    public function scopeCompetenciaEntre($query, string $start, string $end)
+    public function scopeCompetenciaEntre(Builder $query, string $start, string $end): Builder
     {
         return $query->where(function ($q) use ($start, $end) {
             // Se tem data_competencia, usa ela
@@ -475,12 +538,12 @@ class Lancamento extends Model
      * Scope para filtrar por mês de caixa (fluxo de caixa)
      * Sempre usa campo data
      * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder<Lancamento> $query
      * @param string $start Data inicial (Y-m-d)
      * @param string $end Data final (Y-m-d)
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder<Lancamento>
      */
-    public function scopeCaixaEntre($query, string $start, string $end)
+    public function scopeCaixaEntre(Builder $query, string $start, string $end): Builder
     {
         return $query->whereBetween('data', [$start, $end]);
     }
@@ -488,7 +551,11 @@ class Lancamento extends Model
     /**
      * Scope para filtrar apenas lançamentos que afetam competência
      */
-    public function scopeAfetaCompetencia($query)
+    /**
+     * @param Builder<Lancamento> $query
+     * @return Builder<Lancamento>
+     */
+    public function scopeAfetaCompetencia(Builder $query): Builder
     {
         return $query->where(function ($q) {
             $q->where('afeta_competencia', true)
@@ -499,7 +566,11 @@ class Lancamento extends Model
     /**
      * Scope para filtrar apenas lançamentos que afetam caixa
      */
-    public function scopeAfetaCaixa($query)
+    /**
+     * @param Builder<Lancamento> $query
+     * @return Builder<Lancamento>
+     */
+    public function scopeAfetaCaixa(Builder $query): Builder
     {
         return $query->where('afeta_caixa', 1);
     }
@@ -507,7 +578,11 @@ class Lancamento extends Model
     /**
      * Scope para filtrar por origem
      */
-    public function scopeOrigem($query, string $tipo)
+    /**
+     * @param Builder<Lancamento> $query
+     * @return Builder<Lancamento>
+     */
+    public function scopeOrigem(Builder $query, string $tipo): Builder
     {
         return $query->where('origem_tipo', $tipo);
     }
