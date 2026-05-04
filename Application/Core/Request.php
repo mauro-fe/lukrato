@@ -8,20 +8,40 @@ use Application\Config\InfrastructureRuntimeConfig;
 use Application\Container\ApplicationContainer;
 use Application\Core\Validation\RequestValidator;
 
+/**
+ * @phpstan-type InputBag array<array-key, mixed>
+ * @phpstan-type HeaderBag array<string, string>
+ * @phpstan-type FileBag array<string, array<string, mixed>>
+ * @phpstan-type ParsedBody array{0: InputBag, 1: ?InputBag, 2: ?string}
+ */
 class Request
 {
+    /** @var InputBag */
     private readonly array $server;
+    /** @var InputBag */
     private readonly array $query;
+    /** @var InputBag */
     private readonly array $body;
+    /** @var InputBag */
     private readonly array $data;
+    /** @var FileBag */
     private readonly array $files;
     private readonly string $method;
+    /** @var HeaderBag */
     private readonly array $headers;
+    /** @var InputBag|null */
     private readonly ?array $json;
     private readonly ?string $jsonError;
     private readonly string $rawInput;
     private readonly InfrastructureRuntimeConfig $runtimeConfig;
 
+    /**
+     * @param InputBag|null $server
+     * @param InputBag|null $query
+     * @param InputBag|null $post
+     * @param FileBag|null $files
+     * @param array<array-key, mixed>|null $headers
+     */
     public function __construct(
         ?array $server = null,
         ?array $query = null,
@@ -47,6 +67,9 @@ class Request
         $this->data = array_merge($this->query, $this->body);
     }
 
+    /**
+     * @return InputBag
+     */
     private static function globalArray(string $key): array
     {
         $value = $GLOBALS[$key] ?? [];
@@ -55,7 +78,8 @@ class Request
     }
 
     /**
-     * @return array{0: array, 1: ?array, 2: ?string}
+     * @param InputBag $post
+     * @return ParsedBody
      */
     private function parseBody(array $post): array
     {
@@ -80,7 +104,7 @@ class Request
     }
 
     /**
-     * @return array{0: array, 1: ?array, 2: ?string}
+     * @return ParsedBody
      */
     private function parseJsonBody(): array
     {
@@ -101,6 +125,10 @@ class Request
         return [[], null, null];
     }
 
+    /**
+     * @param InputBag $post
+     * @return InputBag
+     */
     private function parseFormBody(array $post): array
     {
         if ($this->isPost()) {
@@ -112,6 +140,10 @@ class Request
         return $parsed;
     }
 
+    /**
+     * @param InputBag $server
+     * @return HeaderBag
+     */
     private function detectHeaders(array $server): array
     {
         $headers = [];
@@ -140,13 +172,17 @@ class Request
         if (function_exists('getallheaders')) {
             $headers = getallheaders();
             if (is_array($headers) && $headers !== []) {
-                return $headers;
+                return $this->normalizeHeaders($headers);
             }
         }
 
         return [];
     }
 
+    /**
+     * @param array<array-key, mixed> $headers
+     * @return HeaderBag
+     */
     private function normalizeHeaders(array $headers): array
     {
         $normalized = [];
@@ -216,6 +252,9 @@ class Request
         return is_string($uri) && $uri !== '' ? $uri : $default;
     }
 
+    /**
+     * @return HeaderBag
+     */
     public function headers(): array
     {
         return $this->headers;
@@ -263,16 +302,27 @@ class Request
         return $this->valueFromBag($this->data, $key, $default);
     }
 
+    /**
+     * @return InputBag
+     */
     public function all(): array
     {
         return $this->data;
     }
 
+    /**
+     * @param array<array-key, array-key> $keys
+     * @return InputBag
+     */
     public function only(array $keys): array
     {
         return array_intersect_key($this->data, array_flip($keys));
     }
 
+    /**
+     * @param array<array-key, array-key> $keys
+     * @return InputBag
+     */
     public function except(array $keys): array
     {
         return array_diff_key($this->data, array_flip($keys));
@@ -288,6 +338,9 @@ class Request
         return $this->has($key) && $this->data[$key] !== '' && $this->data[$key] !== null;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function file(string $key): ?array
     {
         return $this->files[$key] ?? null;
@@ -298,6 +351,9 @@ class Request
         return isset($this->files[$key]) && $this->files[$key]['error'] === UPLOAD_ERR_OK;
     }
 
+    /**
+     * @return InputBag|null
+     */
     public function json(): ?array
     {
         return $this->json;
@@ -333,6 +389,10 @@ class Request
         return $this->boolFromBag($this->query, $key, $default);
     }
 
+    /**
+     * @param InputBag $default
+     * @return InputBag
+     */
     public function queryArray(string $key, array $default = []): array
     {
         return $this->arrayFromBag($this->query, $key, $default);
@@ -353,6 +413,10 @@ class Request
         return $this->boolFromBag($this->body, $key, $default);
     }
 
+    /**
+     * @param InputBag $default
+     * @return InputBag
+     */
     public function postArray(string $key, array $default = []): array
     {
         return $this->arrayFromBag($this->body, $key, $default);
@@ -373,6 +437,10 @@ class Request
         return $this->boolFromBag($this->data, $key, $default);
     }
 
+    /**
+     * @param InputBag $default
+     * @return InputBag
+     */
     public function inputArray(string $key, array $default = []): array
     {
         return $this->arrayFromBag($this->data, $key, $default);
@@ -393,11 +461,20 @@ class Request
         return $this->inputBool($key, $default);
     }
 
+    /**
+     * @param InputBag $default
+     * @return InputBag
+     */
     public function arrayValue(string $key, array $default = []): array
     {
         return $this->inputArray($key, $default);
     }
 
+    /**
+     * @param array<string, mixed> $rules
+     * @param array<string, mixed> $filters
+     * @return array<string, mixed>
+     */
     public function validate(array $rules, array $filters = []): array
     {
         return ApplicationContainer::resolveOrNew(null, RequestValidator::class)
@@ -456,6 +533,9 @@ class Request
         return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
+    /**
+     * @param InputBag $bag
+     */
     private function valueFromBag(array $bag, ?string $key, mixed $default = null): mixed
     {
         if ($key === null) {
@@ -465,21 +545,35 @@ class Request
         return $bag[$key] ?? $default;
     }
 
+    /**
+     * @param InputBag $bag
+     */
     private function stringFromBag(array $bag, string $key, string $default): string
     {
         return $this->normalizeString($this->valueFromBag($bag, $key), $default);
     }
 
+    /**
+     * @param InputBag $bag
+     */
     private function intFromBag(array $bag, string $key, int $default): int
     {
         return $this->normalizeInt($this->valueFromBag($bag, $key), $default);
     }
 
+    /**
+     * @param InputBag $bag
+     */
     private function boolFromBag(array $bag, string $key, bool $default): bool
     {
         return $this->normalizeBool($this->valueFromBag($bag, $key), $default);
     }
 
+    /**
+     * @param InputBag $bag
+     * @param InputBag $default
+     * @return InputBag
+     */
     private function arrayFromBag(array $bag, string $key, array $default): array
     {
         $value = $this->valueFromBag($bag, $key);
