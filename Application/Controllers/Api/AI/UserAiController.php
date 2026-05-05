@@ -274,6 +274,9 @@ class UserAiController extends ApiController
         return $this->request->file('attachment');
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function respondFromAi(AIResponseDTO $response, array $payload, int $failureStatus): Response
     {
         if ($response->success) {
