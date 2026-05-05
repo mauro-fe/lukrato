@@ -9,6 +9,9 @@ namespace Application\Services\AI\Media;
  */
 readonly class MediaAsset
 {
+    /**
+     * @param array<string, mixed> $metadata
+     */
     public function __construct(
         public string $sourceType,
         public string $content,

@@ -9,6 +9,9 @@ namespace Application\Services\AI\Media;
  */
 readonly class MediaProcessingResult
 {
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(
         public bool $success,
         public string $mediaType,
