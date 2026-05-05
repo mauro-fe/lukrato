@@ -468,6 +468,7 @@ class CartoesController extends ApiController
 
     /**
      * @param callable():mixed $resolver
+     * @param array<string, mixed> $context
      * @param callable(\Exception):void|null $onException
      */
     private function successOrInternalError(
@@ -486,6 +487,7 @@ class CartoesController extends ApiController
 
     /**
      * @param callable():Response $operation
+     * @param array<string, mixed> $context
      * @param callable(\Exception):void|null $onException
      */
     private function executeOrInternalError(
@@ -502,6 +504,9 @@ class CartoesController extends ApiController
         );
     }
 
+    /**
+     * @param array<string, mixed> $resultado
+     */
     private function handleCardActionResult(array $resultado): Response
     {
         return $this->respondWorkflowResult($resultado, 404, 'Cartao nao encontrado', null, null, false);
