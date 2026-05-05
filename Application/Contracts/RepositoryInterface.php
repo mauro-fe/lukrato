@@ -33,14 +33,14 @@ interface RepositoryInterface
     /**
      * Retorna todos os registros.
      * 
-     * @return Collection
+     * @return Collection<int, Model>
      */
     public function all(): Collection;
 
     /**
      * Cria um novo registro.
      * 
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return Model
      */
     public function create(array $data): Model;
@@ -49,7 +49,7 @@ interface RepositoryInterface
      * Atualiza um registro existente.
      * 
      * @param int $id
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return bool
      */
     public function update(int $id, array $data): bool;

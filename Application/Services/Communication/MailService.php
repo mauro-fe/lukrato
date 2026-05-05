@@ -20,10 +20,16 @@ use Psr\Log\LoggerInterface;
  */
 class MailService implements MailServiceInterface
 {
+  /**
+   * @var array<string, mixed>
+   */
   private array $config;
   private LoggerInterface $logger;
   private CommunicationRuntimeConfig $runtimeConfig;
 
+  /**
+   * @param array<string, mixed> $config
+   */
   public function __construct(
     array $config = [],
     ?LoggerInterface $logger = null,
@@ -69,6 +75,10 @@ class MailService implements MailServiceInterface
       && !empty($this->config['from_email']);
   }
 
+  /**
+   * @param array{email?: string, name?: string} $replyTo
+   * @param array<int, array{path?: string, name?: string}> $attachments
+   */
   public function send(
     string $toEmail,
     string $toName,

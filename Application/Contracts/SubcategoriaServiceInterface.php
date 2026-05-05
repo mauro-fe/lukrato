@@ -18,7 +18,7 @@ interface SubcategoriaServiceInterface
      *
      * @param int $categoriaId
      * @param int $userId
-     * @return array
+     * @return array<string, mixed>
      */
     public function listByCategoria(int $categoriaId, int $userId): array;
 
@@ -26,7 +26,7 @@ interface SubcategoriaServiceInterface
      * Lista todas as categorias com suas subcategorias agrupadas.
      *
      * @param int $userId
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     public function listAllGrouped(int $userId): array;
 

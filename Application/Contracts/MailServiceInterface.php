@@ -20,6 +20,10 @@ interface MailServiceInterface
     /**
      * Envia um email genérico.
      */
+    /**
+     * @param array{email?: string, name?: string} $replyTo
+     * @param array<int, array{path?: string, name?: string}> $attachments
+     */
     public function send(
         string $toEmail,
         string $toName,

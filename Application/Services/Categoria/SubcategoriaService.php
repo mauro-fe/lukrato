@@ -36,6 +36,8 @@ class SubcategoriaService implements SubcategoriaServiceInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return array<string, mixed>
      */
     public function listByCategoria(int $categoriaId, int $userId): array
     {
@@ -57,6 +59,8 @@ class SubcategoriaService implements SubcategoriaServiceInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function listAllGrouped(int $userId): array
     {

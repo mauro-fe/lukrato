@@ -19,6 +19,8 @@ abstract class BaseRepository implements RepositoryInterface
 {
     /**
      * Relacionamentos para eager loading na próxima query.
+     *
+     * @var array<int|string, mixed>
      */
     protected array $eagerLoad = [];
 
@@ -32,7 +34,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Define relacionamentos para eager loading na próxima query.
      *
-     * @param array $relations
+     * @param array<int|string, mixed> $relations
      * @return static
      */
     public function with(array $relations): static
@@ -104,6 +106,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * {@inheritdoc}
      *
+     * @param array<string, mixed> $data
      * @return TModel
      */
     public function create(array $data): Model
@@ -113,6 +116,8 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @param array<string, mixed> $data
      */
     public function update(int $id, array $data): bool
     {
@@ -171,7 +176,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Busca registros com condições específicas.
      * 
-     * @param array $conditions
+     * @param array<string, mixed> $conditions
      * @return Collection<int, Model>
      */
     public function findWhere(array $conditions): Collection
@@ -192,7 +197,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Busca um único registro com condições.
      * 
-     * @param array $conditions
+     * @param array<string, mixed> $conditions
      * @return TModel|null
      */
     public function findOneWhere(array $conditions): ?Model

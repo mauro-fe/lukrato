@@ -58,6 +58,9 @@ class LoginHandler implements AuthHandlerInterface
         $this->rateLimitCheck = ApplicationContainer::resolveOrNew($rateLimitCheck, RateLimitSecurityCheck::class);
     }
 
+    /**
+     * @return array{redirect: string}
+     */
     public function handle(CredentialsDTO $credentials, bool $remember = false): array
     {
         try {
