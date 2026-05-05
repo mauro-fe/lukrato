@@ -284,6 +284,9 @@ class CategoriaController extends ApiController
         }
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function resolveId(mixed $routeParam, array $payload): ?int
     {
         $id = is_numeric($routeParam) ? (int) $routeParam : (int) ($payload['id'] ?? 0);

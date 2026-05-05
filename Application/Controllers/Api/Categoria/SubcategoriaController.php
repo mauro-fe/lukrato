@@ -154,6 +154,8 @@ class SubcategoriaController extends ApiController
 
     /**
      * Resolve o ID a partir do parâmetro da rota ou do payload.
+     *
+     * @param array<string, mixed> $payload
      */
     private function resolveId(mixed $routeParam, array $payload = []): ?int
     {
