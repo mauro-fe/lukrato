@@ -105,6 +105,9 @@ trait HandlesDashboardRead
         return $months;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function buildMetricsPayload(int $userId, string $month, string $viewType = 'caixa'): array
     {
         $period = $this->normalizeMonth($month);
@@ -146,6 +149,9 @@ trait HandlesDashboardRead
         return $this->lancamentoRepo->sumSaldoAcumuladoAte($userId, $untilDate);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     protected function getDespesasPorCategoria(int $userId, string $month, string $viewType): array
     {
         $normalized = $this->normalizeMonth($month);
@@ -171,6 +177,9 @@ trait HandlesDashboardRead
         })->sortByDesc('valor')->values()->toArray();
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     protected function logDashboardError(string $message, Throwable $e, int $userId, array $context = []): void
     {
         LogService::error($message, array_merge($context, [
