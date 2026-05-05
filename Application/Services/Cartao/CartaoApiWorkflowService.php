@@ -12,6 +12,9 @@ use Application\Services\Gamification\AchievementService;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Plan\PlanLimitService;
 
+/**
+ * @phpstan-type WorkflowPayload array<array-key, mixed>
+ */
 class CartaoApiWorkflowService
 {
     private readonly CartaoCreditoService $cartaoService;
@@ -34,6 +37,9 @@ class CartaoApiWorkflowService
         $this->recorrenciaService = ApplicationContainer::resolveOrNew($recorrenciaService, RecorrenciaCartaoService::class);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function listCards(int $userId, ?int $contaId, bool $onlyActive, bool $archived): array
     {
         if ($archived) {
@@ -126,21 +132,33 @@ class CartaoApiWorkflowService
         ];
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function deactivateCard(int $cardId, int $userId): array
     {
         return $this->cartaoService->desativarCartao($cardId, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function reactivateCard(int $cardId, int $userId): array
     {
         return $this->cartaoService->reativarCartao($cardId, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function archiveCard(int $cardId, int $userId): array
     {
         return $this->cartaoService->arquivarCartao($cardId, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function restoreCard(int $cardId, int $userId): array
     {
         return $this->cartaoService->restaurarCartao($cardId, $userId);
@@ -157,16 +175,25 @@ class CartaoApiWorkflowService
         return $this->cartaoService->excluirCartaoPermanente($cardId, $userId, $force);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function refreshLimit(int $cardId, int $userId): array
     {
         return $this->cartaoService->atualizarLimiteDisponivel($cardId, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function getSummary(int $userId): array
     {
         return $this->cartaoService->obterResumo($userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function getInvoice(int $cardId, int $month, int $year, int $userId): array
     {
         return $this->faturaService->obterFaturaMes($cardId, $month, $year, $userId);
@@ -174,6 +201,7 @@ class CartaoApiWorkflowService
 
     /**
      * @param array<string, mixed> $payload
+     * @return WorkflowPayload
      */
     public function payInvoice(int $cardId, int $userId, array $payload): array
     {
@@ -198,6 +226,7 @@ class CartaoApiWorkflowService
 
     /**
      * @param array<string, mixed> $payload
+     * @return WorkflowPayload
      */
     public function payInstallments(int $cardId, int $userId, array $payload): array
     {
@@ -208,16 +237,25 @@ class CartaoApiWorkflowService
         return $this->faturaService->pagarParcelas($cardId, $installmentIds, $month, $year, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function getPendingInvoices(int $cardId, int $userId): array
     {
         return $this->faturaService->obterMesesComFaturasPendentes($cardId, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function getInvoiceHistory(int $cardId, int $userId, int $limit): array
     {
         return $this->faturaService->obterHistoricoFaturasPagas($cardId, $userId, $limit);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function getInstallmentsSummary(int $cardId, int $month, int $year, int $userId): array
     {
         try {
@@ -241,6 +279,9 @@ class CartaoApiWorkflowService
         }
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function getAlerts(int $userId): array
     {
         $dueDates = [];
@@ -282,31 +323,49 @@ class CartaoApiWorkflowService
         ];
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function validateIntegrity(int $userId, bool $fix): array
     {
         return $this->cartaoService->validarIntegridadeLimites($userId, $fix);
     }
 
+    /**
+     * @return WorkflowPayload|null
+     */
     public function getInvoiceStatus(int $cardId, int $month, int $year, int $userId): ?array
     {
         return $this->faturaService->faturaEstaPaga($cardId, $month, $year, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function undoInvoicePayment(int $cardId, int $month, int $year, int $userId): array
     {
         return $this->faturaService->desfazerPagamentoFatura($cardId, $month, $year, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function undoInstallmentPayment(int $installmentId, int $userId): array
     {
         return $this->faturaService->desfazerPagamentoParcela($installmentId, $userId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function listRecurring(int $userId, ?int $cardId = null): array
     {
         return $this->getRecorrenciaService()->listarRecorrenciasAtivas($userId, $cardId);
     }
 
+    /**
+     * @return WorkflowPayload
+     */
     public function cancelRecurring(int $itemId, int $userId): array
     {
         return $this->getRecorrenciaService()->cancelarRecorrencia($itemId, $userId);
