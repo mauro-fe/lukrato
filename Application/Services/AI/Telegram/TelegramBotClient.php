@@ -12,6 +12,9 @@ class TelegramBotClient extends ConfiguredHttpClient
 {
     private const BASE_URL = 'https://api.telegram.org';
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(array $config = [])
     {
         $token = ApplicationContainer::resolveOrNew(null, TelegramRuntimeConfig::class)->botToken();

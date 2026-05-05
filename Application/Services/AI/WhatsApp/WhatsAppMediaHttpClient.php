@@ -13,6 +13,9 @@ class WhatsAppMediaHttpClient extends ConfiguredHttpClient
     private const API_VERSION = 'v21.0';
     private const BASE_URL = 'https://graph.facebook.com';
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(array $config = [])
     {
         $token = ApplicationContainer::resolveOrNew(null, WhatsAppRuntimeConfig::class)->token();

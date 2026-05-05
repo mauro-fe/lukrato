@@ -160,6 +160,8 @@ class WhatsAppService
 
     /**
      * Envia mensagem para um número.
+     *
+     * @param array<string, mixed> $messagePayload
      */
     private function sendMessage(string $toPhone, array $messagePayload): bool
     {
