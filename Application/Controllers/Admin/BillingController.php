@@ -11,6 +11,7 @@ use Application\Models\Usuario;
 use Application\Repositories\DocumentoRepository;
 use Application\Services\Billing\SubscriptionExpirationService;
 use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Database\Eloquent\Collection;
 
 class BillingController extends WebController
 {
@@ -56,7 +57,10 @@ class BillingController extends WebController
         );
     }
 
-    private function loadActivePlans()
+    /**
+     * @return Collection<int, Plano>
+     */
+    private function loadActivePlans(): Collection
     {
         return Plano::query()
             ->where('ativo', true)
