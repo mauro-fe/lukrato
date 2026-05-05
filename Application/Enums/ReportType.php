@@ -56,6 +56,9 @@ enum ReportType: string
         }
     }
 
+    /**
+     * @return list<string>
+     */
     public static function listValues(): array
     {
         return array_column(self::cases(), 'value');

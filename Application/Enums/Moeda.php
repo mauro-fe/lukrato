@@ -12,6 +12,8 @@ enum Moeda: string
 
     /**
      * Retorna todos os valores possíveis do enum.
+     *
+     * @return list<string>
      */
     public static function listValues(): array
     {
