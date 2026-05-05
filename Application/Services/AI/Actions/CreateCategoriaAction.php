@@ -18,6 +18,9 @@ class CreateCategoriaAction implements ActionInterface
         $this->repo = ApplicationContainer::resolveOrNew($repo, CategoriaRepository::class);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function execute(int $userId, array $payload): ActionResult
     {
         $nome = trim($payload['nome'] ?? '');

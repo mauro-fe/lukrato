@@ -213,6 +213,8 @@ class ChatHandler implements AIHandlerInterface
     /**
      * Detecta ação implícita na mensagem do usuário.
      * Retorna hint para o frontend exibir um botão de ação rápida.
+     *
+     * @return array{action_hint:string,suggestion:string}|null
      */
     private function detectActionHint(string $message): ?array
     {

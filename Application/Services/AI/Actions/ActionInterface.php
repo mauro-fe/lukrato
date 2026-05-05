@@ -14,7 +14,7 @@ interface ActionInterface
      * Executa a criação da entidade.
      *
      * @param int   $userId  ID do usuário autenticado.
-     * @param array $payload Dados extraídos pela IA.
+     * @param array<string, mixed> $payload Dados extraídos pela IA.
      * @return ActionResult  Resultado da operação.
      */
     public function execute(int $userId, array $payload): ActionResult;

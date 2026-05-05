@@ -29,6 +29,9 @@ class PayFaturaAction implements ActionInterface
         );
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function execute(int $userId, array $payload): ActionResult
     {
         $result = $this->service->pagarFatura(

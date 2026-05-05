@@ -16,6 +16,9 @@ class CreateMetaAction implements ActionInterface
         $this->service = ApplicationContainer::resolveOrNew($service, MetaService::class);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function execute(int $userId, array $payload): ActionResult
     {
         $meta = $this->service->criar($userId, $payload);

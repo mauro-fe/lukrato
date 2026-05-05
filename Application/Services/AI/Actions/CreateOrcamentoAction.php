@@ -16,6 +16,9 @@ class CreateOrcamentoAction implements ActionInterface
         $this->service = ApplicationContainer::resolveOrNew($service, OrcamentoService::class);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function execute(int $userId, array $payload): ActionResult
     {
         $categoriaId = (int) ($payload['categoria_id'] ?? 0);

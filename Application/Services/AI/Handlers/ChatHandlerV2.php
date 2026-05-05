@@ -273,6 +273,9 @@ class ChatHandlerV2 implements AIHandlerInterface
         };
     }
 
+    /**
+     * @return array{action_hint:string,suggestion:string}|null
+     */
     private function detectActionHint(string $message): ?array
     {
         $normalized = mb_strtolower(trim($message));

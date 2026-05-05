@@ -16,6 +16,9 @@ class CreateLancamentoAction implements ActionInterface
         $this->service = ApplicationContainer::resolveOrNew($service, LancamentoCreationService::class);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function execute(int $userId, array $payload): ActionResult
     {
         $result = $this->service->createFromPayload($userId, $payload);

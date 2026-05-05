@@ -186,6 +186,9 @@ class PayFaturaHandler implements AIHandlerInterface
         return CardNameExtractor::extract($message);
     }
 
+    /**
+     * @return array{int, int}|null
+     */
     private function extractPeriod(string $message): ?array
     {
         return PeriodExtractor::extract($message);

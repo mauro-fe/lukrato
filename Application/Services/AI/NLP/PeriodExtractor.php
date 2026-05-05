@@ -40,6 +40,8 @@ class PeriodExtractor
 
     /**
      * Extrai [month, year] da mensagem ou retorna null.
+     *
+     * @return array{int, int}|null
      */
     public static function extract(string $message): ?array
     {

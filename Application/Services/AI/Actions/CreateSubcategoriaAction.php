@@ -19,6 +19,9 @@ class CreateSubcategoriaAction implements ActionInterface
         $this->service = ApplicationContainer::resolveOrNew($service, SubcategoriaService::class);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function execute(int $userId, array $payload): ActionResult
     {
         $parentId = (int) ($payload['parent_id'] ?? 0);

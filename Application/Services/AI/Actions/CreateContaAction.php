@@ -17,6 +17,9 @@ class CreateContaAction implements ActionInterface
         $this->service = ApplicationContainer::resolveOrNew($service, ContaService::class);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function execute(int $userId, array $payload): ActionResult
     {
         $dto = CreateContaDTO::fromArray($payload, $userId);

@@ -130,6 +130,8 @@ class CategorizationHandler implements AIHandlerInterface
     /**
      * Resolve o nome sugerido pelo LLM em IDs reais.
      * Suporta formatos: "Categoria" ou "Categoria > Subcategoria".
+     *
+     * @return array{categoria:string,subcategoria:?string,categoria_id:?int,subcategoria_id:?int,confidence:string}
      */
     private function resolveResult(string $suggested, ?int $userId): array
     {
