@@ -12,6 +12,14 @@ use Application\Repositories\ReportRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
+/**
+ * @phpstan-type ReportPayload array<string, mixed>
+ * @phpstan-type SeriesData array{labels: list<string>, values: list<float>}
+ * @phpstan-type RecDesData array{labels: list<string>, receitas: list<float>, despesas: list<float>}
+ * @phpstan-type CardHealth array<string, mixed>
+ * @phpstan-type CardData array<string, mixed>
+ * @phpstan-type CardInsightData array<string, mixed>
+ */
 class ReportService
 {
     private ReportRepository $repository;
@@ -23,6 +31,9 @@ class ReportService
 
     /**
      * Ponto de entrada do serviço.
+     */
+    /**
+     * @return ReportPayload
      */
     public function generateReport(ReportType $type, ReportParameters $params, bool $includeDetails = false): array
     {
@@ -61,6 +72,9 @@ class ReportService
 
     // --- Relatórios de Categoria ---
 
+    /**
+     * @return ReportPayload
+     */
     private function handleCategoriasReport(LancamentoTipo $tipo, ReportParameters $params, bool $includeDetails = false): array
     {
         $data = $this->repository->getCategoryTotals($tipo->value, $params);
@@ -81,6 +95,9 @@ class ReportService
         return $result;
     }
 
+    /**
+     * @return ReportPayload
+     */
     private function handleAnnualCategoriasReport(LancamentoTipo $tipo, ReportParameters $params, bool $includeDetails = false): array
     {
         [$yearStart, $yearEnd, $year] = $this->getYearRange($params);
@@ -105,6 +122,9 @@ class ReportService
 
     // --- Relatórios de Saldo ---
 
+    /**
+     * @return ReportPayload
+     */
     private function handleSaldoMensalReport(ReportParameters $params): array
     {
         $deltas = $this->repository->getDailyDelta($params, $params->useTransfers());
@@ -119,6 +139,9 @@ class ReportService
         ];
     }
 
+    /**
+     * @return ReportPayload
+     */
     private function handleEvolucao12MReport(ReportParameters $params): array
     {
         [$ini, $fim] = $this->get12MonthsRange($params);
@@ -138,6 +161,9 @@ class ReportService
 
     // --- Relatórios de Receitas/Despesas ---
 
+    /**
+     * @return ReportPayload
+     */
     private function handleReceitasDespesasDiarioReport(ReportParameters $params): array
     {
         $rows = $this->repository->getDailyRecDes($params, $params->useTransfers());
@@ -151,6 +177,9 @@ class ReportService
         ];
     }
 
+    /**
+     * @return ReportPayload
+     */
     private function handleReceitasDespesasPorContaReport(ReportParameters $params): array
     {
         $data = $this->repository->getTotalsByAccount($params);
@@ -162,6 +191,9 @@ class ReportService
         ];
     }
 
+    /**
+     * @return ReportPayload
+     */
     private function handleResumoAnualReport(ReportParameters $params): array
     {
         [$yearStart, $yearEnd, $year] = $this->getYearRange($params);
@@ -187,6 +219,10 @@ class ReportService
 
     // --- Helpers de Construção de Séries ---
 
+    /**
+     * @param Collection<array-key, object> $deltas
+     * @return SeriesData
+     */
     private function buildDailySeries(
         ReportParameters $params,
         Collection $deltas,
@@ -203,6 +239,10 @@ class ReportService
         );
     }
 
+    /**
+     * @param Collection<array-key, object> $deltas
+     * @return SeriesData
+     */
     private function buildMonthlySeries(
         Carbon $start,
         Carbon $end,
@@ -220,6 +260,10 @@ class ReportService
         );
     }
 
+    /**
+     * @param Collection<array-key, object> $deltas
+     * @return SeriesData
+     */
     private function buildRunningTotalSeries(
         Carbon $start,
         Carbon $end,
@@ -248,6 +292,10 @@ class ReportService
         return compact('labels', 'values');
     }
 
+    /**
+     * @param Collection<array-key, object> $rows
+     * @return RecDesData
+     */
     private function buildDailyRecDesData(ReportParameters $params, Collection $rows): array
     {
         $labels = [];
@@ -269,6 +317,10 @@ class ReportService
         return compact('labels', 'receitas', 'despesas');
     }
 
+    /**
+     * @param Collection<array-key, object> $rows
+     * @return RecDesData
+     */
     private function buildYearlyRecDesData(Collection $rows, int $year): array
     {
         $byMonth = $rows->keyBy('mes')->map(fn($row) => [
@@ -318,6 +370,9 @@ class ReportService
         );
     }
 
+    /**
+     * @return array{0: Carbon, 1: Carbon}
+     */
     private function get12MonthsRange(ReportParameters $params): array
     {
         $ini = (clone $params->start)->subMonthsNoOverflow(11)->startOfMonth();
@@ -326,6 +381,9 @@ class ReportService
         return [$ini, $fim];
     }
 
+    /**
+     * @return array{0: Carbon, 1: Carbon, 2: int}
+     */
     private function getYearRange(ReportParameters $params): array
     {
         $year = $params->start->year;
@@ -339,6 +397,9 @@ class ReportService
 
     /**
      * Calcula o status de saúde financeira de um cartão
+     */
+    /**
+     * @return CardHealth
      */
     private function calculateCardHealth(float $percentual, float $fatura, float $mediaHistorica): array
     {
@@ -406,6 +467,11 @@ class ReportService
 
     /**
      * Gera insights acionáveis baseados nos dados do cartão
+     */
+    /**
+     * @param CardData $cardData
+     * @param list<CardData> $historicoMeses
+     * @return CardInsightData
      */
     private function generateCardInsights(array $cardData, array $historicoMeses): array
     {
@@ -519,6 +585,9 @@ class ReportService
         return $insights;
     }
 
+    /**
+     * @return ReportPayload
+     */
     private function handleCartoesCreditoReport(ReportParameters $params): array
     {
         $userId = $params->userId;
@@ -733,6 +802,9 @@ class ReportService
 
     /**
      * Gera relatório detalhado de um cartão específico
+     */
+    /**
+     * @return ReportPayload
      */
     public function getCardDetailedReport(int $userId, int $cardId, string $mes, string $ano): array
     {
@@ -1007,6 +1079,9 @@ class ReportService
 
     /**
      * Gera insight automático sobre o cartão
+     */
+    /**
+     * @param list<CardData> $impacto
      */
     private function gerarInsightCartao(
         float $comprometido,
