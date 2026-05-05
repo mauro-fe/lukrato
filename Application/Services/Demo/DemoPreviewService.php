@@ -39,6 +39,10 @@ class DemoPreviewService
         return self::$eligibilityCache[$userId];
     }
 
+    /**
+     * @param array<string, mixed> $planSummary
+     * @return array<string, mixed>
+     */
     public function dashboardOverview(string $month, int $limit, array $planSummary): array
     {
         $transactions = $this->buildMonthlyTransactions($month);
@@ -120,6 +124,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dashboardEvolucao(string $month): array
     {
         return [
@@ -141,6 +148,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function financeSummary(int $mes, int $ano): array
     {
         $orcamento = $this->buildBudgetSummary($mes, $ano);
@@ -156,6 +166,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function metas(?string $status = null): array
     {
         $metas = $this->buildGoals();
@@ -170,6 +183,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function orcamentos(int $mes, int $ano): array
     {
         return [
@@ -178,6 +194,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function financeInsights(int $mes, int $ano): array
     {
         return [
@@ -186,6 +205,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function contas(?string $month = null): array
     {
         return [
@@ -194,6 +216,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function cartoes(): array
     {
         return [
@@ -202,6 +227,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function cartoesResumo(): array
     {
         $cartoes = $this->buildCards();
@@ -221,6 +249,10 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @param array<string, mixed> $extra
+     * @return array<string, mixed>
+     */
     private function buildMeta(string $context, array $extra = []): array
     {
         return array_merge([
@@ -428,6 +460,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildGoalsSummary(): array
     {
         $goals = array_values(array_filter($this->buildGoals(), static fn(array $goal): bool => $goal['status'] === 'ativa'));
@@ -444,6 +479,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildBudgetSummary(int $mes, int $ano): array
     {
         $orcamentos = $this->buildBudgets($mes, $ano);
@@ -539,6 +577,9 @@ class DemoPreviewService
         }, $months, $results);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildProvisao(string $month): array
     {
         return [
@@ -641,6 +682,9 @@ class DemoPreviewService
         }, $months, $series);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function budget(
         int $id,
         int $categoriaId,
@@ -684,6 +728,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function goal(
         int $id,
         string $titulo,
@@ -744,6 +791,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function transaction(
         int $id,
         string $month,
@@ -771,6 +821,9 @@ class DemoPreviewService
         ];
     }
 
+    /**
+     * @return array<int, string>
+     */
     private function previousMonths(string $month, int $count): array
     {
         $date = DateTimeImmutable::createFromFormat('!Y-m', $month) ?: new DateTimeImmutable('first day of this month');
