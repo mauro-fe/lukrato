@@ -144,6 +144,9 @@ class AsaasWebhookController extends ApiController
         return $this->plainTextResponse('OK');
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function handleSubscriptionEvent(string $event, array $payload): void
     {
         $subscription = $payload['subscription'] ?? null;
@@ -194,6 +197,9 @@ class AsaasWebhookController extends ApiController
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function handlePaymentEvent(string $event, array $payload): void
     {
         $payment = $payload['payment'] ?? null;
@@ -273,6 +279,9 @@ class AsaasWebhookController extends ApiController
      * Ativa uma assinatura após confirmação de pagamento.
      * Usado tanto para pagamentos de subscription (cartão) quanto avulsos (PIX/Boleto).
      */
+    /**
+     * @param array<string, mixed> $payment
+     */
     private function activateSubscription(AssinaturaUsuario $assinatura, array $payment): void
     {
         $statusAnterior = $assinatura->status;
@@ -299,6 +308,9 @@ class AsaasWebhookController extends ApiController
 
     /**
      * Envia email de confirmação de pagamento/assinatura ativada
+     */
+    /**
+     * @param array<string, mixed> $payment
      */
     private function sendPaymentConfirmationEmail(AssinaturaUsuario $assinatura, array $payment): void
     {
@@ -385,6 +397,7 @@ class AsaasWebhookController extends ApiController
     }
 
     /**
+     * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
     private function buildWebhookPayloadSummary(array $payload, string $rawBody): array
