@@ -10,11 +10,12 @@ use Application\Contracts\Auth\PasswordResetRepositoryInterface;
 use Application\Contracts\Auth\TokenGeneratorInterface;
 use Application\Repositories\PasswordResetRepositoryEloquent;
 use Google_Client;
+use Illuminate\Container\Container;
 use RuntimeException;
 
 class AuthServiceProvider
 {
-    public function register($container): void
+    public function register(Container $container): void
     {
         if (!$container->bound(PasswordResetRepositoryInterface::class)) {
             $container->singleton(
@@ -40,7 +41,7 @@ class AuthServiceProvider
         if (!$container->bound(Google_Client::class)) {
             $container->singleton(
                 Google_Client::class,
-                static function ($container): Google_Client {
+                static function (Container $container): Google_Client {
                     $runtimeConfig = $container->bound(AuthRuntimeConfig::class)
                         ? $container->make(AuthRuntimeConfig::class)
                         : new AuthRuntimeConfig();

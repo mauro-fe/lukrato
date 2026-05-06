@@ -34,6 +34,15 @@ class RegistrationHandler
         $this->request = ApplicationContainer::resolveOrNew($request, Request::class);
     }
 
+    /**
+     * @return array{
+     *     usuario: Usuario,
+     *     user_id: int,
+     *     message: string,
+     *     redirect: string,
+     *     requires_verification: true
+     * }
+     */
     public function handle(RegistrationDTO $registration): array
     {
         try {

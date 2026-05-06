@@ -21,6 +21,9 @@ class LogoutHandler
         $this->sessionManager = ApplicationContainer::resolveOrNew($sessionManager, SessionManager::class);
     }
 
+    /**
+     * @return array{message: string, redirect: string}
+     */
     public function handle(): array
     {
         $id = Auth::id();

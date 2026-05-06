@@ -213,7 +213,7 @@ class LoginController extends WebController
             $password = $this->request->postString('password', '');
 
             $result = $this->authService->login($email, $password, $remember);
-            $result['redirect'] = $this->resolvePostLoginRedirect((string) ($result['redirect'] ?? ''));
+            $result['redirect'] = $this->resolvePostLoginRedirect($result['redirect']);
 
             $this->clearOldCsrfTokens();
             $this->turnstile->resetFailedAttempts($ip);
@@ -365,6 +365,9 @@ class LoginController extends WebController
         return $this->failAndLog($e, 'Erro ao processar login.');
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function pullRegisterErrors(): ?array
     {
         $errors = $this->pullSessionValue('register_errors');
@@ -372,6 +375,9 @@ class LoginController extends WebController
         return is_array($errors) ? $errors : null;
     }
 
+    /**
+     * @param array<string, mixed>|null $registerErrors
+     */
     private function resolveActiveTab(?array $registerErrors): string
     {
         $activeTab = $this->pullSessionValue('auth_active_tab', 'login');

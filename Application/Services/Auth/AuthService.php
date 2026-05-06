@@ -57,6 +57,9 @@ class AuthService
         $this->logoutHandler = ApplicationContainer::resolveOrNew($logoutHandler, LogoutHandler::class);
     }
 
+    /**
+     * @return array{redirect: string}
+     */
     public function login(string $email, string $password, bool $remember = false): array
     {
         try {
@@ -67,6 +70,16 @@ class AuthService
         }
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array{
+     *     usuario: Usuario,
+     *     user_id: int,
+     *     message: string,
+     *     redirect: string,
+     *     requires_verification: true
+     * }
+     */
     public function register(array $data): array
     {
         LogService::info('[AuthService] Iniciando delegação de registro.', [
@@ -83,14 +96,15 @@ class AuthService
                 $this->criarCategoriasPadrao((int) $result['user_id']);
 
                 // Processa código de indicação se fornecido
-                $referralCode = trim($data['referral_code'] ?? '');
+                $referralCodeValue = $data['referral_code'] ?? '';
+                $referralCode = is_scalar($referralCodeValue) ? trim((string) $referralCodeValue) : '';
                 if (!empty($referralCode)) {
                     $this->processarIndicacao((int) $result['user_id'], $referralCode);
                 }
 
                 // Envia email de verificação (pula se registro via Google, pois o Google já verifica o email)
                 if (empty($data['skip_email_verification'])) {
-                    $this->enviarEmailBoasVindas((int) $result['user_id'], $data['email'] ?? '', $data['name'] ?? '');
+                    $this->enviarEmailBoasVindas((int) $result['user_id'], $registration->email, $registration->name);
                 }
             } else {
                 LogService::warning('[AuthService] Registro retornou sem user_id, não foi possível criar assinatura.', [
@@ -99,7 +113,7 @@ class AuthService
             }
 
             LogService::info('[AuthService] Handler de registro + assinatura finalizados com sucesso.', [
-                'user_id' => $result['user_id'] ?? null,
+                'user_id' => $result['user_id'],
             ]);
 
             return $result;
@@ -113,6 +127,9 @@ class AuthService
         }
     }
 
+    /**
+     * @return array{message: string, redirect: string}
+     */
     public function logout(): array
     {
         return $this->logoutHandler->handle();

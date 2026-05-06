@@ -10,6 +10,9 @@ use Application\Core\Exceptions\ValidationException;
 
 abstract class AbstractValidationStrategy implements ValidationStrategyInterface
 {
+    /**
+     * @var array<string, string>
+     */
     protected array $errors = [];
 
     final public function validate(CredentialsDTO $credentials): void
