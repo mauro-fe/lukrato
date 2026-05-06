@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ImportacaoPerfil extends Model
 {
@@ -25,9 +26,11 @@ class ImportacaoPerfil extends Model
         'conta_id' => 'int',
     ];
 
-    public function conta()
+    /**
+     * @return BelongsTo<Conta, $this>
+     */
+    public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id');
     }
 }
-

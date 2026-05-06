@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Endereco extends Model
 {
@@ -22,7 +23,10 @@ class Endereco extends Model
     ];
 
 
-    public function usuario()
+    /**
+     * @return BelongsTo<Usuario, $this>
+     */
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }

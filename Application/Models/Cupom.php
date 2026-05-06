@@ -3,6 +3,7 @@
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use DateTime;
 
 class Cupom extends Model
@@ -97,7 +98,10 @@ class Cupom extends Model
     /**
      * Histórico de usos
      */
-    public function usos()
+    /**
+     * @return HasMany<CupomUsado, $this>
+     */
+    public function usos(): HasMany
     {
         return $this->hasMany(CupomUsado::class, 'cupom_id');
     }

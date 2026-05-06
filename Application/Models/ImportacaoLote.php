@@ -39,6 +39,9 @@ class ImportacaoLote extends Model
         'error_rows' => 'int',
     ];
 
+    /**
+     * @return BelongsTo<Conta, $this>
+     */
     public function conta(): BelongsTo
     {
         return $this->belongsTo(Conta::class, 'conta_id');

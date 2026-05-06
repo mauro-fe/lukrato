@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ImportacaoJob extends Model
 {
@@ -47,7 +48,10 @@ class ImportacaoJob extends Model
         'finished_at' => 'datetime',
     ];
 
-    public function lote()
+    /**
+     * @return BelongsTo<ImportacaoLote, $this>
+     */
+    public function lote(): BelongsTo
     {
         return $this->belongsTo(ImportacaoLote::class, 'result_batch_id');
     }

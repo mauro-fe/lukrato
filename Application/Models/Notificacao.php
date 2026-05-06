@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Carbon\Carbon|null $updated_at
  *
  * @method static \Illuminate\Database\Eloquent\Builder|Notificacao where(string $column, $value = null)
- * @mixin \Illuminate\Database\Eloquent\Builder
+ * @mixin \Illuminate\Database\Eloquent\Builder<Notificacao>
  */
 class Notificacao extends Model
 {
