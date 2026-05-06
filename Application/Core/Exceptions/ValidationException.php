@@ -29,6 +29,8 @@ class ValidationException extends \Exception
      * Retorna os erros de validação.
      * (Nota: Este método é opcional se a propriedade $errors for 'public readonly',
      * mas é mantido por convenção se você preferir encapsulamento).
+     *
+     * @return array<string, mixed>
      */
     public function getErrors(): array
     {

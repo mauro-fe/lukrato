@@ -9,8 +9,14 @@ use Application\Container\ApplicationContainer;
 class Response
 {
     private int $statusCode = 200;
+    /**
+     * @var array<string, string>
+     */
     private array $headers = [];
     private string $content = '';
+    /**
+     * @var list<array{name: string, value: string, options: array{expires: int, path: string, secure: bool, httponly: bool, samesite: string}}>
+     */
     private array $cookies = [];
     private ?string $downloadFilePath = null;
     private bool $shouldClearOutputBuffer = false;
@@ -20,6 +26,9 @@ class Response
         return $this->statusCode;
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function getHeaders(): array
     {
         return $this->headers;
@@ -30,6 +39,9 @@ class Response
         return $this->content;
     }
 
+    /**
+     * @return list<array{name: string, value: string, options: array{expires: int, path: string, secure: bool, httponly: bool, samesite: string}}>
+     */
     public function getCookies(): array
     {
         return $this->cookies;
@@ -63,6 +75,9 @@ class Response
         return $this;
     }
 
+    /**
+     * @param array<array-key, bool|float|int|string|null> $headers
+     */
     public function withHeaders(array $headers): self
     {
         foreach ($headers as $key => $value) {
@@ -280,6 +295,9 @@ class Response
         return self::errorResponse($message, 403);
     }
 
+    /**
+     * @param array<string, mixed> $errors
+     */
     public static function validationErrorResponse(array $errors, int $code = 422): self
     {
         return self::errorResponse('Validation failed', $code, $errors);
