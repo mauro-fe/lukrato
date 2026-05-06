@@ -10,6 +10,9 @@ class TelefoneFormatter
     ) {}
 
 
+    /**
+     * @return array{?string, ?string}
+     */
     public function split(?string $value): array
     {
         $digits = $this->documentFormatter->digits($value ?? '');

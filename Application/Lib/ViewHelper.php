@@ -7,6 +7,9 @@ use Application\Lib\Auth;
 class ViewHelper
 {
 
+    /**
+     * @return array{admin_id:mixed,admin_username:mixed,nome_clinica:mixed,slug_clinica:mixed,ficha_id:int,base_url:string,current_year:string}
+     */
     public static function getSharedData(): array
     {
         $admin_id = Auth::id();

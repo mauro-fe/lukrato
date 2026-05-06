@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Mensagem individual dentro de uma conversa de IA.
@@ -37,7 +38,10 @@ class AiChatMessage extends Model
         'created_at'      => 'datetime',
     ];
 
-    public function conversation()
+    /**
+     * @return BelongsTo<AiConversation, $this>
+     */
+    public function conversation(): BelongsTo
     {
         return $this->belongsTo(AiConversation::class, 'conversation_id');
     }

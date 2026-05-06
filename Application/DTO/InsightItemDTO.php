@@ -21,6 +21,9 @@ readonly class InsightItemDTO
         public ?float      $percentage = null,
     ) {}
 
+    /**
+     * @return array{type:string,icon:string,title:string,message:string,value?:float,percentage?:float}
+     */
     public function toArray(): array
     {
         $arr = [

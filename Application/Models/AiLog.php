@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AiLog extends Model
 {
@@ -43,7 +44,10 @@ class AiLog extends Model
         'created_at'        => 'datetime',
     ];
 
-    public function usuario()
+    /**
+     * @return BelongsTo<Usuario, $this>
+     */
+    public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'user_id');
     }

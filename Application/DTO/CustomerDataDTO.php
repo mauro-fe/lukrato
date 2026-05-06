@@ -19,6 +19,9 @@ class CustomerDataDTO
         public readonly ?string $addressComplement
     ) {}
 
+    /**
+     * @return array{name:string,email:string,cpfCnpj?:string,mobilePhone?:string,postalCode?:string,addressNumber?:string,addressComplement?:string}
+     */
     public function toArray(): array
     {
         $data = [

@@ -18,16 +18,21 @@ class PerfilUpdateDTO
         public readonly EnderecoDTO $endereco
     ) {}
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function fromRequest(array $data): self
     {
+        $endereco = $data['endereco'] ?? [];
+
         return new self(
-            nome: trim($data['nome'] ?? ''),
-            email: mb_strtolower(trim($data['email'] ?? '')),
-            cpf: $data['cpf'] ?? '',
-            telefone: $data['telefone'] ?? '',
-            sexo: $data['sexo'] ?? '',
-            dataNascimento: $data['data_nascimento'] ?? '',
-            endereco: EnderecoDTO::fromArray($data['endereco'] ?? [])
+            nome: trim((string) ($data['nome'] ?? '')),
+            email: mb_strtolower(trim((string) ($data['email'] ?? ''))),
+            cpf: (string) ($data['cpf'] ?? ''),
+            telefone: (string) ($data['telefone'] ?? ''),
+            sexo: (string) ($data['sexo'] ?? ''),
+            dataNascimento: (string) ($data['data_nascimento'] ?? ''),
+            endereco: EnderecoDTO::fromArray(is_array($endereco) ? $endereco : [])
         );
     }
 }
