@@ -3,6 +3,7 @@
  */
 import { DOM, STATE, Utils, Modules } from './state.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
+import { CustomSelectManager } from '../shared/custom-select.js';
 
 // ============================================================================
 // MODAL PAGAR FATURA - BOOTSTRAP
@@ -166,6 +167,8 @@ export const ModalPagarFatura = {
             if (isDefault) option.selected = true;
             select.appendChild(option);
         });
+
+        CustomSelectManager.init(DOM.modalPagarFatura || select);
     },
 
     mostrarEscolha() {

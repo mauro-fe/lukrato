@@ -50,6 +50,101 @@
   opacity: 1;
 }
 
+.fatura-pay-confirm.swal2-popup {
+  --lk-swal-accent: var(--color-success, #10b981);
+  max-width: 34rem !important;
+}
+
+.fatura-pay-confirm__html {
+  overflow: visible !important;
+}
+
+.fatura-pay-confirm__content {
+  display: grid;
+  gap: var(--spacing-4);
+  text-align: left;
+}
+
+.fatura-pay-confirm__lead {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.fatura-pay-confirm__total-card {
+  padding: var(--spacing-4);
+  display: grid;
+  gap: var(--spacing-2);
+}
+
+.fatura-pay-confirm__total-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-success, #10b981) 62%, var(--color-text-muted));
+}
+
+.fatura-pay-confirm__total-value {
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  line-height: 1.05;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.fatura-pay-confirm__field {
+  display: grid;
+  gap: var(--spacing-2);
+  position: relative;
+  z-index: 4;
+}
+
+.fatura-pay-confirm__field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.fatura-pay-confirm__field-label i,
+.fatura-pay-confirm__field-label svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+}
+
+.fatura-pay-confirm__select-wrap {
+  width: 100%;
+  position: relative;
+  z-index: 5;
+}
+
+.fatura-pay-confirm__select-wrap .lk-custom-select {
+  width: 100%;
+}
+
+.fatura-pay-confirm__select-wrap .lk-custom-select-menu {
+  z-index: 10020;
+}
+
+.fatura-pay-confirm__help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.fatura-pay-confirm .swal2-actions {
+  margin-top: var(--spacing-4) !important;
+  position: relative;
+  z-index: 1;
+}
+
+.fatura-pay-confirm .swal2-confirm,
+.fatura-pay-confirm .swal2-cancel {
+  min-width: 11rem;
+}
+
 /* Modal — Detalhes header */
 
 .detalhes-header {

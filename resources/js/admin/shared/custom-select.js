@@ -176,6 +176,12 @@ function isInsideRoot(node, root) {
     return typeof root.contains === 'function' ? root.contains(node) : false;
 }
 
+function resolveMenuHeightLimit(optionsList) {
+    const computed = window.getComputedStyle(optionsList);
+    const parsed = Number.parseFloat(computed.maxHeight || '');
+    return Number.isFinite(parsed) ? parsed : 280;
+}
+
 function createInstance(select) {
     const id = select.id || `lk-custom-${Math.random().toString(36).slice(2, 9)}`;
     if (!select.id) select.id = id;
@@ -255,6 +261,7 @@ function createInstance(select) {
             this.resetSearch();
             this.container.classList.add('is-open');
             this.trigger.setAttribute('aria-expanded', 'true');
+            this.positionMenu();
 
             if (this.searchInput) {
                 requestAnimationFrame(() => {
@@ -271,8 +278,29 @@ function createInstance(select) {
 
         close() {
             this.container.classList.remove('is-open');
+            this.container.classList.remove('is-open-up');
             this.trigger.setAttribute('aria-expanded', 'false');
             this.resetSearch();
+        },
+
+        positionMenu() {
+            const triggerRect = this.trigger.getBoundingClientRect();
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const viewportPadding = 12;
+            const configuredMaxHeight = resolveMenuHeightLimit(this.optionsList);
+            const menuChromeHeight = Math.max(0, this.menu.offsetHeight - this.optionsList.offsetHeight);
+            const estimatedMenuHeight = Math.min(
+                configuredMaxHeight + menuChromeHeight,
+                this.menu.scrollHeight || configuredMaxHeight
+            );
+            const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - viewportPadding);
+            const spaceAbove = Math.max(0, triggerRect.top - viewportPadding);
+            const shouldOpenUp = spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow;
+            const availableSpace = shouldOpenUp ? spaceAbove : spaceBelow;
+            const nextMaxHeight = Math.max(96, Math.min(configuredMaxHeight, availableSpace - menuChromeHeight));
+
+            this.container.classList.toggle('is-open-up', shouldOpenUp);
+            this.optionsList.style.maxHeight = `${nextMaxHeight}px`;
         },
 
         getFocusableOptions() {

@@ -671,6 +671,10 @@ export async function refreshActiveSection(section) {
     }
 }
 
+export async function refreshCurrentSection() {
+    await refreshActiveSection(STATE.activeSection || 'overview');
+}
+
 // ─── Event Handlers ──────────────────────────────────────────────────────────
 
 export function syncPickerMode() {
@@ -723,7 +727,7 @@ export function onExternalMonthChange(event) {
     updateMonthLabel();
     updatePageContext();
     updateReportFilterSummary();
-    renderReport();
+    refreshCurrentSection();
 }
 
 export function onExternalYearChange(event) {
@@ -735,5 +739,5 @@ export function onExternalYearChange(event) {
     STATE.currentMonth = newValue;
     updatePageContext();
     updateReportFilterSummary();
-    renderReport();
+    refreshCurrentSection();
 }

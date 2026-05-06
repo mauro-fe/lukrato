@@ -228,17 +228,9 @@ export const DetailsMethods = {
     },
 
     calcularValores(parc) {
-        let valorPago = 0;
-        let valorRestante = parc.valor_total;
-
-        if (parc.parcelas && parc.parcelas.length > 0) {
-            valorPago = parc.parcelas
-                .filter(p => p.pago)
-                .reduce((sum, p) => sum + parseFloat(p.valor_parcela || p.valor || 0), 0);
-            valorRestante = parc.parcelas
-                .filter(p => !p.pago)
-                .reduce((sum, p) => sum + parseFloat(p.valor_parcela || p.valor || 0), 0);
-        }
+        const valorOriginal = parseFloat(parc.valor_original ?? parc.valor_total ?? 0) || 0;
+        const valorRestante = Math.max(0, parseFloat(parc.valor_total ?? 0) || 0);
+        const valorPago = Math.max(0, valorOriginal - valorRestante);
 
         return { valorPago, valorRestante };
     },

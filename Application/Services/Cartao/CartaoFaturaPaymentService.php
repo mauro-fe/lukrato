@@ -51,13 +51,16 @@ class CartaoFaturaPaymentService
                 throw new \Exception('Não há itens para pagar neste mês.');
             }
 
-            $itensNaoPagos = array_filter($fatura['itens'], fn($item) => !$item['pago']);
+            $itensNaoPagos = array_filter(
+                $fatura['itens'],
+                fn($item) => !$item['pago'] && (($item['tipo'] ?? 'despesa') !== 'estorno')
+            );
 
             if (empty($itensNaoPagos)) {
                 throw new \Exception('Todos os itens desta fatura já foram pagos.');
             }
 
-            $totalFatura = array_sum(array_column($itensNaoPagos, 'valor'));
+            $totalFatura = (float) ($fatura['total'] ?? 0);
 
             $totalPagar = $valorParcial !== null ? $valorParcial : $totalFatura;
             $isPagamentoParcial = $valorParcial !== null && $valorParcial < $totalFatura;
@@ -381,6 +384,7 @@ class CartaoFaturaPaymentService
                 ->whereYear('data_vencimento', $ano)
                 ->whereMonth('data_vencimento', $mes)
                 ->where('pago', true)
+                ->where('tipo', '!=', 'estorno')
                 ->count();
 
             if ($itensPagosNoMes === 1) {
@@ -462,6 +466,7 @@ class CartaoFaturaPaymentService
                 ->whereYear('data_vencimento', $ano)
                 ->whereMonth('data_vencimento', $mes)
                 ->where('pago', true)
+                ->where('tipo', '!=', 'estorno')
                 ->whereNotNull('fatura_id')
                 ->pluck('fatura_id')
                 ->unique()
@@ -472,6 +477,7 @@ class CartaoFaturaPaymentService
                 ->whereYear('data_vencimento', $ano)
                 ->whereMonth('data_vencimento', $mes)
                 ->where('pago', true)
+                ->where('tipo', '!=', 'estorno')
                 ->update(['pago' => false, 'data_pagamento' => null]);
 
             $this->atualizarStatusFaturas($faturasAfetadas, $userId);

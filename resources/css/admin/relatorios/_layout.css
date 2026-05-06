@@ -88,6 +88,8 @@
   margin-bottom: 0;
   overflow: visible;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .rel-section-tab {

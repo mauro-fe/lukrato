@@ -102,7 +102,7 @@
                             <i data-lucide="landmark" style="color: #3b82f6;"></i>
                             Conta para débito
                         </label>
-                        <select id="contaPagamentoFatura" class="form-select" style="background: var(--color-surface); border-color: var(--glass-border); color: var(--color-text);">
+                        <select id="contaPagamentoFatura" class="form-select" data-lk-custom-select="form" data-lk-select-sort="alpha" style="background: var(--color-surface); border-color: var(--glass-border); color: var(--color-text);">
                             <option value="">Carregando contas...</option>
                         </select>
                     </div>

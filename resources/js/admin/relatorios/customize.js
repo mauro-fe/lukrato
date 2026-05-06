@@ -20,6 +20,20 @@ let relatoriosCompleteDefaults = {};
 const OVERVIEW_ESSENTIAL_COMPARATIVES_ID = 'overviewEssentialComparatives';
 const RELATORIOS_STORAGE_KEY = 'lk_relatorios_prefs';
 
+function bindCustomizeOpenGuard(customizer, openButtonId = 'btnCustomizeRelatorios') {
+    const openButton = document.getElementById(openButtonId);
+    if (!(openButton instanceof HTMLButtonElement) || openButton.dataset.lkCustomizeGuardBound === 'true') {
+        return;
+    }
+
+    openButton.dataset.lkCustomizeGuardBound = 'true';
+    openButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        customizer.open();
+    }, { capture: true });
+}
+
 function normalizeRelatoriosPreferenceShape(rawPrefs, essentialDefaults = {}) {
     if (!rawPrefs || typeof rawPrefs !== 'object') {
         return rawPrefs;
@@ -207,6 +221,8 @@ export function initCustomize() {
             syncRelatoriosLayout(resolved.essentialDefaults);
             return false;
         }
+
+        bindCustomizeOpenGuard(customizer, resolved.modalConfig?.openButtonId || 'btnCustomizeRelatorios');
 
         if (!relatoriosCustomizerInitialized) {
             customizer.init();

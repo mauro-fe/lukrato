@@ -16,7 +16,7 @@ import {
     onExternalMonthChange,
     onExternalYearChange,
     refreshActiveSection,
-    renderReport,
+    refreshCurrentSection,
     syncPickerMode,
 } from './app.js';
 
@@ -216,7 +216,7 @@ function setupDetailModalDelegation(accountSelect, showClearFiltersButton) {
         const retryTrigger = event.target.closest('[data-action="retry-report"]');
         if (retryTrigger) {
             event.preventDefault();
-            renderReport();
+            refreshCurrentSection();
             return;
         }
 
@@ -264,14 +264,14 @@ function setupGlobalApi() {
             }
             STATE.currentMonth = yearMonth;
             UI.updateMonthLabel();
-            renderReport();
+            refreshCurrentSection();
         },
         setView: (view) => {
             if (Object.values(CONFIG.VIEWS).includes(view)) {
                 handleTabChange(view);
             }
         },
-        refresh: () => renderReport(),
+        refresh: () => refreshCurrentSection(),
         getState: () => ({ ...STATE }),
     };
 }
@@ -312,7 +312,7 @@ async function initialize() {
 
     document.addEventListener('lukrato:theme-changed', () => {
         ChartManager.setupDefaults();
-        renderReport();
+        refreshCurrentSection();
     });
 
     const headerMonth = window.LukratoHeader?.getMonth?.();
@@ -330,7 +330,7 @@ async function initialize() {
     syncPickerMode();
     UI.updateMonthLabel();
     UI.updateControls();
-    await renderReport();
+    await refreshCurrentSection();
 }
 
 export function bootRelatoriosPage() {

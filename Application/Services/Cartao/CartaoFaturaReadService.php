@@ -64,7 +64,12 @@ class CartaoFaturaReadService
             ->orderBy('id', 'desc')
             ->get();
 
-        $total = $itens->where('pago', false)->sum('valor');
+        $totalDespesasPendentes = $itens
+            ->where('pago', false)
+            ->where('tipo', '!=', 'estorno')
+            ->sum('valor');
+        $totalEstornos = $itens->where('tipo', 'estorno')->sum('valor');
+        $total = max(0, $totalDespesasPendentes + $totalEstornos);
         $dataVencimento = sprintf('%04d-%02d-%02d', $ano, $mes, $cartao->dia_vencimento);
 
         return [
@@ -215,17 +220,11 @@ class CartaoFaturaReadService
                     }
 
                     if ($dataVencimento <= $dataLimite && $dataVencimento >= $dataHoje) {
-                        $mesRef = $mesVenc - 1;
-                        $anoRef = $anoVenc;
-                        if ($mesRef < 1) {
-                            $mesRef = 12;
-                            $anoRef--;
-                        }
-
                         $totalFatura = FaturaCartaoItem::where('cartao_credito_id', $cartao->id)
                             ->where('pago', false)
-                            ->where('mes_referencia', $mesRef)
-                            ->where('ano_referencia', $anoRef)
+                            ->whereYear('data_vencimento', $anoVenc)
+                            ->whereMonth('data_vencimento', $mesVenc)
+                            ->whereNull('cancelado_em')
                             ->sum('valor');
 
                         if ($totalFatura > 0) {
@@ -239,8 +238,8 @@ class CartaoFaturaReadService
                                 'valor_fatura' => (float) $totalFatura,
                                 'tipo' => 'vencimento_proximo',
                                 'gravidade' => $diasFaltando <= 3 ? 'critico' : 'atencao',
-                                'mes' => $mesRef,
-                                'ano' => $anoRef,
+                                'mes' => $mesVenc,
+                                'ano' => $anoVenc,
                             ];
                         }
                     }

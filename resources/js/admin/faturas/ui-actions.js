@@ -9,6 +9,7 @@
 import { CONFIG, DOM, Utils, Modules } from './state.js';
 import { refreshIcons } from '../shared/ui.js';
 import { getApiPayload, getErrorMessage } from '../shared/api.js';
+import { CustomSelectManager } from '../shared/custom-select.js';
 import {
     bindEditCategoriaChange,
     getSelectedCategoriaPayload,
@@ -456,7 +457,7 @@ export const ActionMethods = {
             await Modules.App.refreshAfterMutation(faturaId);
 
 
-                // Fatura foi excluída (era o último item), fechar modal
+            // Fatura foi excluída (era o último item), fechar modal
 
         } catch (error) {
             console.error('Erro ao excluir item:', error);
@@ -540,8 +541,8 @@ export const ActionMethods = {
 
             // Verificar se a fatura ainda existe antes de reabrir o modal
 
-                // Reabrir o modal com dados atualizados
-                // Fatura foi excluída (era o último item), fechar modal
+            // Reabrir o modal com dados atualizados
+            // Fatura foi excluída (era o último item), fechar modal
 
         } catch (error) {
             console.error('Erro ao excluir parcelamento:', error);
@@ -613,9 +614,8 @@ export const ActionMethods = {
                     const saldoFormatado = Utils.formatMoney(saldo);
                     const isDefault = conta.id === contaPadraoId;
                     const saldoSuficiente = saldo >= valorTotal;
-                    contasOptions += `<option value="${conta.id}" ${isDefault ? 'selected' : ''} ${!saldoSuficiente ? 'style="color: #dc2626;"' : ''}>
-                        ${Utils.escapeHtml(conta.nome)} - ${saldoFormatado}${isDefault ? ' (vinculada ao cartão)' : ''}
-                    </option>`;
+                    const contaLabel = `${conta.nome} - ${saldoFormatado}${isDefault ? ' (vinculada ao cartão)' : ''}${!saldoSuficiente ? ' (saldo insuficiente)' : ''}`;
+                    contasOptions += `<option value="${conta.id}" ${isDefault ? 'selected' : ''}>${Utils.escapeHtml(contaLabel)}</option>`;
                 });
             } else {
                 throw new Error('Nenhuma conta disponível para débito');
@@ -624,34 +624,45 @@ export const ActionMethods = {
             const result = await Swal.fire({
                 title: 'Pagar Fatura Completa?',
                 html: `
-                    <p>Deseja realmente pagar todos os itens pendentes desta fatura?</p>
-                    <div style="margin: 1.5rem 0; padding: 1rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
-                        <div style="font-size: 0.875rem; color: #047857; margin-bottom: 0.5rem;">Valor Total:</div>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: #059669;">${Utils.formatMoney(valorTotal)}</div>
+                    <div class="fatura-pay-confirm__content">
+                        <p class="fatura-pay-confirm__lead">Deseja realmente pagar todos os itens pendentes desta fatura?</p>
+                        <div class="fatura-pay-confirm__total-card surface-card surface-card--clip">
+                            <span class="fatura-pay-confirm__total-label">Valor total</span>
+                            <strong class="fatura-pay-confirm__total-value">${Utils.formatMoney(valorTotal)}</strong>
+                        </div>
+                        <div class="fatura-pay-confirm__field">
+                            <label class="fatura-pay-confirm__field-label" for="swalContaSelect">
+                                <i data-lucide="landmark"></i>
+                                <span>Conta para débito</span>
+                            </label>
+                            <div class="lk-select-wrapper fatura-pay-confirm__select-wrap">
+                                <select id="swalContaSelect" class="swal2-select fatura-pay-confirm__select" data-lk-custom-select="form" data-lk-select-sort="alpha">
+                                    ${contasOptions}
+                                </select>
+                            </div>
+                        </div>
+                        <p class="fatura-pay-confirm__help">O valor será debitado da conta selecionada.</p>
                     </div>
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; text-align: left; margin-bottom: 0.5rem; color: #374151; font-weight: 500;">
-                            <i data-lucide="landmark"></i> Conta para débito:
-                        </label>
-                        <select id="swalContaSelect" class="swal2-select" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.875rem;">
-                            ${contasOptions}
-                        </select>
-                    </div>
-                    <p style="color: #6b7280; font-size: 0.875rem;">O valor será debitado da conta selecionada.</p>
                 `,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#6b7280',
                 confirmButtonText: '<i data-lucide="check"></i> Sim, pagar tudo',
                 cancelButtonText: 'Cancelar',
                 heightAuto: false,
                 customClass: {
-                    container: 'swal-above-modal'
+                    container: 'swal-above-modal',
+                    popup: 'lk-swal-popup lk-swal-confirm fatura-pay-confirm',
+                    htmlContainer: 'fatura-pay-confirm__html',
+                    confirmButton: 'fatura-pay-confirm__confirm',
+                    cancelButton: 'fatura-pay-confirm__cancel',
                 },
                 didOpen: () => {
                     const container = document.querySelector('.swal2-container');
                     if (container) container.style.zIndex = '99999';
+                    const popup = Swal.getPopup();
+                    if (popup) {
+                        CustomSelectManager.init(popup);
+                    }
                     refreshIcons();
                 },
                 preConfirm: () => {

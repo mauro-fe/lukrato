@@ -111,6 +111,11 @@
   display: block;
 }
 
+.lk-custom-select.is-open-up .lk-custom-select-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
 .lk-custom-select-search {
   padding: 0.55rem;
   border-bottom: 1px solid color-mix(in srgb, var(--glass-border, var(--color-card-border)) 80%, transparent);
