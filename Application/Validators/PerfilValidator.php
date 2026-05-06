@@ -26,7 +26,7 @@ class PerfilValidator
     /**
      * Valida os dados do DTO de perfil.
      * 
-     * @return array Array de erros (vazio se não houver erros)
+     * @return array<string, string> Array de erros (vazio se não houver erros)
      */
     public function validate(PerfilUpdateDTO $dto, int $currentUserId): array
     {
@@ -48,6 +48,8 @@ class PerfilValidator
 
     /**
      * Valida campos básicos (formato, obrigatoriedade).
+     *
+     * @return array<string, string>
      */
     private function validateBasicFields(PerfilUpdateDTO $dto): array
     {
@@ -88,6 +90,8 @@ class PerfilValidator
 
     /**
      * Valida unicidade de email e CPF.
+     *
+     * @return array<string, string>
      */
     private function validateUniqueness(PerfilUpdateDTO $dto, int $currentUserId): array
     {

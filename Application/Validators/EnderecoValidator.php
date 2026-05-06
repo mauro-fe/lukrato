@@ -17,7 +17,7 @@ class EnderecoValidator
     /**
      * Valida os dados do endereço.
      * 
-     * @return array Array de erros com chave no formato "endereco.campo"
+     * @return array<string, string> Array de erros com chave no formato "endereco.campo"
      */
     public function validate(EnderecoDTO $endereco): array
     {

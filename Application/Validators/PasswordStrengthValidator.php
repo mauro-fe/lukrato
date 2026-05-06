@@ -10,7 +10,7 @@ class PasswordStrengthValidator
     /**
      * Valida a força da senha conforme as regras de complexidade.
      *
-     * @return array Lista de mensagens de erro (vazio = senha válida)
+     * @return list<string> Lista de mensagens de erro (vazio = senha válida)
      */
     public static function validate(string $senha): array
     {
