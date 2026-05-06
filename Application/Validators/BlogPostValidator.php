@@ -14,13 +14,16 @@ class BlogPostValidator
 {
     /**
      * Valida dados para criação de post.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
      */
     public static function validateCreate(array $data): array
     {
         $errors = [];
 
         // Título
-        $titulo = trim($data['titulo'] ?? '');
+        $titulo = trim((string) ($data['titulo'] ?? ''));
         if (empty($titulo)) {
             $errors['titulo'] = 'O título é obrigatório.';
         } elseif (mb_strlen($titulo) < 3) {
@@ -30,7 +33,7 @@ class BlogPostValidator
         }
 
         // Conteúdo
-        $conteudo = $data['conteudo'] ?? '';
+        $conteudo = (string) ($data['conteudo'] ?? '');
         if (empty(trim(strip_tags($conteudo)))) {
             $errors['conteudo'] = 'O conteúdo é obrigatório.';
         }
@@ -44,23 +47,26 @@ class BlogPostValidator
         }
 
         // Status
-        $status = $data['status'] ?? 'draft';
-        if (!in_array($status, ['draft', 'published'])) {
+        $status = (string) ($data['status'] ?? 'draft');
+        if (!in_array($status, ['draft', 'published'], true)) {
             $errors['status'] = 'Status inválido. Use "draft" ou "published".';
         }
 
         // Resumo (opcional)
-        if (!empty($data['resumo']) && mb_strlen($data['resumo']) > 500) {
+        $resumo = (string) ($data['resumo'] ?? '');
+        if ($resumo !== '' && mb_strlen($resumo) > 500) {
             $errors['resumo'] = 'O resumo não pode ter mais de 500 caracteres.';
         }
 
         // Meta Title (opcional)
-        if (!empty($data['meta_title']) && mb_strlen($data['meta_title']) > 255) {
+        $metaTitle = (string) ($data['meta_title'] ?? '');
+        if ($metaTitle !== '' && mb_strlen($metaTitle) > 255) {
             $errors['meta_title'] = 'O meta title não pode ter mais de 255 caracteres.';
         }
 
         // Meta Description (opcional)
-        if (!empty($data['meta_description']) && mb_strlen($data['meta_description']) > 500) {
+        $metaDescription = (string) ($data['meta_description'] ?? '');
+        if ($metaDescription !== '' && mb_strlen($metaDescription) > 500) {
             $errors['meta_description'] = 'A meta description não pode ter mais de 500 caracteres.';
         }
 
@@ -69,6 +75,9 @@ class BlogPostValidator
 
     /**
      * Valida dados para atualização de post.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
      */
     public static function validateUpdate(array $data, int $id): array
     {
@@ -77,7 +86,7 @@ class BlogPostValidator
 
         // Slug: se informado, verificar unicidade excluindo o próprio
         if (!empty($data['slug'])) {
-            $exists = BlogPost::where('slug', $data['slug'])
+            $exists = BlogPost::where('slug', (string) $data['slug'])
                 ->where('id', '!=', $id)
                 ->exists();
             if ($exists) {

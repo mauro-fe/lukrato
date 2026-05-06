@@ -4,8 +4,14 @@ namespace Application\Validators;
 
 class CartaoCreditoValidator
 {
+    /**
+     * @var array<string, string>
+     */
     private array $errors = [];
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function validateCreate(array $data): bool
     {
         $this->errors = [];
@@ -18,7 +24,7 @@ class CartaoCreditoValidator
         // Nome do cartão obrigatório
         if (empty(trim((string) ($data['nome_cartao'] ?? '')))) {
             $this->errors['nome_cartao'] = 'Nome do cartão é obrigatório.';
-        } elseif (strlen(trim($data['nome_cartao'])) > 100) {
+        } elseif (strlen(trim((string) $data['nome_cartao'])) > 100) {
             $this->errors['nome_cartao'] = 'Nome do cartão não pode exceder 100 caracteres.';
         }
 
@@ -76,6 +82,9 @@ class CartaoCreditoValidator
         return empty($this->errors);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function validateUpdate(array $data): bool
     {
         $this->errors = [];
@@ -144,6 +153,9 @@ class CartaoCreditoValidator
         return empty($this->errors);
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function getErrors(): array
     {
         return $this->errors;
