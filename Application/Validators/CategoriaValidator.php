@@ -13,13 +13,16 @@ class CategoriaValidator
 {
     /**
      * Valida dados para criação de categoria.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
      */
     public static function validateCreate(array $data): array
     {
         $errors = [];
 
         // Validar nome
-        $nome = trim($data['nome'] ?? '');
+        $nome = trim((string) ($data['nome'] ?? ''));
         if (empty($nome)) {
             $errors['nome'] = 'O nome é obrigatório.';
         } elseif (mb_strlen($nome) > 100) {
@@ -27,7 +30,7 @@ class CategoriaValidator
         }
 
         // Validar tipo
-        $tipo = strtolower(trim($data['tipo'] ?? ''));
+        $tipo = strtolower(trim((string) ($data['tipo'] ?? '')));
         if (empty($tipo)) {
             $errors['tipo'] = 'O tipo é obrigatório.';
         } else {
@@ -39,7 +42,7 @@ class CategoriaValidator
         }
 
         // Validar ícone (opcional)
-        $icone = trim($data['icone'] ?? '');
+        $icone = trim((string) ($data['icone'] ?? ''));
         if (!empty($icone) && mb_strlen($icone) > 50) {
             $errors['icone'] = 'O ícone não pode ter mais de 50 caracteres.';
         }
@@ -50,13 +53,16 @@ class CategoriaValidator
     /**
      * Valida dados para atualização de categoria.
      * Apenas valida campos presentes no array (suporta atualizações parciais).
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
      */
     public static function validateUpdate(array $data): array
     {
         $errors = [];
 
         if (array_key_exists('nome', $data)) {
-            $nome = trim($data['nome'] ?? '');
+            $nome = trim((string) ($data['nome'] ?? ''));
             if (empty($nome)) {
                 $errors['nome'] = 'O nome é obrigatório.';
             } elseif (mb_strlen($nome) > 100) {
@@ -65,7 +71,7 @@ class CategoriaValidator
         }
 
         if (array_key_exists('tipo', $data)) {
-            $tipo = strtolower(trim($data['tipo'] ?? ''));
+            $tipo = strtolower(trim((string) ($data['tipo'] ?? '')));
             if (empty($tipo)) {
                 $errors['tipo'] = 'O tipo é obrigatório.';
             } else {
@@ -78,7 +84,7 @@ class CategoriaValidator
         }
 
         if (array_key_exists('icone', $data)) {
-            $icone = trim($data['icone'] ?? '');
+            $icone = trim((string) ($data['icone'] ?? ''));
             if (!empty($icone) && mb_strlen($icone) > 50) {
                 $errors['icone'] = 'O ícone não pode ter mais de 50 caracteres.';
             }

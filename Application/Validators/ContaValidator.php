@@ -13,13 +13,16 @@ class ContaValidator
 {
     /**
      * Valida dados para criação de conta.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
      */
     public static function validateCreate(array $data): array
     {
         $errors = [];
 
         // Validar nome
-        $nome = trim($data['nome'] ?? '');
+        $nome = trim((string) ($data['nome'] ?? ''));
         if (empty($nome)) {
             $errors['nome'] = 'O nome é obrigatório.';
         } elseif (mb_strlen($nome) > 100) {
@@ -27,7 +30,7 @@ class ContaValidator
         }
 
         // Validar moeda (opcional, padrão é BRL)
-        $moeda = strtoupper(trim($data['moeda'] ?? ''));
+        $moeda = strtoupper(trim((string) ($data['moeda'] ?? '')));
         if (!empty($moeda)) {
             try {
                 Moeda::from($moeda);
@@ -37,7 +40,7 @@ class ContaValidator
         }
 
         // Validar instituição (opcional)
-        $instituicao = trim($data['instituicao'] ?? '');
+        $instituicao = trim((string) ($data['instituicao'] ?? ''));
         if (!empty($instituicao) && mb_strlen($instituicao) > 100) {
             $errors['instituicao'] = 'A instituição não pode ter mais de 100 caracteres.';
         }
@@ -56,6 +59,9 @@ class ContaValidator
     /**
      * Valida dados para atualização de conta.
      * Campos são opcionais na atualização — valida apenas os que foram enviados.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
      */
     public static function validateUpdate(array $data): array
     {
@@ -63,7 +69,7 @@ class ContaValidator
 
         // Validar nome somente se enviado
         if (array_key_exists('nome', $data)) {
-            $nome = trim($data['nome'] ?? '');
+            $nome = trim((string) ($data['nome'] ?? ''));
             if (empty($nome)) {
                 $errors['nome'] = 'O nome é obrigatório.';
             } elseif (mb_strlen($nome) > 100) {
@@ -73,7 +79,7 @@ class ContaValidator
 
         // Validar moeda somente se enviada
         if (array_key_exists('moeda', $data) && !empty($data['moeda'])) {
-            $moeda = strtoupper(trim($data['moeda']));
+            $moeda = strtoupper(trim((string) $data['moeda']));
             try {
                 Moeda::from($moeda);
             } catch (\ValueError) {
@@ -83,7 +89,7 @@ class ContaValidator
 
         // Validar instituição somente se enviada
         if (array_key_exists('instituicao', $data)) {
-            $instituicao = trim($data['instituicao'] ?? '');
+            $instituicao = trim((string) ($data['instituicao'] ?? ''));
             if (!empty($instituicao) && mb_strlen($instituicao) > 100) {
                 $errors['instituicao'] = 'A instituição não pode ter mais de 100 caracteres.';
             }
