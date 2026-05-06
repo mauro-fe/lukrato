@@ -381,13 +381,14 @@ class PageCapabilityResolverTest extends TestCase
         $this->assertSame('relatorios', $resolved['pageKey']);
         $this->assertTrue($resolved['customizer']['renderOverlay']);
         $this->assertSame([
+            'toggleRelOverviewCharts' => 'relOverviewChartsRow',
             'toggleRelSectionInsights' => 'section-insights',
             'toggleRelSectionRelatorios' => 'section-relatorios',
             'toggleRelControls' => 'relControlsRow',
             'toggleRelSectionComparativos' => 'section-comparativos',
         ], $resolved['customizer']['descriptor']['sectionMap']);
         $this->assertSame('Ultra', $resolved['customizer']['descriptor']['lockedState']['tiers'][1]['name']);
-        $this->assertSame('Desbloquear relatórios completos', $resolved['customizer']['trigger']['label']);
+        $this->assertSame('Personalizar relatórios', $resolved['customizer']['trigger']['label']);
     }
 
     public function testResolveLancamentosIncludesSharedDescriptorAndLockedOverlayForFreeUsers(): void
@@ -409,13 +410,16 @@ class PageCapabilityResolverTest extends TestCase
         $filtered = PageCapabilityResolver::filterPreferences(
             'relatorios',
             [
+                'toggleRelOverviewCharts' => true,
                 'toggleRelControls' => false,
                 'toggleRelSectionInsights' => true,
             ],
             $this->makePlanContext(false, 'free')
         );
 
-        $this->assertSame([], $filtered);
+        $this->assertSame([
+            'toggleRelOverviewCharts' => true,
+        ], $filtered);
     }
 
     public function testFilterPreferencesKeepsRelatoriosTogglesForProUsers(): void
@@ -423,6 +427,7 @@ class PageCapabilityResolverTest extends TestCase
         $filtered = PageCapabilityResolver::filterPreferences(
             'relatorios',
             [
+                'toggleRelOverviewCharts' => true,
                 'toggleRelControls' => false,
                 'toggleRelSectionInsights' => true,
                 'toggleRelInventado' => true,
@@ -431,6 +436,7 @@ class PageCapabilityResolverTest extends TestCase
         );
 
         $this->assertSame([
+            'toggleRelOverviewCharts' => true,
             'toggleRelControls' => false,
             'toggleRelSectionInsights' => true,
         ], $filtered);

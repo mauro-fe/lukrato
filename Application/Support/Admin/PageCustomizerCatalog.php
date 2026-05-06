@@ -1235,6 +1235,17 @@ final class PageCustomizerCatalog
     {
         $items = [
             [
+                'id' => 'toggleRelOverviewCharts',
+                'sectionId' => 'relOverviewChartsRow',
+                'group' => 'essential',
+                'plan' => 'free',
+                'label' => 'Gráficos da visão geral',
+                'description' => 'Mantém a overview completa com os gráficos-resumo do período.',
+                'defaultEssential' => true,
+                'defaultComplete' => true,
+                'grid' => false,
+            ],
+            [
                 'id' => 'toggleRelSectionInsights',
                 'sectionId' => 'section-insights',
                 'group' => 'advanced',
@@ -1318,6 +1329,7 @@ final class PageCustomizerCatalog
             'gridToggleKeys' => self::gridToggleKeysFromItems($items),
             'groups' => self::groupItems(
                 [
+                    ['key' => 'essential', 'title' => 'Essencial'],
                     ['key' => 'advanced', 'title' => 'Completo'],
                 ],
                 $items

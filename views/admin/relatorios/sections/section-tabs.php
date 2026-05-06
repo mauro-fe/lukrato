@@ -11,16 +11,11 @@ $reportsCustomizerCapabilities = is_array($reportsPageCapabilities['customizer']
     ? $reportsPageCapabilities['customizer']
     : [];
 
-$reportsCanCustomize = (bool) ($reportsCustomizerCapabilities['canCustomize'] ?? false);
 $reportsForcedPreferences = is_array($reportsCustomizerCapabilities['forcedPreferences'] ?? null)
     ? $reportsCustomizerCapabilities['forcedPreferences']
     : [];
 
-$reportsIsVisible = static function (string $toggleKey, bool $default = true) use ($reportsCanCustomize, $reportsForcedPreferences): bool {
-    if ($reportsCanCustomize) {
-        return true;
-    }
-
+$reportsIsVisible = static function (string $toggleKey, bool $default = true) use ($reportsForcedPreferences): bool {
     if (array_key_exists($toggleKey, $reportsForcedPreferences)) {
         return (bool) $reportsForcedPreferences[$toggleKey];
     }

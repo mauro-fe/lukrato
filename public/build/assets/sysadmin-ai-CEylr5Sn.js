@@ -1,1 +1,0 @@
-function i(){return"api/v1/sysadmin/ai/health-proxy"}function a(){return"api/v1/sysadmin/ai/quota"}function s(){return"api/v1/sysadmin/ai/chat"}function n(){return"api/v1/sysadmin/ai/logs"}function o(){return`${n()}/summary`}function t(){return`${n()}/quality`}function e(){return`${n()}/cleanup`}export{i as a,a as b,o as c,e as d,n as e,t as f,s as r};

@@ -403,17 +403,20 @@ class BootstrapControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertSame('relatorios', $payload['data']['pageCapabilities']['pageKey']);
         $this->assertSame('essential', $payload['data']['pageCapabilities']['customizer']['mode']);
-        $this->assertFalse($payload['data']['pageCapabilities']['customizer']['canCustomize']);
+        $this->assertTrue($payload['data']['pageCapabilities']['customizer']['canCustomize']);
         $this->assertFalse($payload['data']['pageCapabilities']['customizer']['canAccessComplete']);
         $this->assertTrue($payload['data']['pageCapabilities']['customizer']['renderOverlay']);
-        $this->assertSame('Desbloquear relatórios completos', $payload['data']['pageCapabilities']['customizer']['trigger']['label']);
-        $this->assertSame('upgrade', $payload['data']['pageCapabilities']['customizer']['trigger']['action']);
-        $this->assertSame('pro', $payload['data']['pageCapabilities']['customizer']['trigger']['target']);
+        $this->assertSame('Personalizar relatórios', $payload['data']['pageCapabilities']['customizer']['trigger']['label']);
+        $this->assertSame('customize', $payload['data']['pageCapabilities']['customizer']['trigger']['action']);
+        $this->assertNull($payload['data']['pageCapabilities']['customizer']['trigger']['target']);
         $this->assertSame([
             'essential',
         ], $payload['data']['pageCapabilities']['customizer']['availablePresets']);
-        $this->assertSame([], $payload['data']['pageCapabilities']['customizer']['availableToggles']);
         $this->assertSame([
+            'toggleRelOverviewCharts',
+        ], $payload['data']['pageCapabilities']['customizer']['availableToggles']);
+        $this->assertSame([
+            'toggleRelOverviewCharts' => true,
             'toggleRelSectionInsights' => false,
             'toggleRelSectionRelatorios' => false,
             'toggleRelControls' => false,
