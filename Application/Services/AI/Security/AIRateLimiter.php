@@ -26,6 +26,9 @@ final class AIRateLimiter
         $this->cache = ApplicationContainer::resolveOrNew($cache, CacheService::class);
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public function allow(
         string $scope,
         string $bucket,

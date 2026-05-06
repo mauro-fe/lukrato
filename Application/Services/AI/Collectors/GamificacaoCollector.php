@@ -56,6 +56,9 @@ class GamificacaoCollector implements ContextCollectorInterface
         ];
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function pontosPorAcao(?int $userId): array
     {
         $query = PointsLog::select('action', DB::raw('COUNT(*) as qtd'), DB::raw('SUM(points) as total_pontos'));

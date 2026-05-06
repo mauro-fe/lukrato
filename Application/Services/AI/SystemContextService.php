@@ -67,6 +67,9 @@ class SystemContextService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function gather(?int $userId = null): array
     {
         $scope    = $userId ? "user:{$userId}" : 'admin';

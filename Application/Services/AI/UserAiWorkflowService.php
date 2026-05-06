@@ -204,6 +204,9 @@ class UserAiWorkflowService
             ->first();
     }
 
+    /**
+     * @param array<string, mixed> $input
+     */
     public function confirmPendingAction(PendingAiAction $pending, int $userId, array $input = []): AIResponseDTO
     {
         if ($pending->isExpired()) {

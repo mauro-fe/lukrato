@@ -22,6 +22,8 @@ class AdminContextBuilder
 
     /**
      * Coleta contexto completo de todas as métricas do sistema.
+     *
+     * @return array<string, mixed>
      */
     public function build(): array
     {
