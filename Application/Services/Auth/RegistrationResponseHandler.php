@@ -22,6 +22,8 @@ class RegistrationResponseHandler
 
     /**
      * Responde sucesso de registro
+     *
+     * @param array<string, mixed> $result
      */
     public function success(array $result, bool $isGoogleRegistration = false): Response
     {
@@ -29,13 +31,18 @@ class RegistrationResponseHandler
         $redirect = $isGoogleRegistration ? 'dashboard' : 'login';
 
         // Para registro normal, menciona a verificação de email
-        $message = $isGoogleRegistration
+        $defaultMessage = 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.';
+        $messageValue = $isGoogleRegistration
             ? 'Conta criada com Google e login realizado com sucesso!'
-            : ($result['message'] ?? 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.');
+            : ($result['message'] ?? $defaultMessage);
+        $message = is_scalar($messageValue) ? (string) $messageValue : $defaultMessage;
+
+        $redirectValue = $result['redirect'] ?? $redirect;
+        $responseRedirect = is_scalar($redirectValue) ? (string) $redirectValue : $redirect;
 
         if ($isAjax) {
             return Response::successResponse([
-                'redirect' => $result['redirect'] ?? $redirect,
+                'redirect' => $responseRedirect,
                 'requires_verification' => !$isGoogleRegistration,
             ], $message, 201);
         }
@@ -51,11 +58,14 @@ class RegistrationResponseHandler
 
     /**
      * Responde erro de validação
+     *
+     * @param array<string, mixed> $errors
      */
     public function validationError(array $errors, string $defaultMessage = 'Corrija os dados do cadastro e tente novamente.'): Response
     {
         $isAjax = $this->request->isAjax();
-        $message = $errors['email'] ?? $defaultMessage;
+        $messageValue = $errors['email'] ?? $defaultMessage;
+        $message = is_scalar($messageValue) ? (string) $messageValue : $defaultMessage;
         $code = $this->resolveValidationErrorCode($errors, $message);
 
         if ($isAjax) {
@@ -88,6 +98,9 @@ class RegistrationResponseHandler
         return Response::redirectResponse(BASE_URL . 'login');
     }
 
+    /**
+     * @param array<string, mixed> $errors
+     */
     private function resolveValidationErrorCode(array $errors, string $message): ?string
     {
         $emailError = $errors['email'] ?? $message;
