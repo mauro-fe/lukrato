@@ -194,18 +194,52 @@ export function createSectionHandlers({ API }) {
         const insightsEl = document.getElementById('overviewInsights');
         const catChartEl = document.getElementById('overviewCategoryChart');
         const compChartEl = document.getElementById('overviewComparisonChart');
+        const overviewChartsRow = document.getElementById('relOverviewChartsRow');
+        const overviewEssentialComparatives = document.getElementById('overviewEssentialComparatives');
+        const canLoadOverviewCharts = overviewChartsRow instanceof HTMLElement
+            && overviewChartsRow.style.display !== 'none';
+        const canLoadOverviewComparatives = overviewEssentialComparatives instanceof HTMLElement;
 
         destroyOverviewCharts();
 
-        const [insightsData, categoryData, comparisonData] = await Promise.all([
-            API.fetchInsightsTeaser(),
-            API.fetchReportDataForType('despesas_por_categoria', { accountId: null }),
-            API.fetchReportDataForType('receitas_despesas_diario', { accountId: null }),
-        ]);
+        const insightsData = await API.fetchInsightsTeaser();
 
         renderOverviewInsights(insightsEl, insightsData);
-        renderOverviewCategoryChart(catChartEl, categoryData);
-        renderOverviewComparisonChart(compChartEl, comparisonData);
+
+        if (overviewEssentialComparatives) {
+            overviewEssentialComparatives.innerHTML = '';
+        }
+
+        if (!canLoadOverviewCharts) {
+            if (catChartEl) {
+                catChartEl.innerHTML = '';
+            }
+
+            if (compChartEl) {
+                compChartEl.innerHTML = '';
+            }
+        }
+
+        const [categoryData, comparisonData, comparativesData] = await Promise.all([
+            canLoadOverviewCharts
+                ? API.fetchReportDataForType('despesas_por_categoria', { accountId: null })
+                : Promise.resolve(null),
+            canLoadOverviewCharts
+                ? API.fetchReportDataForType('receitas_despesas_diario', { accountId: null })
+                : Promise.resolve(null),
+            canLoadOverviewComparatives ? API.fetchComparatives() : Promise.resolve(null),
+        ]);
+
+        if (canLoadOverviewCharts) {
+            renderOverviewCategoryChart(catChartEl, categoryData);
+            renderOverviewComparisonChart(compChartEl, comparisonData);
+        }
+
+        if (canLoadOverviewComparatives && overviewEssentialComparatives) {
+            overviewEssentialComparatives.innerHTML =
+                renderCategoryComparison(comparativesData?.categories || [])
+                + renderFormasPagamento(comparativesData?.formasPagamento || []);
+        }
 
         if (window.lucide) lucide.createIcons();
     }
@@ -248,8 +282,8 @@ export function createSectionHandlers({ API }) {
         if (!window.IS_PRO && data.isTeaser) {
             const remaining = Math.max(0, (data.totalCount || 0) - data.insights.length);
             const remainingLabel = remaining > 0
-                ? `Desbloqueie mais ${remaining} insights com PRO`
-                : 'Desbloqueie todos os insights com PRO';
+                ? `Mais ${remaining} insights no Pro`
+                : 'Todos os insights no Pro';
 
             insightsContainer.insertAdjacentHTML(
                 'beforeend',
@@ -259,10 +293,7 @@ export function createSectionHandlers({ API }) {
                     <div class="teaser-cta">
                         <i data-lucide="crown"></i>
                         <h4>${remainingLabel}</h4>
-                        <p>Tenha uma visão completa da sua saúde financeira com análises detalhadas.</p>
-                        <a href="${CONFIG.BASE_URL}billing" class="btn-upgrade-cta surface-button surface-button--upgrade">
-                            <i data-lucide="crown"></i> Fazer Upgrade
-                        </a>
+                        <p>Abra a personalização da página para ver os planos e liberar a análise completa.</p>
                     </div>
                 </div>
             `,
@@ -284,11 +315,9 @@ export function createSectionHandlers({ API }) {
 
         const monthlyHTML = renderComparative('Comparativo Mensal', data.monthly, 'mês anterior', 'monthly');
         const yearlyHTML = renderComparative('Comparativo Anual', data.yearly, 'ano anterior', 'annual');
-        const categoriesHTML = renderCategoryComparison(data.categories || []);
         const evolucaoHTML = renderEvolucao(data.evolucao || []);
         const mediaDiariaHTML = renderMediaDiaria(data.mediaDiaria);
         const taxaEconomiaHTML = renderTaxaEconomia(data.taxaEconomia);
-        const formasHTML = renderFormasPagamento(data.formasPagamento || []);
 
         comparativesContainer.innerHTML =
             `<div class="comp-top-row">${monthlyHTML}${yearlyHTML}</div>` +
@@ -299,13 +328,15 @@ export function createSectionHandlers({ API }) {
                 </div>
                 <div class="comp-duo-grid">${mediaDiariaHTML}${taxaEconomiaHTML}</div>
             </section>` +
-            `<section class="comparatives-subsection comparatives-subsection--analysis">
-                <div class="comparatives-subsection-header">
-                    <span class="comparatives-subsection-kicker">Leituras complementares</span>
-                    <h4>Entenda onde a diferença apareceu</h4>
-                </div>
-                <div class="comparatives-support-stack">${categoriesHTML}${evolucaoHTML}${formasHTML}</div>
-            </section>`;
+            (evolucaoHTML
+                ? `<section class="comparatives-subsection comparatives-subsection--analysis">
+                    <div class="comparatives-subsection-header">
+                        <span class="comparatives-subsection-kicker">Ritmo recente</span>
+                        <h4>Evolução do saldo nos últimos meses</h4>
+                    </div>
+                    <div class="comparatives-support-stack">${evolucaoHTML}</div>
+                </section>`
+                : '');
 
         if (window.lucide) lucide.createIcons();
         renderEvolucaoChart(data.evolucao || []);

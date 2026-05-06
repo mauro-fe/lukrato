@@ -1,7 +1,7 @@
 <!-- ============================================================
          HERO - Visão geral (estilo dashboard-hero)
          ============================================================ -->
-<section class="fat-hero surface-card surface-card--interactive" id="faturasHero">
+<section class="fat-hero surface-card surface-card--interactive" id="faturasHero" <?= !$showFaturasHero ? ' style="display:none;"' : '' ?>>
     <div class="fat-hero__content">
         <span class="fat-hero__eyebrow">Faturas de cartão</span>
         <h1 class="fat-hero__title">Suas faturas</h1>

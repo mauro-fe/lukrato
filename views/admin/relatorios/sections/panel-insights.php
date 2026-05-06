@@ -9,9 +9,6 @@
                         <p>Análise automática dos seus dados financeiros</p>
                     </div>
                 </div>
-                <?php if (!$isPro): ?>
-                    <span class="pro-badge"><i data-lucide="crown"></i> PRO</span>
-                <?php endif; ?>
             </div>
             <div class="card-body">
                 <div id="insightsContainer" class="insights-grid">

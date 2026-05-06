@@ -31,7 +31,7 @@
 
                     <button class="cat-customize-open surface-card" id="btnCustomizeCategorias" type="button">
                         <i data-lucide="sliders-horizontal"></i>
-                        <span>Personalizar</span>
+                        <span><?= escape($categoriasTriggerLabel) ?></span>
                     </button>
                 </div>
             </div>

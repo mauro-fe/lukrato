@@ -10,6 +10,9 @@ use Application\Services\Http\ConfiguredHttpClient;
 
 class AsaasHttpClient extends ConfiguredHttpClient
 {
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(array $config = [])
     {
         $runtimeConfig = ApplicationContainer::resolveOrNew(null, AsaasRuntimeConfig::class);

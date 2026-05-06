@@ -1,4 +1,6 @@
-<section class="lk-filters-section collapsed surface-card" id="lanFiltersSection" data-aos="fade-up"
+<?php $showLanFilters = isset($showLanFilters) ? (bool) $showLanFilters : true; ?>
+
+<section class="lk-filters-section collapsed surface-card" id="lanFiltersSection" <?= !$showLanFilters ? ' style="display:none;"' : '' ?> data-aos="fade-up"
     data-aos-delay="200" aria-label="Filtros de lancamentos">
     <div class="lk-filters-header">
         <div class="lk-filters-title-group">

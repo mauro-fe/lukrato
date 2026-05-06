@@ -20,8 +20,40 @@ import {
     syncPickerMode,
 } from './app.js';
 
+function resolveReportsCustomizerCapabilities() {
+    const runtimeConfig = getRuntimeConfig();
+
+    return runtimeConfig?.pageCapabilities?.pageKey === 'relatorios'
+        && runtimeConfig?.pageCapabilities?.customizer
+        && typeof runtimeConfig.pageCapabilities.customizer === 'object'
+        ? runtimeConfig.pageCapabilities.customizer
+        : null;
+}
+
+function isSectionTabVisible(section) {
+    const tab = document.querySelector(`.rel-section-tab[data-section="${section}"]`);
+
+    return tab instanceof HTMLElement && !tab.hidden && tab.style.display !== 'none';
+}
+
+function resolveFallbackSection() {
+    const fallbackTab = Array.from(document.querySelectorAll('.rel-section-tab'))
+        .find((tab) => tab instanceof HTMLElement && !tab.hidden && tab.style.display !== 'none');
+
+    return fallbackTab instanceof HTMLElement && fallbackTab.dataset.section
+        ? fallbackTab.dataset.section
+        : 'overview';
+}
+
 function syncReportsProFlag() {
-    window.IS_PRO = getRuntimeConfig().isPro === true;
+    const runtimeConfig = getRuntimeConfig();
+    const reportsCustomizerCapabilities = resolveReportsCustomizerCapabilities();
+
+    window.IS_PRO = runtimeConfig.isPro === true;
+    window.IS_ULTRA = runtimeConfig.isUltra === true;
+    window.REPORTS_CUSTOMIZER_CAPABILITIES = reportsCustomizerCapabilities;
+    window.REPORTS_CAN_ACCESS_COMPLETE = reportsCustomizerCapabilities?.canAccessComplete === true;
+
     return window.IS_PRO;
 }
 
@@ -52,6 +84,16 @@ function restoreSavedPreferences() {
 
 function setupSectionTabs() {
     const switchSection = (section) => {
+        if (!isSectionTabVisible(section)) {
+            const fallbackSection = resolveFallbackSection();
+
+            if (fallbackSection !== section) {
+                switchSection(fallbackSection);
+            }
+
+            return;
+        }
+
         STATE.activeSection = section;
 
         document.querySelectorAll('.rel-section-tab').forEach((tab) => {
@@ -80,7 +122,7 @@ function setupSectionTabs() {
         window.lucide?.createIcons?.();
     };
 
-    const proLockedSections = ['comparativos'];
+    const proLockedSections = window.REPORTS_CAN_ACCESS_COMPLETE ? [] : ['relatorios', 'comparativos'];
 
     document.querySelectorAll('.rel-section-tab').forEach((tab) => {
         tab.addEventListener('click', () => {
@@ -90,21 +132,21 @@ function setupSectionTabs() {
                 if (window.PlanLimits?.promptUpgrade) {
                     window.PlanLimits.promptUpgrade({
                         context: 'relatorios',
-                        message: 'Esta funcionalidade e exclusiva do plano Pro.',
+                        message: 'Esta funcionalidade é liberada a partir do plano Pro.',
                     }).catch(() => { });
                 } else if (window.LKFeedback?.upgradePrompt) {
                     window.LKFeedback.upgradePrompt({
                         context: 'relatorios',
-                        message: 'Esta funcionalidade e exclusiva do plano Pro.',
+                        message: 'Esta funcionalidade é liberada a partir do plano Pro.',
                     }).catch(() => { });
                 } else {
                     Swal.fire({
                         icon: 'info',
-                        title: 'Recurso Premium',
-                        html: 'Esta funcionalidade e exclusiva do <b>plano Pro</b>.<br>Faca upgrade para desbloquear!',
-                        confirmButtonText: '<i class="lucide-crown" style="margin-right:6px"></i> Fazer Upgrade',
+                        title: 'Recurso avançado',
+                        html: 'Esta funcionalidade fica disponível a partir do <b>plano Pro</b>.<br>Veja os planos para desbloquear.',
+                        confirmButtonText: '<i class="lucide-crown" style="margin-right:6px"></i> Ver planos',
                         showCancelButton: true,
-                        cancelButtonText: 'Agora nao',
+                        cancelButtonText: 'Agora não',
                         confirmButtonColor: '#f59e0b',
                         cancelButtonColor: '#64748b',
                     }).then((result) => {
@@ -121,16 +163,16 @@ function setupSectionTabs() {
     });
 
     const savedSection = localStorage.getItem(STORAGE_KEYS.ACTIVE_SECTION);
-    if (savedSection && document.getElementById(`section-${savedSection}`)) {
+    if (savedSection && document.getElementById(`section-${savedSection}`) && isSectionTabVisible(savedSection)) {
         if (!window.IS_PRO && proLockedSections.includes(savedSection)) {
-            switchSection('overview');
+            switchSection(resolveFallbackSection());
         } else {
             switchSection(savedSection);
         }
         return;
     }
 
-    switchSection('overview');
+    switchSection(resolveFallbackSection());
 }
 
 function setupFilters(reportType, accountSelect) {

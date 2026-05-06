@@ -6,22 +6,12 @@
 import { Modules } from './state.js';
 import { createPageCustomizer } from '../shared/page-customizer.js';
 import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-preferences.js';
+import { ensureRuntimeConfig, getRuntimeConfig } from '../global/runtime-config.js';
 
-/** Map: checkbox ID -> section ID */
-const SECTION_MAP = {
-    toggleLanExport: 'exportCard',
-    toggleLanFilters: 'lanFiltersSection'
-};
-
-const COMPLETE_DEFAULTS = {
-    toggleLanExport: true,
-    toggleLanFilters: true
-};
-
-const ESSENTIAL_DEFAULTS = {
-    ...COMPLETE_DEFAULTS,
-    toggleLanExport: false
-};
+let lancamentosCustomizer = null;
+let lancamentosCustomizerInitialized = false;
+let lancamentosCustomizerInitPromise = null;
+let lancamentosCompleteDefaults = {};
 
 async function loadLancamentosPrefs() {
     return fetchUiPagePreferences('lancamentos');
@@ -44,7 +34,58 @@ function syncVisibleChildren(container) {
     return visibleCount;
 }
 
-function syncLancamentosLayout() {
+function resolveLancamentosCustomizerConfig() {
+    const runtimeConfig = getRuntimeConfig();
+    const lancamentosCustomizerCapabilities = runtimeConfig?.pageCapabilities?.pageKey === 'lancamentos'
+        && runtimeConfig?.pageCapabilities?.customizer
+        && typeof runtimeConfig.pageCapabilities.customizer === 'object'
+        ? runtimeConfig.pageCapabilities.customizer
+        : null;
+
+    const lancamentosCustomizerDescriptor = lancamentosCustomizerCapabilities?.descriptor
+        && typeof lancamentosCustomizerCapabilities.descriptor === 'object'
+        ? lancamentosCustomizerCapabilities.descriptor
+        : null;
+
+    const sectionMap = lancamentosCustomizerDescriptor?.sectionMap
+        && typeof lancamentosCustomizerDescriptor.sectionMap === 'object'
+        ? lancamentosCustomizerDescriptor.sectionMap
+        : {};
+
+    const completeDefaults = lancamentosCustomizerCapabilities?.completePreferences
+        && typeof lancamentosCustomizerCapabilities.completePreferences === 'object'
+        ? lancamentosCustomizerCapabilities.completePreferences
+        : {};
+
+    const essentialDefaults = lancamentosCustomizerCapabilities?.essentialPreferences
+        && typeof lancamentosCustomizerCapabilities.essentialPreferences === 'object'
+        ? lancamentosCustomizerCapabilities.essentialPreferences
+        : {};
+
+    const modalConfig = lancamentosCustomizerDescriptor?.ids
+        && typeof lancamentosCustomizerDescriptor.ids === 'object'
+        ? {
+            overlayId: lancamentosCustomizerDescriptor.ids.overlay,
+            openButtonId: lancamentosCustomizerDescriptor.trigger?.id || 'btnCustomizeLancamentos',
+            closeButtonId: lancamentosCustomizerDescriptor.ids.close,
+            saveButtonId: lancamentosCustomizerDescriptor.ids.save,
+            presetEssentialButtonId: lancamentosCustomizerDescriptor.ids.presetEssential,
+            presetCompleteButtonId: lancamentosCustomizerDescriptor.ids.presetComplete,
+        }
+        : undefined;
+
+    lancamentosCompleteDefaults = completeDefaults;
+
+    return {
+        capabilities: lancamentosCustomizerCapabilities,
+        sectionMap,
+        completeDefaults,
+        essentialDefaults,
+        modalConfig,
+    };
+}
+
+function syncLancamentosLayout(prefs = lancamentosCompleteDefaults) {
     const overviewStage = document.querySelector('.lan-stage--overview');
     const overviewBottom = document.querySelector('.lan-overview-bottom');
     const bottomCount = syncVisibleChildren(overviewBottom);
@@ -56,30 +97,79 @@ function syncLancamentosLayout() {
     }
 }
 
-const lancamentosCustomizer = createPageCustomizer({
-    storageKey: 'lk_lancamentos_prefs',
-    sectionMap: SECTION_MAP,
-    completeDefaults: COMPLETE_DEFAULTS,
-    essentialDefaults: ESSENTIAL_DEFAULTS,
-    loadPreferences: loadLancamentosPrefs,
-    savePreferences: saveLancamentosPrefs,
-    onApply: syncLancamentosLayout,
-    modal: {
-        overlayId: 'lanCustomizeModalOverlay',
-        openButtonId: 'btnCustomizeLancamentos',
-        closeButtonId: 'btnCloseCustomizeLancamentos',
-        saveButtonId: 'btnSaveCustomizeLancamentos',
-        presetEssentialButtonId: 'btnPresetEssencialLancamentos',
-        presetCompleteButtonId: 'btnPresetCompletoLancamentos'
+function getOrCreateLancamentosCustomizer() {
+    const resolved = resolveLancamentosCustomizerConfig();
+
+    if (lancamentosCustomizer || Object.keys(resolved.sectionMap).length === 0) {
+        return {
+            customizer: lancamentosCustomizer,
+            resolved,
+        };
     }
-});
+
+    lancamentosCustomizer = createPageCustomizer({
+        storageKey: 'lk_lancamentos_prefs',
+        sectionMap: resolved.sectionMap,
+        completeDefaults: resolved.completeDefaults,
+        essentialDefaults: resolved.essentialDefaults,
+        capabilities: resolved.capabilities,
+        loadPreferences: loadLancamentosPrefs,
+        savePreferences: saveLancamentosPrefs,
+        onApply: syncLancamentosLayout,
+        modal: resolved.modalConfig,
+    });
+
+    return {
+        customizer: lancamentosCustomizer,
+        resolved,
+    };
+}
 
 export function initCustomize() {
-    lancamentosCustomizer.init();
+    const initialize = () => {
+        const { customizer, resolved } = getOrCreateLancamentosCustomizer();
+
+        if (!customizer) {
+            syncLancamentosLayout(resolved.essentialDefaults);
+            return false;
+        }
+
+        if (!lancamentosCustomizerInitialized) {
+            customizer.init();
+            lancamentosCustomizerInitialized = true;
+        }
+
+        return true;
+    };
+
+    if (initialize()) {
+        return;
+    }
+
+    if (!lancamentosCustomizerInitPromise) {
+        lancamentosCustomizerInitPromise = ensureRuntimeConfig({}, { silent: true }).finally(() => {
+            lancamentosCustomizerInitPromise = null;
+            initialize();
+        });
+    }
 }
 
 Modules.Customize = {
     init: initCustomize,
-    open: lancamentosCustomizer.open,
-    close: lancamentosCustomizer.close
+    open: () => {
+        const { customizer } = getOrCreateLancamentosCustomizer();
+        if (customizer?.open) {
+            customizer.open();
+            return;
+        }
+
+        void ensureRuntimeConfig({}, { silent: true }).finally(() => {
+            const { customizer: nextCustomizer } = getOrCreateLancamentosCustomizer();
+            nextCustomizer?.open?.();
+        });
+    },
+    close: () => {
+        const { customizer } = getOrCreateLancamentosCustomizer();
+        customizer?.close?.();
+    }
 };

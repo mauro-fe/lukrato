@@ -16,7 +16,6 @@
     <?php include __DIR__ . '/sections/panel-plano.php'; ?>
     <?php include __DIR__ . '/sections/panel-integracoes.php'; ?>
     <?php include __DIR__ . '/sections/panel-perigo.php'; ?>
-    <?php include __DIR__ . '/sections/customize-modal.php'; ?>
 </div>
 
 <!-- JS carregado via Vite (loadPageJs) -->

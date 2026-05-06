@@ -1,1 +1,0 @@
-function r(){return"api/v1/reports"}function t(){return"api/v1/reports/insights"}function n(){return"api/v1/reports/insights-teaser"}function e(){return"api/v1/reports/comparatives"}function a(r){return`api/v1/reports/card-details/${t=r,encodeURIComponent(String(t))}`;var t}function i(){return"api/v1/reports/export"}export{e as a,n as b,t as c,r as d,a as e,i as r};

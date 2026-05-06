@@ -5,26 +5,12 @@
 
 import { createPageCustomizer } from '../shared/page-customizer.js';
 import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-preferences.js';
+import { ensureRuntimeConfig, getRuntimeConfig } from '../global/runtime-config.js';
 import { Modules } from './state.js';
 
-/** Map: checkbox ID -> section ID */
-const SECTION_MAP = {
-    toggleFaturasHero: 'faturasHero',
-    toggleFaturasFiltros: 'faturasFilters',
-    toggleFaturasViewToggle: 'faturasViewToggle'
-};
-
-const COMPLETE_DEFAULTS = {
-    toggleFaturasHero: true,
-    toggleFaturasFiltros: true,
-    toggleFaturasViewToggle: true
-};
-
-const ESSENTIAL_DEFAULTS = {
-    ...COMPLETE_DEFAULTS,
-    toggleFaturasFiltros: false,
-    toggleFaturasViewToggle: false
-};
+let faturasCustomizer = null;
+let faturasCustomizerInitialized = false;
+let faturasCustomizerInitPromise = null;
 
 async function loadFaturasPrefs() {
     return fetchUiPagePreferences('faturas');
@@ -34,30 +20,127 @@ async function saveFaturasPrefs(prefs) {
     await persistUiPagePreferences('faturas', prefs);
 }
 
-const faturasCustomizer = createPageCustomizer({
-    storageKey: 'lk_faturas_prefs',
-    sectionMap: SECTION_MAP,
-    completeDefaults: COMPLETE_DEFAULTS,
-    essentialDefaults: ESSENTIAL_DEFAULTS,
-    loadPreferences: loadFaturasPrefs,
-    savePreferences: saveFaturasPrefs,
-    modal: {
-        overlayId: 'faturasCustomizeModalOverlay',
-        openButtonId: 'btnCustomizeFaturas',
-        closeButtonId: 'btnCloseCustomizeFaturas',
-        saveButtonId: 'btnSaveCustomizeFaturas',
-        presetEssentialButtonId: 'btnPresetEssencialFaturas',
-        presetCompleteButtonId: 'btnPresetCompletoFaturas'
+function resolveFaturasCustomizerConfig() {
+    const runtimeConfig = getRuntimeConfig();
+    const faturasCustomizerCapabilities = runtimeConfig?.pageCapabilities?.pageKey === 'faturas'
+        && runtimeConfig?.pageCapabilities?.customizer
+        && typeof runtimeConfig.pageCapabilities.customizer === 'object'
+        ? runtimeConfig.pageCapabilities.customizer
+        : null;
+
+    const faturasCustomizerDescriptor = faturasCustomizerCapabilities?.descriptor
+        && typeof faturasCustomizerCapabilities.descriptor === 'object'
+        ? faturasCustomizerCapabilities.descriptor
+        : null;
+
+    const sectionMap = faturasCustomizerDescriptor?.sectionMap
+        && typeof faturasCustomizerDescriptor.sectionMap === 'object'
+        ? faturasCustomizerDescriptor.sectionMap
+        : {};
+
+    const completeDefaults = faturasCustomizerCapabilities?.completePreferences
+        && typeof faturasCustomizerCapabilities.completePreferences === 'object'
+        ? faturasCustomizerCapabilities.completePreferences
+        : {};
+
+    const essentialDefaults = faturasCustomizerCapabilities?.essentialPreferences
+        && typeof faturasCustomizerCapabilities.essentialPreferences === 'object'
+        ? faturasCustomizerCapabilities.essentialPreferences
+        : {};
+
+    const modalConfig = faturasCustomizerDescriptor?.ids
+        && typeof faturasCustomizerDescriptor.ids === 'object'
+        ? {
+            overlayId: faturasCustomizerDescriptor.ids.overlay,
+            openButtonId: faturasCustomizerDescriptor.trigger?.id || 'btnCustomizeFaturas',
+            closeButtonId: faturasCustomizerDescriptor.ids.close,
+            saveButtonId: faturasCustomizerDescriptor.ids.save,
+            presetEssentialButtonId: faturasCustomizerDescriptor.ids.presetEssential,
+            presetCompleteButtonId: faturasCustomizerDescriptor.ids.presetComplete,
+        }
+        : undefined;
+
+    return {
+        capabilities: faturasCustomizerCapabilities,
+        sectionMap,
+        completeDefaults,
+        essentialDefaults,
+        modalConfig,
+    };
+}
+
+function getOrCreateFaturasCustomizer() {
+    const resolved = resolveFaturasCustomizerConfig();
+
+    if (faturasCustomizer || Object.keys(resolved.sectionMap).length === 0) {
+        return {
+            customizer: faturasCustomizer,
+            resolved,
+        };
     }
-});
+
+    faturasCustomizer = createPageCustomizer({
+        storageKey: 'lk_faturas_prefs',
+        sectionMap: resolved.sectionMap,
+        completeDefaults: resolved.completeDefaults,
+        essentialDefaults: resolved.essentialDefaults,
+        capabilities: resolved.capabilities,
+        loadPreferences: loadFaturasPrefs,
+        savePreferences: saveFaturasPrefs,
+        modal: resolved.modalConfig,
+    });
+
+    return {
+        customizer: faturasCustomizer,
+        resolved,
+    };
+}
 
 export function initCustomize() {
-    faturasCustomizer.init();
+    const initialize = () => {
+        const { customizer } = getOrCreateFaturasCustomizer();
+
+        if (!customizer) {
+            return false;
+        }
+
+        if (!faturasCustomizerInitialized) {
+            customizer.init();
+            faturasCustomizerInitialized = true;
+        }
+
+        return true;
+    };
+
+    if (initialize()) {
+        return;
+    }
+
+    if (!faturasCustomizerInitPromise) {
+        faturasCustomizerInitPromise = ensureRuntimeConfig({}, { silent: true }).finally(() => {
+            faturasCustomizerInitPromise = null;
+            initialize();
+        });
+    }
 }
 
 Modules.Customize = {
     init: initCustomize,
-    open: faturasCustomizer.open,
-    close: faturasCustomizer.close
+    open: () => {
+        const { customizer } = getOrCreateFaturasCustomizer();
+        if (customizer?.open) {
+            customizer.open();
+            return;
+        }
+
+        void ensureRuntimeConfig({}, { silent: true }).finally(() => {
+            const { customizer: nextCustomizer } = getOrCreateFaturasCustomizer();
+            nextCustomizer?.open?.();
+        });
+    },
+    close: () => {
+        const { customizer } = getOrCreateFaturasCustomizer();
+        customizer?.close?.();
+    }
 };
 

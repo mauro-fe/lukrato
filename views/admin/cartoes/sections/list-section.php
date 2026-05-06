@@ -1,3 +1,5 @@
+<?php $showCartoesToolbar = isset($showCartoesToolbar) ? (bool) $showCartoesToolbar : true; ?>
+
 <!-- ============================================================
          LISTA DE CARTÕES — Seção principal
          ============================================================ -->
@@ -53,7 +55,7 @@
     </div>
 
     <!-- Toolbar — Busca + Filtro por bandeira -->
-    <div class="cartoes-toolbar" id="cartoesToolbar" aria-label="Filtros e ações da página de cartões">
+    <div class="cartoes-toolbar" id="cartoesToolbar" <?= !$showCartoesToolbar ? ' style="display:none;"' : '' ?> aria-label="Filtros e ações da página de cartões">
         <div class="cart-search-wrapper">
             <i data-lucide="search" class="cart-search-icon"></i>
             <input type="text" id="searchCartoes" class="cart-search-input" placeholder="Buscar por nome ou final..."

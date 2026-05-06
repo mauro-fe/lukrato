@@ -585,7 +585,7 @@ class PreferenciasUsuarioUseCase
         return PageCapabilityResolver::filterPreferences(
             $pageKey,
             $preferences,
-            method_exists($user, 'plan') ? $user->plan() : null
+            $user->plan()
         );
     }
 
@@ -602,7 +602,7 @@ class PreferenciasUsuarioUseCase
         $preferences = PageCapabilityResolver::filterPreferences(
             $pageKey,
             $preferences,
-            method_exists($user, 'plan') ? $user->plan() : null
+            $user->plan()
         );
 
         if ($preferences === []) {

@@ -1,5 +1,5 @@
 <!-- ==================== CARDS RESUMO ==================== -->
-<div class="orc-summary-grid" id="summaryOrcamentos" data-aos="fade-up">
+<div class="orc-summary-grid" id="summaryOrcamentos" data-aos="fade-up" <?= !$showOrcSummary ? ' style="display:none;"' : '' ?>>
     <div class="orc-summary-card surface-card surface-card--interactive">
         <div class="orc-summary-card__icon orc-summary-card__icon--blue">
             <i data-lucide="wallet"></i>

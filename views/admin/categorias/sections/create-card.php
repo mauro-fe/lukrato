@@ -1,5 +1,5 @@
 <!-- ==================== CARD DE NOVA CATEGORIA ==================== -->
-<div class="create-card-wrapper" id="categoriasCreateCard">
+<div class="create-card-wrapper" id="categoriasCreateCard" <?= !$showCategoriasCreateCard ? ' style="display:none;"' : '' ?>>
     <div class="modern-card create-card surface-card surface-card--interactive surface-card--clip">
         <div class="create-card-content">
             <!-- Lado esquerdo: ícone preview -->

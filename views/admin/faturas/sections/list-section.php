@@ -17,7 +17,7 @@
 
         <div class="fat-list-controls">
             <span class="fat-list-controls__label">Modo de visualização</span>
-            <div class="view-toggle" id="faturasViewToggle" role="group"
+            <div class="view-toggle" id="faturasViewToggle" role="group" <?= !$showFaturasViewToggle ? ' style="display:none;"' : '' ?>
                 aria-label="Escolha a visualização das faturas">
                 <button class="view-btn active" data-view="grid" type="button" aria-pressed="true"
                     title="Visualização em cards">
@@ -72,7 +72,7 @@
         </div>
         <button class="fat-customize-open" id="btnCustomizeFaturas" type="button">
             <i data-lucide="sliders-horizontal"></i>
-            <span>Personalizar tela</span>
+            <span><?= escape($faturasTriggerLabel) ?></span>
         </button>
     </div>
 </section>

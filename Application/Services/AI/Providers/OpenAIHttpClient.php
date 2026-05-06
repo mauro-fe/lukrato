@@ -8,6 +8,9 @@ use Application\Services\Http\ConfiguredHttpClient;
 
 class OpenAIHttpClient extends ConfiguredHttpClient
 {
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(array $config = [])
     {
         parent::__construct($config + [

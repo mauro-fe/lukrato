@@ -1,6 +1,11 @@
 <!-- ============================================================
          CONTAS — Lista principal
          ============================================================ -->
+<?php
+$contasTriggerLabel = isset($contasTriggerLabel) ? (string) $contasTriggerLabel : 'Personalizar contas';
+$contasTriggerAction = isset($contasTriggerAction) ? (string) $contasTriggerAction : 'customize';
+?>
+
 <section class="cont-list-section surface-card">
     <div class="cont-list-header">
         <div class="cont-list-heading">
@@ -80,8 +85,9 @@
 
     <div class="cont-list-footer">
         <button class="btn btn-ghost cont-list-customize-btn" id="btnCustomizeContas" type="button"
-            aria-label="Personalizar tela de contas">
-            <i data-lucide="sliders-horizontal"></i> Personalizar tela
+            data-contas-customize-action="<?= htmlspecialchars($contasTriggerAction, ENT_QUOTES, 'UTF-8') ?>"
+            aria-label="<?= htmlspecialchars($contasTriggerLabel, ENT_QUOTES, 'UTF-8') ?>">
+            <i data-lucide="sliders-horizontal"></i> <?= htmlspecialchars($contasTriggerLabel, ENT_QUOTES, 'UTF-8') ?>
         </button>
     </div>
 

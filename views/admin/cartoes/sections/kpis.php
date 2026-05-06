@@ -1,7 +1,9 @@
+<?php $showCartoesKpis = isset($showCartoesKpis) ? (bool) $showCartoesKpis : true; ?>
+
 <!-- ============================================================
          KPIs — 4 indicadores (estilo dash-kpis)
          ============================================================ -->
-<section class="cart-kpis" id="cartoesKpis">
+<section class="cart-kpis" id="cartoesKpis" <?= !$showCartoesKpis ? ' style="display:none;"' : '' ?>>
     <article class="stat-card surface-card surface-card--interactive" data-stat="limite">
         <div class="stat-card__summary">
             <span class="stat-summary__eyebrow">Visão consolidada</span>

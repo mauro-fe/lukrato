@@ -1,5 +1,5 @@
 <!-- ==================== KPI CARDS (estilo dashboard) ==================== -->
-<div class="cat-kpis" id="categoriasKpis">
+<div class="cat-kpis" id="categoriasKpis" <?= !$showCategoriasKpis ? ' style="display:none;"' : '' ?>>
     <article class="cat-kpi surface-card surface-card--interactive">
         <div class="cat-kpi__icon cat-kpi__icon--total">
             <i data-lucide="layers"></i>

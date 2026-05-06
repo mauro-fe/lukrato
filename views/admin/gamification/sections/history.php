@@ -1,5 +1,5 @@
 <!-- Histórico de Pontos -->
-<section class="history-section surface-card surface-card--interactive" id="gamHistorySection">
+<section class="history-section surface-card surface-card--interactive" id="gamHistorySection" <?= !$showGamHistory ? ' style="display:none;"' : '' ?>>
     <h2><i data-lucide="history"></i> Histórico Recente</h2>
     <div class="history-list" id="pointsHistory">
         <!-- Loading state -->

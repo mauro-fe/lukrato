@@ -1,5 +1,7 @@
+<?php $showContasKpis = isset($showContasKpis) ? (bool) $showContasKpis : true; ?>
+
 <!-- KPIs principais -->
-<section class="cont-kpis" id="contasKpis">
+<section class="cont-kpis" id="contasKpis" <?= !$showContasKpis ? ' style="display:none;"' : '' ?>>
     <article class="cont-kpi surface-card surface-card--interactive">
         <div class="cont-kpi__icon cont-kpi__icon--primary">
             <i data-lucide="crown"></i>

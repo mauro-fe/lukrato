@@ -2,7 +2,7 @@
 <div class="fin-tab-content active" id="tab-orcamentos" role="tabpanel" aria-labelledby="fin-tab-orcamentos">
 
     <!-- Ações rápidas -->
-    <div class="fin-actions-bar" id="finOrcActionsSection" data-aos="fade-up" data-aos-delay="150">
+    <div class="fin-actions-bar" id="finOrcActionsSection" data-aos="fade-up" data-aos-delay="150" <?= !$showFinOrcActions ? ' style="display:none;"' : '' ?>>
         <div class="actions-left">
             <button class="fin-action-btn primary" id="btnAutoSugerir"
                 title="A IA analisa seus últimos 3 meses e sugere orçamentos automaticamente">

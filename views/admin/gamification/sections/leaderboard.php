@@ -1,5 +1,5 @@
 <!-- Ranking -->
-<section class="leaderboard-section surface-card surface-card--interactive" id="gamLeaderboardSection">
+<section class="leaderboard-section surface-card surface-card--interactive" id="gamLeaderboardSection" <?= !$showGamLeaderboard ? ' style="display:none;"' : '' ?>>
     <div class="leaderboard-header">
         <div class="leaderboard-heading">
             <h2><i data-lucide="trophy"></i> Ranking</h2>

@@ -1,6 +1,27 @@
 <!-- CSS Lancamentos — carregado via Vite (import no JS entry) -->
 
-<?php $isPro = $isPro ?? false; ?>
+<?php
+$isPro = $isPro ?? false;
+$layoutPageCapabilities = isset($pageCapabilities) && is_array($pageCapabilities)
+    ? $pageCapabilities
+    : [];
+$lancamentosPageCapabilities = (string) ($layoutPageCapabilities['pageKey'] ?? '') === 'lancamentos'
+    ? $layoutPageCapabilities
+    : [];
+$lancamentosCustomizerCapabilities = is_array($lancamentosPageCapabilities['customizer'] ?? null)
+    ? $lancamentosPageCapabilities['customizer']
+    : [];
+$lancamentosForcedPreferences = is_array($lancamentosCustomizerCapabilities['forcedPreferences'] ?? null)
+    ? $lancamentosCustomizerCapabilities['forcedPreferences']
+    : null;
+$showLanFilters = !is_array($lancamentosForcedPreferences)
+    || (bool) ($lancamentosForcedPreferences['toggleLanFilters'] ?? true);
+$showLanExport = !is_array($lancamentosForcedPreferences)
+    || (bool) ($lancamentosForcedPreferences['toggleLanExport'] ?? true);
+$lancamentosCanAccessComplete = array_key_exists('canAccessComplete', $lancamentosCustomizerCapabilities)
+    ? (bool) $lancamentosCustomizerCapabilities['canAccessComplete']
+    : (bool) $isPro;
+?>
 
 <section class="lan-page">
     <div class="lan-stage lan-stage--overview">

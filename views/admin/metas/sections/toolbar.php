@@ -1,5 +1,5 @@
 <!-- ==================== FILTROS ==================== -->
-<section class="met-toolbar surface-card" id="metToolbarSection" data-aos="fade-up" data-aos-delay="120">
+<section class="met-toolbar surface-card" id="metToolbarSection" data-aos="fade-up" data-aos-delay="120" <?= !$showMetasToolbar ? ' style="display:none;"' : '' ?>>
     <label class="met-toolbar__search">
         <i data-lucide="search"></i>
         <input type="search" id="metSearchInput" placeholder="Buscar meta">

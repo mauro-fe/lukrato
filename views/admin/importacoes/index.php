@@ -137,6 +137,26 @@ $profileCardBadgeLabel = $importTarget === 'cartao' ? 'Conta vinculada' : 'Conta
 $guidePathTitle = $initialSourceType === 'csv'
     ? ($importTarget === 'cartao' ? 'CSV de fatura guiado' : 'CSV de conta no padrão Lukrato')
     : ($importTarget === 'cartao' ? 'OFX de fatura do cartão' : 'OFX de extrato bancário');
+
+$layoutPageCapabilities = isset($pageCapabilities) && is_array($pageCapabilities)
+    ? $pageCapabilities
+    : [];
+
+$importacoesPageCapabilities = (string) ($layoutPageCapabilities['pageKey'] ?? '') === 'importacoes'
+    ? $layoutPageCapabilities
+    : [];
+
+$importacoesCustomizerCapabilities = is_array($importacoesPageCapabilities['customizer'] ?? null)
+    ? $importacoesPageCapabilities['customizer']
+    : [];
+
+$importacoesForcedPreferences = is_array($importacoesCustomizerCapabilities['forcedPreferences'] ?? null)
+    ? $importacoesCustomizerCapabilities['forcedPreferences']
+    : [];
+
+$showImportacoesHero = (bool) ($importacoesForcedPreferences['toggleImpHero'] ?? true);
+$showImportacoesSidebar = (bool) ($importacoesForcedPreferences['toggleImpSidebar'] ?? true);
+$showImportacoesSidebarOnPage = $hasInitialContextOptions && $showImportacoesSidebar;
 ?>
 
 <section class="imp-page" data-importacoes-page="index" data-lk-help-page="importacoes"
@@ -144,10 +164,11 @@ $guidePathTitle = $initialSourceType === 'csv'
     data-imp-active-account-id="<?= $selectedAccountId ?>" data-imp-active-card-id="<?= $selectedCardId ?>"
     data-imp-import-target="<?= escape($importTarget) ?>" data-imp-source-type="<?= escape($initialSourceType) ?>"
     data-imp-confirm-async-default="<?= $confirmAsyncDefault ? '1' : '0' ?>">
-    <div class="imp-index-layout <?= $hasInitialContextOptions ? '' : 'imp-index-layout--single-column' ?>">
+    <div class="imp-index-layout <?= $showImportacoesSidebarOnPage ? '' : 'imp-index-layout--single-column' ?>">
         <div class="imp-index-main">
             <article class="imp-flow-card imp-surface surface-card surface-card--interactive" id="impFlowSection">
-                <header class="imp-card-head imp-card-head--split">
+                <header class="imp-card-head imp-card-head--split" id="impHeroSection"
+                    <?= !$showImportacoesHero ? ' style="display:none;"' : '' ?>>
                     <div>
                         <p class="imp-card-eyebrow" data-imp-flow-eyebrow>
                             <?= $hasInitialContextOptions ? 'Passo 1' : 'Antes de importar' ?>
@@ -611,7 +632,7 @@ $guidePathTitle = $initialSourceType === 'csv'
         </div>
 
         <aside class="imp-index-side" id="impIndexSideSection" data-imp-side-panel
-            <?= $hasInitialContextOptions ? '' : 'hidden' ?>>
+            <?= $showImportacoesSidebarOnPage ? '' : 'hidden style="display:none;"' ?>>
             <article class="imp-side-card imp-side-card--support imp-surface surface-card surface-card--interactive">
                 <header class="imp-card-head imp-card-head--split">
                     <div>

@@ -6,6 +6,7 @@ namespace Application\Controllers\Api\Report;
 
 use Application\Controllers\ApiController;
 use Application\Core\Response;
+use Application\Enums\ReportType;
 use Application\Models\Usuario;
 use Application\Services\Infrastructure\LogService;
 use Application\Services\Report\ReportApiWorkflowService;
@@ -26,15 +27,18 @@ class RelatoriosController extends ApiController
 
     public function index(): Response
     {
-        $accessResponse = $this->validateAccessOrResponse();
-        if ($accessResponse !== null) {
-            return $accessResponse;
-        }
-
         try {
+            $user = $this->requireApiUserAndReleaseSessionOrFail();
+            $this->currentUser = $user;
+            $reportType = $this->resolveRequestedReportType();
+
+            if (!$this->userCanAccessRequestedReport($user, $reportType)) {
+                return Response::forbiddenResponse('Este relatório é liberado a partir do plano Pro.');
+            }
+
             $generated = $this->workflowService->generateReport(
                 (int) $this->userId,
-                $this->getCurrentUser(),
+                $user,
                 $this->collectQueryParams()
             );
 
@@ -147,15 +151,23 @@ class RelatoriosController extends ApiController
 
     public function comparatives(): Response
     {
-        $accessResponse = $this->validateAccessOrResponse();
-        if ($accessResponse !== null) {
-            return $accessResponse;
-        }
-
         try {
-            $data = $this->workflowService->buildComparatives((int) $this->userId, $this->collectQueryParams());
+            $user = $this->requireApiUserAndReleaseSessionOrFail();
+            $this->currentUser = $user;
 
-            return Response::successResponse($data);
+            if ($this->userCanAccessReports($user)) {
+                $data = $this->workflowService->buildComparatives((int) $this->userId, $this->collectQueryParams());
+
+                return Response::successResponse($data);
+            }
+
+            if ($user->plan()->allows('relatorios_basicos')) {
+                $data = $this->workflowService->buildComparativesPreview((int) $this->userId, $this->collectQueryParams());
+
+                return Response::successResponse($data);
+            }
+
+            return Response::forbiddenResponse('Comparativos completos são liberados a partir do plano Pro.');
         } catch (InvalidArgumentException $e) {
             return $this->handleValidationError($e);
         } catch (Throwable $e) {
@@ -226,6 +238,24 @@ class RelatoriosController extends ApiController
         return $user->podeAcessar('reports');
     }
 
+    private function userCanAccessRequestedReport(Usuario $user, ReportType $reportType): bool
+    {
+        $plan = $user->plan();
+
+        if ($plan->allows('reports')) {
+            return true;
+        }
+
+        if (!$plan->allows('relatorios_basicos')) {
+            return false;
+        }
+
+        return in_array($reportType, [
+            ReportType::DESPESAS_POR_CATEGORIA,
+            ReportType::RECEITAS_DESPESAS_DIARIO,
+        ], true);
+    }
+
     private function getCurrentUser(): ?Usuario
     {
         return $this->currentUser ??= (($this->userId !== null) ? Usuario::find($this->userId) : null);
@@ -253,6 +283,13 @@ class RelatoriosController extends ApiController
         $value = $this->getQuery($key);
 
         return $value === null ? null : (string) $value;
+    }
+
+    private function resolveRequestedReportType(): ReportType
+    {
+        $type = $this->nullableQuery('type') ?? ReportType::DESPESAS_POR_CATEGORIA->value;
+
+        return ReportType::fromShorthand($type);
     }
 
     private function sendSuccessResponse(array $result, \Application\Enums\ReportType $type, \Application\DTO\ReportParameters $params): Response

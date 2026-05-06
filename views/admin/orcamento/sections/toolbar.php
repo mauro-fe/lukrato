@@ -1,5 +1,5 @@
 <!-- ==================== FILTROS ==================== -->
-<section class="orc-toolbar surface-card" id="orcToolbarSection" data-aos="fade-up" data-aos-delay="120">
+<section class="orc-toolbar surface-card" id="orcToolbarSection" data-aos="fade-up" data-aos-delay="120" <?= !$showOrcToolbar ? ' style="display:none;"' : '' ?>>
     <label class="orc-toolbar__search">
         <i data-lucide="search"></i>
         <input type="search" id="orcSearchInput" placeholder="Buscar categoria">

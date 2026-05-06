@@ -1,3 +1,28 @@
+<?php
+$layoutPageCapabilities = isset($pageCapabilities) && is_array($pageCapabilities)
+    ? $pageCapabilities
+    : [];
+
+$categoriasPageCapabilities = (string) ($layoutPageCapabilities['pageKey'] ?? '') === 'categorias'
+    ? $layoutPageCapabilities
+    : [];
+
+$categoriasCustomizerCapabilities = is_array($categoriasPageCapabilities['customizer'] ?? null)
+    ? $categoriasPageCapabilities['customizer']
+    : [];
+
+$categoriasForcedPreferences = is_array($categoriasCustomizerCapabilities['forcedPreferences'] ?? null)
+    ? $categoriasCustomizerCapabilities['forcedPreferences']
+    : [];
+
+$showCategoriasKpis = (bool) ($categoriasForcedPreferences['toggleCategoriasKpis'] ?? true);
+$showCategoriasCreateCard = (bool) ($categoriasForcedPreferences['toggleCategoriasCreateCard'] ?? true);
+$categoriasTrigger = is_array($categoriasCustomizerCapabilities['trigger'] ?? null)
+    ? $categoriasCustomizerCapabilities['trigger']
+    : [];
+$categoriasTriggerLabel = (string) ($categoriasTrigger['label'] ?? 'Personalizar categorias');
+?>
+
 <section class="cat-page">
 
     <?php include __DIR__ . '/sections/kpis.php'; ?>

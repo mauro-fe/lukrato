@@ -2,7 +2,7 @@
 <div class="fin-tab-content" id="tab-metas" role="tabpanel" aria-labelledby="fin-tab-metas">
 
     <!-- Ações -->
-    <div class="fin-actions-bar" id="finMetasActionsSection" data-aos="fade-up">
+    <div class="fin-actions-bar" id="finMetasActionsSection" data-aos="fade-up" <?= !$showFinMetasActions ? ' style="display:none;"' : '' ?>>
         <div class="actions-left">
             <button class="fin-action-btn" id="btnTemplates">
                 <i data-lucide="wand-sparkles"></i>

@@ -1,4 +1,4 @@
-<div id="finSummarySection">
+<div id="finSummarySection" <?= !$showFinSummary ? ' style="display:none;"' : '' ?>>
     <!-- ==================== CARDS RESUMO: ORÇAMENTOS ==================== -->
     <div class="fin-summary-grid" id="summaryOrcamentos" data-aos="fade-up">
         <!-- Saúde Financeira -->

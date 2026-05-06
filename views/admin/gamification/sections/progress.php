@@ -1,5 +1,5 @@
 <!-- Progresso Geral -->
-<section class="progress-section" id="gamProgressSection">
+<section class="progress-section" id="gamProgressSection" <?= !$showGamProgress ? ' style="display:none;"' : '' ?>>
     <div class="stats-grid">
         <div class="stat-card surface-card surface-card--interactive">
             <div class="stat-icon"><i data-lucide="star"></i></div>

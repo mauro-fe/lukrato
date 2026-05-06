@@ -44,12 +44,14 @@ function normalizeCustomizerCapabilities(raw, toggleKeys, essentialDefaults) {
         return {
             enabled: true,
             canCustomize: true,
+            canOpenLockedModal: false,
             availableToggleKeys: [...toggleKeys],
             forcedPreferences: null,
         };
     }
 
     const canCustomize = raw.canCustomize !== false;
+    const canOpenLockedModal = !canCustomize && raw.renderOverlay !== false;
     const availableToggleKeys = Array.isArray(raw.availableToggles) && raw.availableToggles.length > 0
         ? raw.availableToggles.filter((key) => toggleKeys.includes(key))
         : [...toggleKeys];
@@ -57,6 +59,7 @@ function normalizeCustomizerCapabilities(raw, toggleKeys, essentialDefaults) {
     return {
         enabled: raw.enabled !== false,
         canCustomize,
+        canOpenLockedModal,
         availableToggleKeys: canCustomize ? availableToggleKeys : [],
         forcedPreferences: raw.forcedPreferences && typeof raw.forcedPreferences === 'object'
             ? mergeWithDefaults(raw.forcedPreferences, essentialDefaults, toggleKeys)
@@ -208,10 +211,16 @@ export function createPageCustomizer(config) {
         }, null);
     }
 
+    function getPersistedDefaults() {
+        return capabilityState.forcedPreferences
+            ? { ...capabilityState.forcedPreferences }
+            : { ...completeDefaults };
+    }
+
     function loadLocalCache() {
         const raw = loadLocalCacheRaw();
         if (!raw) return null;
-        return mergeWithDefaults(raw, completeDefaults, persistedToggleKeys);
+        return mergeWithDefaults(raw, getPersistedDefaults(), persistedToggleKeys);
     }
 
     function hasSavedLocalPrefs() {
@@ -237,7 +246,7 @@ export function createPageCustomizer(config) {
             const rawPrefs = await config.loadPreferences();
 
             if (hasKnownPrefs(rawPrefs, persistedToggleKeys)) {
-                const merged = mergeWithDefaults(rawPrefs, completeDefaults, persistedToggleKeys);
+                const merged = mergeWithDefaults(rawPrefs, getPersistedDefaults(), persistedToggleKeys);
                 saveLocalCache(merged);
                 return { hasRemotePrefs: true, prefs: merged };
             }
@@ -267,11 +276,7 @@ export function createPageCustomizer(config) {
     }
 
     function loadPrefs() {
-        if (capabilityState.forcedPreferences) {
-            return { ...capabilityState.forcedPreferences };
-        }
-
-        return loadLocalCache() ?? { ...essentialDefaults };
+        return loadLocalCache() ?? { ...(capabilityState.forcedPreferences ?? essentialDefaults) };
     }
 
     function applyPrefs(prefs) {
@@ -411,6 +416,12 @@ export function createPageCustomizer(config) {
             btnOpen.addEventListener('click', (event) => {
                 if (!capabilityState.canCustomize) {
                     event.preventDefault();
+
+                    if (capabilityState.canOpenLockedModal) {
+                        openModal();
+                        return;
+                    }
+
                     handleLockedOpen();
                     return;
                 }
@@ -448,7 +459,7 @@ export function createPageCustomizer(config) {
         const hasLocalPrefs = hasSavedLocalPrefs();
 
         // Fast paint: use forced prefs for gated pages, else local cache; fallback to essential.
-        applyPrefs(capabilityState.forcedPreferences ?? localPrefs ?? { ...essentialDefaults });
+        applyPrefs(localPrefs ?? capabilityState.forcedPreferences ?? { ...essentialDefaults });
 
         bindModalActions();
 
@@ -487,7 +498,9 @@ export function createPageCustomizer(config) {
 
     return {
         init,
-        open: capabilityState.canCustomize ? openModal : handleLockedOpen,
+        open: capabilityState.canCustomize
+            ? openModal
+            : (capabilityState.canOpenLockedModal ? openModal : handleLockedOpen),
         close: closeModal,
         applyPreset: applyPresetToModal
     };

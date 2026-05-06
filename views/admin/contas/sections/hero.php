@@ -1,5 +1,7 @@
+<?php $showContasHero = isset($showContasHero) ? (bool) $showContasHero : true; ?>
+
 <!-- Visão consolidada -->
-<section class="cont-hero surface-card surface-card--interactive" id="contasHero" aria-live="polite">
+<section class="cont-hero surface-card surface-card--interactive" id="contasHero" <?= !$showContasHero ? ' style="display:none;"' : '' ?> aria-live="polite">
     <div class="cont-hero__main">
         <span class="cont-hero__eyebrow">Visão consolidada</span>
         <h1 class="cont-hero__title">Total em contas</h1>

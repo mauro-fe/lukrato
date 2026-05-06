@@ -87,13 +87,9 @@
                 </div>
 
                 <div class="control-group control-group--action" id="exportControl">
-                    <button type="button" id="exportBtn" class="btn btn-secondary btn-compact-export"
-                        <?= !$isPro ? 'disabled title="Recurso PRO"' : '' ?>>
+                    <button type="button" id="exportBtn" class="btn btn-secondary btn-compact-export">
                         <i data-lucide="download"></i>
                         <span>Exportar</span>
-                        <?php if (!$isPro): ?><span
-                                class="tab-pro-badge surface-chip surface-chip--pro surface-chip--xs"
-                                style="margin-left:4px"><i data-lucide="crown"></i> PRO</span><?php endif; ?>
                     </button>
                 </div>
             </div>

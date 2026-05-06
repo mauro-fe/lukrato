@@ -1,5 +1,6 @@
 <!-- ==================== FOCO DO PERIODO ==================== -->
 <section class="orc-focus-panel surface-card surface-card--interactive" id="orcFocusPanel" data-aos="fade-up"
+    <?= !$showOrcFocus ? 'style="display:none;"' : '' ?>
     data-aos-delay="80">
     <div class="orc-focus-panel__main">
         <div class="orc-focus-panel__eyebrow">

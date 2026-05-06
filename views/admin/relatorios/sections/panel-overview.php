@@ -37,17 +37,6 @@
                 </div>
             </div>
 
-            <?php if (!$isPro): ?>
-                <div class="overview-pro-cta">
-                    <i data-lucide="crown"></i>
-                    <div>
-                        <h4>Desbloqueie todo o potencial</h4>
-                        <p>Com o plano PRO, acesse insights completos, comparativos, exportação e muito mais.</p>
-                    </div>
-                    <a href="<?= BASE_URL ?>billing" class="btn-upgrade-cta surface-button surface-button--upgrade">
-                        <i data-lucide="crown"></i> Fazer Upgrade
-                    </a>
-                </div>
-            <?php endif; ?>
+            <div class="overview-essential-comparatives comparatives-support-stack" id="overviewEssentialComparatives"></div>
         </div>
     </div>

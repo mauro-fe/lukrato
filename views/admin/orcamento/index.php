@@ -1,3 +1,25 @@
+<?php
+$layoutPageCapabilities = isset($pageCapabilities) && is_array($pageCapabilities)
+    ? $pageCapabilities
+    : [];
+
+$orcamentoPageCapabilities = (string) ($layoutPageCapabilities['pageKey'] ?? '') === 'orcamento'
+    ? $layoutPageCapabilities
+    : [];
+
+$orcamentoCustomizerCapabilities = is_array($orcamentoPageCapabilities['customizer'] ?? null)
+    ? $orcamentoPageCapabilities['customizer']
+    : [];
+
+$orcamentoForcedPreferences = is_array($orcamentoCustomizerCapabilities['forcedPreferences'] ?? null)
+    ? $orcamentoCustomizerCapabilities['forcedPreferences']
+    : [];
+
+$showOrcSummary = (bool) ($orcamentoForcedPreferences['toggleOrcSummary'] ?? true);
+$showOrcFocus = (bool) ($orcamentoForcedPreferences['toggleOrcFocus'] ?? true);
+$showOrcToolbar = (bool) ($orcamentoForcedPreferences['toggleOrcToolbar'] ?? true);
+?>
+
 <section class="orc-page">
     <section class="orc-overview-shell surface-card surface-card--interactive surface-card--clip">
         <div class="orc-overview-shell__top">

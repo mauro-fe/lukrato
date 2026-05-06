@@ -1,3 +1,29 @@
+<?php
+$layoutPageCapabilities = isset($pageCapabilities) && is_array($pageCapabilities)
+    ? $pageCapabilities
+    : [];
+
+$metasPageCapabilities = (string) ($layoutPageCapabilities['pageKey'] ?? '') === 'metas'
+    ? $layoutPageCapabilities
+    : [];
+
+$metasCustomizerCapabilities = is_array($metasPageCapabilities['customizer'] ?? null)
+    ? $metasPageCapabilities['customizer']
+    : [];
+
+$metasForcedPreferences = is_array($metasCustomizerCapabilities['forcedPreferences'] ?? null)
+    ? $metasCustomizerCapabilities['forcedPreferences']
+    : [];
+
+$showMetasSummary = (bool) ($metasForcedPreferences['toggleMetasSummary'] ?? true);
+$showMetasFocus = (bool) ($metasForcedPreferences['toggleMetasFocus'] ?? true);
+$showMetasToolbar = (bool) ($metasForcedPreferences['toggleMetasToolbar'] ?? true);
+$metasTrigger = is_array($metasCustomizerCapabilities['trigger'] ?? null)
+    ? $metasCustomizerCapabilities['trigger']
+    : [];
+$metasTriggerLabel = (string) ($metasTrigger['label'] ?? 'Personalizar metas');
+?>
+
 <section class="met-page">
     <section class="met-overview-shell surface-card surface-card--interactive surface-card--clip">
         <div class="met-overview-shell__top">

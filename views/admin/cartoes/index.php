@@ -1,3 +1,26 @@
+<?php
+$isPro = $isPro ?? false;
+$layoutPageCapabilities = isset($pageCapabilities) && is_array($pageCapabilities)
+    ? $pageCapabilities
+    : [];
+$cartoesPageCapabilities = (string) ($layoutPageCapabilities['pageKey'] ?? '') === 'cartoes'
+    ? $layoutPageCapabilities
+    : [];
+$cartoesCustomizerCapabilities = is_array($cartoesPageCapabilities['customizer'] ?? null)
+    ? $cartoesPageCapabilities['customizer']
+    : [];
+$cartoesForcedPreferences = is_array($cartoesCustomizerCapabilities['forcedPreferences'] ?? null)
+    ? $cartoesCustomizerCapabilities['forcedPreferences']
+    : null;
+$showCartoesKpis = !is_array($cartoesForcedPreferences)
+    || (bool) ($cartoesForcedPreferences['toggleCartoesKpis'] ?? true);
+$showCartoesToolbar = !is_array($cartoesForcedPreferences)
+    || (bool) ($cartoesForcedPreferences['toggleCartoesToolbar'] ?? true);
+$cartoesCanAccessComplete = array_key_exists('canAccessComplete', $cartoesCustomizerCapabilities)
+    ? (bool) $cartoesCustomizerCapabilities['canAccessComplete']
+    : (bool) $isPro;
+?>
+
 <section
     class="cartoes-page">
 

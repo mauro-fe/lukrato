@@ -7,50 +7,101 @@ import { Modules } from './state.js';
 import { createPageCustomizer } from '../shared/page-customizer.js';
 import { fetchUiPagePreferences, persistUiPagePreferences } from '../shared/ui-preferences.js';
 import { buildAppUrl } from '../shared/api.js';
-import { getRuntimeConfig } from '../global/runtime-config.js';
+import { ensureRuntimeConfig, getRuntimeConfig } from '../global/runtime-config.js';
 
-const runtimeConfig = getRuntimeConfig();
-const dashboardCustomizerCapabilities = runtimeConfig?.pageCapabilities?.pageKey === 'dashboard'
-    && runtimeConfig?.pageCapabilities?.customizer
-    && typeof runtimeConfig.pageCapabilities.customizer === 'object'
-    ? runtimeConfig.pageCapabilities.customizer
-    : null;
+let dashboardCustomizer = null;
+let dashboardCustomizerInitialized = false;
+let dashboardCustomizerInitPromise = null;
+let dashboardCompleteDefaults = {};
+let dashboardEssentialDefaults = {};
 
-const dashboardCustomizerDescriptor = dashboardCustomizerCapabilities?.descriptor
-    && typeof dashboardCustomizerCapabilities.descriptor === 'object'
-    ? dashboardCustomizerCapabilities.descriptor
-    : null;
+function resolveDashboardCustomizerConfig() {
+    const runtimeConfig = getRuntimeConfig();
+    const dashboardCustomizerCapabilities = runtimeConfig?.pageCapabilities?.pageKey === 'dashboard'
+        && runtimeConfig?.pageCapabilities?.customizer
+        && typeof runtimeConfig.pageCapabilities.customizer === 'object'
+        ? runtimeConfig.pageCapabilities.customizer
+        : null;
 
-const SECTION_MAP = dashboardCustomizerDescriptor?.sectionMap
-    && typeof dashboardCustomizerDescriptor.sectionMap === 'object'
-    ? dashboardCustomizerDescriptor.sectionMap
-    : {};
+    const dashboardCustomizerDescriptor = dashboardCustomizerCapabilities?.descriptor
+        && typeof dashboardCustomizerCapabilities.descriptor === 'object'
+        ? dashboardCustomizerCapabilities.descriptor
+        : null;
 
-const COMPLETE_DEFAULTS = dashboardCustomizerCapabilities?.completePreferences
-    && typeof dashboardCustomizerCapabilities.completePreferences === 'object'
-    ? dashboardCustomizerCapabilities.completePreferences
-    : {};
+    const sectionMap = dashboardCustomizerDescriptor?.sectionMap
+        && typeof dashboardCustomizerDescriptor.sectionMap === 'object'
+        ? dashboardCustomizerDescriptor.sectionMap
+        : {};
 
-const ESSENTIAL_DEFAULTS = dashboardCustomizerCapabilities?.essentialPreferences
-    && typeof dashboardCustomizerCapabilities.essentialPreferences === 'object'
-    ? dashboardCustomizerCapabilities.essentialPreferences
-    : {};
+    const completeDefaults = dashboardCustomizerCapabilities?.completePreferences
+        && typeof dashboardCustomizerCapabilities.completePreferences === 'object'
+        ? dashboardCustomizerCapabilities.completePreferences
+        : {};
 
-const GRID_TOGGLE_KEYS = Array.isArray(dashboardCustomizerDescriptor?.gridToggleKeys)
-    ? dashboardCustomizerDescriptor.gridToggleKeys
-    : [];
+    const essentialDefaults = dashboardCustomizerCapabilities?.essentialPreferences
+        && typeof dashboardCustomizerCapabilities.essentialPreferences === 'object'
+        ? dashboardCustomizerCapabilities.essentialPreferences
+        : {};
 
-const MODAL_CONFIG = dashboardCustomizerDescriptor?.ids
-    && typeof dashboardCustomizerDescriptor.ids === 'object'
-    ? {
-        overlayId: dashboardCustomizerDescriptor.ids.overlay,
-        openButtonId: dashboardCustomizerDescriptor.trigger?.id || 'btnCustomizeDashboard',
-        closeButtonId: dashboardCustomizerDescriptor.ids.close,
-        saveButtonId: dashboardCustomizerDescriptor.ids.save,
-        presetEssentialButtonId: dashboardCustomizerDescriptor.ids.presetEssential,
-        presetCompleteButtonId: dashboardCustomizerDescriptor.ids.presetComplete,
+    const gridToggleKeys = Array.isArray(dashboardCustomizerDescriptor?.gridToggleKeys)
+        ? dashboardCustomizerDescriptor.gridToggleKeys
+        : [];
+
+    const modalConfig = dashboardCustomizerDescriptor?.ids
+        && typeof dashboardCustomizerDescriptor.ids === 'object'
+        ? {
+            overlayId: dashboardCustomizerDescriptor.ids.overlay,
+            openButtonId: dashboardCustomizerDescriptor.trigger?.id || 'btnCustomizeDashboard',
+            closeButtonId: dashboardCustomizerDescriptor.ids.close,
+            saveButtonId: dashboardCustomizerDescriptor.ids.save,
+            presetEssentialButtonId: dashboardCustomizerDescriptor.ids.presetEssential,
+            presetCompleteButtonId: dashboardCustomizerDescriptor.ids.presetComplete,
+        }
+        : undefined;
+
+    dashboardCompleteDefaults = completeDefaults;
+    dashboardEssentialDefaults = essentialDefaults;
+
+    return {
+        capabilities: dashboardCustomizerCapabilities,
+        sectionMap,
+        completeDefaults,
+        essentialDefaults,
+        gridToggleKeys,
+        modalConfig,
+    };
+}
+
+function getOrCreateDashboardCustomizer() {
+    const resolved = resolveDashboardCustomizerConfig();
+
+    if (dashboardCustomizer || Object.keys(resolved.sectionMap).length === 0) {
+        return {
+            customizer: dashboardCustomizer,
+            resolved,
+        };
     }
-    : undefined;
+
+    dashboardCustomizer = createPageCustomizer({
+        storageKey: 'lk_dashboard_prefs',
+        sectionMap: resolved.sectionMap,
+        completeDefaults: resolved.completeDefaults,
+        essentialDefaults: resolved.essentialDefaults,
+        gridContainerId: 'optionalGrid',
+        gridToggleKeys: resolved.gridToggleKeys,
+        capabilities: resolved.capabilities,
+        loadPreferences: loadDashboardPrefs,
+        savePreferences: saveDashboardPrefs,
+        onApply: syncDashboardLayout,
+        onLockedOpen: goToDashboardUpgrade,
+        modal: resolved.modalConfig,
+    });
+
+    return {
+        customizer: dashboardCustomizer,
+        resolved,
+    };
+}
 
 async function loadDashboardPrefs() {
     return fetchUiPagePreferences('dashboard');
@@ -88,7 +139,7 @@ function syncStage(stage, visibleChildCount) {
     stage.style.display = visibleChildCount > 0 ? '' : 'none';
 }
 
-function syncDashboardLayout(prefs = COMPLETE_DEFAULTS) {
+function syncDashboardLayout(prefs = dashboardCompleteDefaults) {
     const overviewStage = document.querySelector('.dashboard-stage--overview');
     const overviewTop = document.querySelector('.dashboard-overview-top');
     const overviewBottom = document.querySelector('.dashboard-overview-bottom');
@@ -133,35 +184,52 @@ function syncDashboardLayout(prefs = COMPLETE_DEFAULTS) {
     syncStage(secondaryStage, optionalGridCount > 0 ? 1 : 0);
 }
 
-const dashboardCustomizer = Object.keys(SECTION_MAP).length > 0
-    ? createPageCustomizer({
-        storageKey: 'lk_dashboard_prefs',
-        sectionMap: SECTION_MAP,
-        completeDefaults: COMPLETE_DEFAULTS,
-        essentialDefaults: ESSENTIAL_DEFAULTS,
-        gridContainerId: 'optionalGrid',
-        gridToggleKeys: GRID_TOGGLE_KEYS,
-        capabilities: dashboardCustomizerCapabilities,
-        loadPreferences: loadDashboardPrefs,
-        savePreferences: saveDashboardPrefs,
-        onApply: syncDashboardLayout,
-        onLockedOpen: goToDashboardUpgrade,
-        modal: MODAL_CONFIG,
-    })
-    : null;
-
 export function initCustomize() {
-    if (!dashboardCustomizer) {
-        syncDashboardLayout(ESSENTIAL_DEFAULTS);
+    const initialize = () => {
+        const { customizer, resolved } = getOrCreateDashboardCustomizer();
+
+        if (!customizer) {
+            syncDashboardLayout(resolved.essentialDefaults);
+            return false;
+        }
+
+        if (!dashboardCustomizerInitialized) {
+            customizer.init();
+            dashboardCustomizerInitialized = true;
+        }
+
+        return true;
+    };
+
+    if (initialize()) {
         return;
     }
 
-    dashboardCustomizer.init();
+    if (!dashboardCustomizerInitPromise) {
+        dashboardCustomizerInitPromise = ensureRuntimeConfig({}, { silent: true }).finally(() => {
+            dashboardCustomizerInitPromise = null;
+            initialize();
+        });
+    }
 }
 
 Modules.Customize = {
     init: initCustomize,
-    open: () => dashboardCustomizer?.open?.(),
-    close: () => dashboardCustomizer?.close?.()
+    open: () => {
+        const { customizer } = getOrCreateDashboardCustomizer();
+        if (customizer?.open) {
+            customizer.open();
+            return;
+        }
+
+        void ensureRuntimeConfig({}, { silent: true }).finally(() => {
+            const { customizer: nextCustomizer } = getOrCreateDashboardCustomizer();
+            nextCustomizer?.open?.();
+        });
+    },
+    close: () => {
+        const { customizer } = getOrCreateDashboardCustomizer();
+        customizer?.close?.();
+    }
 };
 

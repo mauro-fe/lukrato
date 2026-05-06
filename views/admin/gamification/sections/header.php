@@ -1,4 +1,4 @@
-<div class="page-header surface-card surface-card--interactive" id="gamHeaderSection">
+<div class="page-header surface-card surface-card--interactive" id="gamHeaderSection" <?= !$showGamHeader ? ' style="display:none;"' : '' ?>>
     <div class="page-header-content">
         <div class="page-icon"><i data-lucide="trophy"></i></div>
         <div>

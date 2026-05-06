@@ -1,5 +1,5 @@
 <!-- Conquistas -->
-<section class="achievements-section surface-card surface-card--interactive" id="gamAchievementsSection">
+<section class="achievements-section surface-card surface-card--interactive" id="gamAchievementsSection" <?= !$showGamAchievements ? ' style="display:none;"' : '' ?>>
     <div class="achievements-header">
         <div class="achievements-heading">
             <h2><i data-lucide="medal"></i> Conquistas</h2>

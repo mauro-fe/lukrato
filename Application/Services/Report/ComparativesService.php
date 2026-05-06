@@ -190,9 +190,9 @@ class ComparativesService
         // 1. Top 5 categorias do mês atual (com todos os filtros)
         $topCategorias = $this->despesaQuery('lancamentos')
             ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
-            ->join('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
-            ->selectRaw('categorias.id, categorias.nome, categorias.icone, SUM(lancamentos.valor) as total')
-            ->groupBy('categorias.id', 'categorias.nome', 'categorias.icone')
+            ->leftJoin('categorias', 'lancamentos.categoria_id', '=', 'categorias.id')
+            ->selectRaw("COALESCE(categorias.id, 0) as id, COALESCE(categorias.nome, 'Sem categoria') as nome, categorias.icone, SUM(lancamentos.valor) as total")
+            ->groupByRaw("COALESCE(categorias.id, 0), COALESCE(categorias.nome, 'Sem categoria'), categorias.icone")
             ->orderByDesc('total')
             ->limit(5)
             ->get();
@@ -201,32 +201,52 @@ class ComparativesService
             return [];
         }
 
-        $catIds = $topCategorias->pluck('id')->all();
+        $catIds = $topCategorias
+            ->pluck('id')
+            ->map(static fn($id): int => (int) $id)
+            ->all();
+        $categorizedIds = array_values(array_filter($catIds, static fn(int $id): bool => $id > 0));
+        $includesUncategorized = in_array(0, $catIds, true);
 
         // 2. Batch: totais do mês anterior para todas as top categorias
         $previousTotals = $this->despesaQuery()
-            ->whereIn('categoria_id', $catIds)
             ->whereBetween('data', [$this->previousMonthStart->toDateString(), $this->previousMonthEnd->toDateString()])
-            ->selectRaw('categoria_id, SUM(valor) as total')
-            ->groupBy('categoria_id')
-            ->pluck('total', 'categoria_id');
+            ->where(function ($query) use ($categorizedIds, $includesUncategorized) {
+                if ($categorizedIds !== []) {
+                    $query->whereIn('categoria_id', $categorizedIds);
+                }
+
+                if ($includesUncategorized) {
+                    if ($categorizedIds !== []) {
+                        $query->orWhereNull('categoria_id');
+                    } else {
+                        $query->whereNull('categoria_id');
+                    }
+                }
+            })
+            ->selectRaw('COALESCE(categoria_id, 0) as categoria_key, SUM(valor) as total')
+            ->groupByRaw('COALESCE(categoria_id, 0)')
+            ->pluck('total', 'categoria_key');
 
         // 3. Batch: todas as subcategorias das top categorias (mês atual)
-        $allSubcategorias = $this->despesaQuery('lancamentos')
-            ->whereIn('lancamentos.categoria_id', $catIds)
-            ->whereNotNull('lancamentos.subcategoria_id')
-            ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
-            ->join('categorias as sc', 'lancamentos.subcategoria_id', '=', 'sc.id')
-            ->selectRaw('lancamentos.categoria_id, sc.id, sc.nome, SUM(lancamentos.valor) as total')
-            ->groupBy('lancamentos.categoria_id', 'sc.id', 'sc.nome')
-            ->orderByDesc('total')
-            ->get()
-            ->groupBy('categoria_id');
+        $allSubcategorias = collect();
+        if ($categorizedIds !== []) {
+            $allSubcategorias = $this->despesaQuery('lancamentos')
+                ->whereIn('lancamentos.categoria_id', $categorizedIds)
+                ->whereNotNull('lancamentos.subcategoria_id')
+                ->whereBetween('lancamentos.data', [$this->currentStart->toDateString(), $this->currentEnd->toDateString()])
+                ->join('categorias as sc', 'lancamentos.subcategoria_id', '=', 'sc.id')
+                ->selectRaw('lancamentos.categoria_id, sc.id, sc.nome, SUM(lancamentos.valor) as total')
+                ->groupBy('lancamentos.categoria_id', 'sc.id', 'sc.nome')
+                ->orderByDesc('total')
+                ->get()
+                ->groupBy('categoria_id');
+        }
 
         // Top 3 por categoria + coletar IDs para batch de totais anteriores
         $subcatMap = [];
         $allSubcatIds = [];
-        foreach ($catIds as $catId) {
+        foreach ($categorizedIds as $catId) {
             $subs = ($allSubcategorias[$catId] ?? collect())->take(3);
             $subcatMap[$catId] = $subs;
             foreach ($subs as $sub) {

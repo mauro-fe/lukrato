@@ -185,6 +185,20 @@ class ReportApiWorkflowService
      * @param array<string, string|null> $query
      * @return array<string, mixed>
      */
+    public function buildComparativesPreview(int $userId, array $query): array
+    {
+        $data = $this->buildComparatives($userId, $query);
+
+        return [
+            'categories' => $data['categories'] ?? [],
+            'formasPagamento' => $data['formasPagamento'] ?? [],
+        ];
+    }
+
+    /**
+     * @param array<string, string|null> $query
+     * @return array<string, mixed>
+     */
     public function buildCardDetails(int $userId, int $cardId, array $query): array
     {
         if ($cardId <= 0) {

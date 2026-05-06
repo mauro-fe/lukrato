@@ -54,6 +54,17 @@
   min-height: 220px;
 }
 
+.overview-essential-comparatives {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--spacing-5);
+  align-items: start;
+}
+
+.overview-essential-comparatives > .comparative-card {
+  height: 100%;
+}
+
 /* PRO CTA Banner */
 .overview-pro-cta {
   display: flex;
@@ -97,6 +108,10 @@
 
 @media (max-width: 768px) {
   .overview-charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-essential-comparatives {
     grid-template-columns: 1fr;
   }
 

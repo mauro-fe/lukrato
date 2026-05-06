@@ -1,7 +1,7 @@
 <!-- ============================================================
          FILTROS — Painel colapsável
          ============================================================ -->
-<div class="filters-modern collapsed surface-card surface-card--clip" id="faturasFilters">
+<div class="filters-modern collapsed surface-card surface-card--clip" id="faturasFilters" <?= !$showFaturasFiltros ? ' style="display:none;"' : '' ?>>
     <div class="filters-header">
         <div class="filters-title">
             <div class="filters-icon">

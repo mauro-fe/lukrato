@@ -1,3 +1,26 @@
+<?php
+$layoutPageCapabilities = isset($pageCapabilities) && is_array($pageCapabilities)
+    ? $pageCapabilities
+    : [];
+
+$financasPageCapabilities = (string) ($layoutPageCapabilities['pageKey'] ?? '') === 'financas'
+    ? $layoutPageCapabilities
+    : [];
+
+$financasCustomizerCapabilities = is_array($financasPageCapabilities['customizer'] ?? null)
+    ? $financasPageCapabilities['customizer']
+    : [];
+
+$financasForcedPreferences = is_array($financasCustomizerCapabilities['forcedPreferences'] ?? null)
+    ? $financasCustomizerCapabilities['forcedPreferences']
+    : [];
+
+$showFinSummary = (bool) ($financasForcedPreferences['toggleFinSummary'] ?? true);
+$showFinOrcActions = (bool) ($financasForcedPreferences['toggleFinOrcActions'] ?? true);
+$showFinMetasActions = (bool) ($financasForcedPreferences['toggleFinMetasActions'] ?? true);
+$showFinInsights = (bool) ($financasForcedPreferences['toggleFinInsights'] ?? true);
+?>
+
 <section class="fin-page">
 
     <?php include __DIR__ . '/sections/summary.php'; ?>

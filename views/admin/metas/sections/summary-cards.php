@@ -1,5 +1,5 @@
 <!-- ==================== CARDS RESUMO ==================== -->
-<div class="met-summary-grid" id="summaryMetas" data-aos="fade-up">
+<div class="met-summary-grid" id="summaryMetas" data-aos="fade-up" <?= !$showMetasSummary ? ' style="display:none;"' : '' ?>>
     <div class="met-summary-card surface-card surface-card--interactive">
         <div class="met-summary-card__icon met-summary-card__icon--purple">
             <i data-lucide="target"></i>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Report;
 
+use Application\Models\Lancamento;
 use Application\Services\Report\ComparativesService;
 use Carbon\Carbon;
 use PHPUnit\Framework\TestCase;
@@ -103,6 +104,41 @@ class ComparativesServiceTest extends TestCase
         $this->assertSame(0.0, $this->invokePrivate('calculateVariation', [0.0, 0.0]));
     }
 
+    public function testGenerateIncludesUncategorizedExpensesInCategoryComparison(): void
+    {
+        Lancamento::query()->delete();
+
+        Lancamento::create([
+            'user_id' => 77,
+            'tipo' => 'despesa',
+            'data' => '2026-03-05',
+            'valor' => 200.00,
+            'categoria_id' => null,
+            'forma_pagamento' => 'Pix',
+            'pago' => true,
+            'afeta_caixa' => true,
+            'eh_transferencia' => false,
+        ]);
+
+        Lancamento::create([
+            'user_id' => 77,
+            'tipo' => 'despesa',
+            'data' => '2026-02-05',
+            'valor' => 120.00,
+            'categoria_id' => null,
+            'forma_pagamento' => 'Pix',
+            'pago' => true,
+            'afeta_caixa' => true,
+            'eh_transferencia' => false,
+        ]);
+
+        $comparatives = $this->service->generate(77, 2026, 3);
+
+        $this->assertSame('Sem categoria', $comparatives['categories'][0]['nome']);
+        $this->assertSame(200.0, $comparatives['categories'][0]['atual']);
+        $this->assertSame(120.0, $comparatives['categories'][0]['anterior']);
+    }
+
     private function setState(array $properties): void
     {
         $setter = \Closure::bind(function (array $properties): void {
@@ -117,7 +153,7 @@ class ComparativesServiceTest extends TestCase
     private function invokePrivate(string $method, array $arguments = []): mixed
     {
         $caller = \Closure::bind(
-            fn (...$args) => $this->{$method}(...$args),
+            fn(...$args) => $this->{$method}(...$args),
             $this->service,
             $this->service
         );
@@ -125,5 +161,3 @@ class ComparativesServiceTest extends TestCase
         return $caller(...$arguments);
     }
 }
-
-

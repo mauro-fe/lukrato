@@ -1,5 +1,6 @@
 <!-- ==================== FOCO DO MOMENTO ==================== -->
 <section class="met-focus-panel surface-card surface-card--interactive" id="metFocusPanel" data-aos="fade-up"
+    <?= !$showMetasFocus ? 'style="display:none;"' : '' ?>
     data-aos-delay="80">
     <div class="met-focus-panel__main">
         <div class="met-focus-panel__eyebrow">
