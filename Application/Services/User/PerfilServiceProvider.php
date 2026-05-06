@@ -15,6 +15,7 @@ use Application\Formatters\DateFormatter;
 use Application\Validators\EnderecoValidator;
 use Application\Validators\PerfilValidator;
 use Application\Services\Auth\EmailVerificationService;
+use Illuminate\Container\Container;
 
 /**
  * Registra o grafo de dependências do domínio de perfil.
@@ -24,7 +25,7 @@ class PerfilServiceProvider
     /**
      * Registra os serviços no container.
      */
-    public function register($container): void
+    public function register(Container $container): void
     {
         $container->singleton(DocumentFormatter::class);
         $container->singleton(DateFormatter::class);
