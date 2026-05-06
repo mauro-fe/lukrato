@@ -35,6 +35,10 @@ class LancamentoValidator
         'cheque',
     ];
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateCreate(array $data): array
     {
         $errors = [];
@@ -157,6 +161,10 @@ class LancamentoValidator
         return $errors;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateUpdate(array $data): array
     {
         return self::validateCreate($data);
@@ -212,6 +220,9 @@ class LancamentoValidator
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function resolveMetaOperationForContext(?string $explicitOperation, array $data, ?Meta $meta = null): ?string
     {
         $normalized = self::normalizeMetaOperation($explicitOperation);
@@ -239,6 +250,9 @@ class LancamentoValidator
         return null;
     }
 
+    /**
+     * @param array<string, string> $errors
+     */
     public static function validateCategoriaOwnership(?int $id, int $userId, array &$errors): ?int
     {
         if ($id === null || $id <= 0) {
@@ -253,6 +267,9 @@ class LancamentoValidator
         return null;
     }
 
+    /**
+     * @param array<string, string> $errors
+     */
     public static function validateSubcategoriaOwnership(?int $subcategoriaId, ?int $categoriaId, int $userId, array &$errors): ?int
     {
         if ($subcategoriaId === null || $subcategoriaId <= 0) {
@@ -279,6 +296,9 @@ class LancamentoValidator
         return $subcategoriaId;
     }
 
+    /**
+     * @param array<string, string> $errors
+     */
     public static function validateContaOwnership(?int $id, int $userId, array &$errors): ?int
     {
         if ($id === null) {
@@ -293,6 +313,9 @@ class LancamentoValidator
         return null;
     }
 
+    /**
+     * @param array<string, string> $errors
+     */
     public static function validateMetaOwnership(?int $id, int $userId, array &$errors): ?int
     {
         if ($id === null || $id <= 0) {
@@ -317,6 +340,10 @@ class LancamentoValidator
         return $id;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, string> $errors
+     */
     public static function validateMetaLinkRules(?int $metaId, array $data, array &$errors): void
     {
         if ($metaId === null || $metaId <= 0) {
