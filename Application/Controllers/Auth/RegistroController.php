@@ -10,6 +10,7 @@ use Application\Core\Response;
 use Application\Enums\LogCategory;
 use Application\Enums\LogLevel;
 use Application\Middlewares\CsrfMiddleware;
+use Application\Models\Usuario;
 use Application\Services\Auth\AuthService;
 use Application\Services\Auth\GoogleAuthService;
 use Application\Services\Auth\RegistrationResponseHandler;
@@ -75,6 +76,10 @@ class RegistroController extends WebController
         }
     }
 
+    /**
+     * @param array<string, mixed>|null $socialData
+     * @return array<string, mixed>
+     */
     private function buildRegistrationPayload(bool $isGoogle, ?array $socialData): array
     {
         $payload = [
@@ -96,11 +101,20 @@ class RegistroController extends WebController
         return $payload;
     }
 
+    /**
+     * @param array{
+     *     usuario: Usuario,
+     *     user_id: int,
+     *     message: string,
+     *     redirect: string,
+     *     requires_verification: true
+     * } $result
+     */
     private function handleGoogleRegistrationSuccess(array $result, string $email): Response
     {
-        $userId = $result['user_id'] ?? null;
+        $userId = $result['user_id'];
 
-        if ($userId) {
+        if ($userId > 0) {
             $loginSuccess = $this->googleAuthService->loginAfterRegistration($userId, $email);
 
             if ($loginSuccess) {
@@ -113,12 +127,21 @@ class RegistroController extends WebController
         return $this->responseHandler->success($result, false);
     }
 
+    /**
+     * @param array{
+     *     usuario: Usuario,
+     *     user_id: int,
+     *     message: string,
+     *     redirect: string,
+     *     requires_verification: true
+     * } $result
+     */
     private function logRegistrationSuccess(string $email, array $result, string $provider): void
     {
         LogService::info('Novo usuário registrado com sucesso.', [
             'email' => $email,
             'ip' => $this->request->ip(),
-            'user_id' => $result['user_id'] ?? 'unknown',
+            'user_id' => $result['user_id'],
             'provider' => $provider,
         ]);
     }
@@ -176,6 +199,9 @@ class RegistroController extends WebController
         return 422;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function getSessionErrors(): ?array
     {
         $errors = $this->pullSessionValue('form_errors');
@@ -198,6 +224,9 @@ class RegistroController extends WebController
         return $this->turnstile = $this->resolveOrCreate($this->turnstile, TurnstileService::class);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     private function getSocialRegistrationData(): ?array
     {
         $socialData = $_SESSION['social_register'] ?? null;
