@@ -6,6 +6,10 @@ namespace Application\Validators;
 
 class OrcamentoValidator
 {
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateSave(array $data): array
     {
         $errors = [];
@@ -27,6 +31,10 @@ class OrcamentoValidator
         return $errors;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateBulk(array $data): array
     {
         $errors = [];
@@ -37,6 +45,11 @@ class OrcamentoValidator
         }
 
         foreach ($data['orcamentos'] as $i => $item) {
+            if (!is_array($item)) {
+                $errors["orcamentos.{$i}"] = "Item {$i}: dados inválidos.";
+                continue;
+            }
+
             if (empty($item['categoria_id'])) {
                 $errors["orcamentos.{$i}.categoria_id"] = "Item {$i}: categoria obrigatória.";
             }
@@ -48,6 +61,10 @@ class OrcamentoValidator
         return $errors;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateMonth(array $data): array
     {
         $errors = [];
@@ -55,11 +72,13 @@ class OrcamentoValidator
         $mes = $data['mes'] ?? null;
         $ano = $data['ano'] ?? null;
 
-        if ($mes === null || !is_numeric($mes) || $mes < 1 || $mes > 12) {
+        $mesInt = is_numeric($mes) ? (int) $mes : null;
+        if ($mesInt === null || $mesInt < 1 || $mesInt > 12) {
             $errors['mes'] = 'Mês inválido.';
         }
 
-        if ($ano === null || !is_numeric($ano) || $ano < 2020 || $ano > 2050) {
+        $anoInt = is_numeric($ano) ? (int) $ano : null;
+        if ($anoInt === null || $anoInt < 2020 || $anoInt > 2050) {
             $errors['ano'] = 'Ano inválido.';
         }
 

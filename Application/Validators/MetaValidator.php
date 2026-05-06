@@ -8,6 +8,10 @@ use Application\Models\Meta;
 
 class MetaValidator
 {
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateCreate(array $data): array
     {
         $errors = [];
@@ -42,7 +46,7 @@ class MetaValidator
             Meta::TIPO_APOSENTADORIA,
             Meta::TIPO_OUTRO,
         ];
-        if ($tipo !== '' && !in_array($tipo, $tiposValidos, true)) {
+        if ($tipo !== '' && !in_array((string) $tipo, $tiposValidos, true)) {
             $errors['tipo'] = 'Tipo de meta inválido.';
         }
 
@@ -54,14 +58,14 @@ class MetaValidator
 
         $prioridade = $data['prioridade'] ?? '';
         $prioridadesValidas = [Meta::PRIORIDADE_BAIXA, Meta::PRIORIDADE_MEDIA, Meta::PRIORIDADE_ALTA];
-        if ($prioridade !== '' && !in_array($prioridade, $prioridadesValidas, true)) {
+        if ($prioridade !== '' && !in_array((string) $prioridade, $prioridadesValidas, true)) {
             $errors['prioridade'] = 'Prioridade inválida.';
         }
 
         $dataPrazo = $data['data_prazo'] ?? null;
         if (!empty($dataPrazo)) {
             $d = \DateTime::createFromFormat('Y-m-d', (string) $dataPrazo);
-            if (!$d || $d->format('Y-m-d') !== $dataPrazo) {
+            if (!$d || $d->format('Y-m-d') !== (string) $dataPrazo) {
                 $errors['data_prazo'] = 'Data inválida. Use o formato YYYY-MM-DD.';
             }
         }
@@ -79,6 +83,10 @@ class MetaValidator
         return $errors;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateUpdate(array $data): array
     {
         $errors = [];
@@ -132,6 +140,10 @@ class MetaValidator
         return $errors;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
     public static function validateAporte(array $data): array
     {
         $errors = [];
