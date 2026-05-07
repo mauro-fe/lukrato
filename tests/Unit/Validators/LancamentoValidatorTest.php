@@ -250,9 +250,14 @@ class LancamentoValidatorTest extends TestCase
         $this->assertEquals(1500.50, $result);
     }
 
+    public function testSanitizeValorKeepsNormalizedDecimalString(): void
+    {
+        $result = LancamentoValidator::sanitizeValor('99.90');
+        $this->assertEquals(99.90, $result);
+    }
+
     public function testSanitizeValorNegativeBecomesPositive(): void
     {
-        // sanitizeValor removes dots (thousand separator), so '-100' without dots
         $result = LancamentoValidator::sanitizeValor('-100');
         $this->assertEquals(100.00, $result);
     }
@@ -265,8 +270,13 @@ class LancamentoValidatorTest extends TestCase
 
     public function testSanitizeValorRoundsToTwoDecimals(): void
     {
-        // Dots are stripped as thousand separators, comma is decimal
         $result = LancamentoValidator::sanitizeValor('100,999');
         $this->assertEquals(101.00, $result);
+    }
+
+    public function testSanitizeMetaValorKeepsNormalizedDecimalString(): void
+    {
+        $result = LancamentoValidator::sanitizeMetaValor('99.90');
+        $this->assertEquals(99.90, $result);
     }
 }

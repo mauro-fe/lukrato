@@ -96,6 +96,7 @@ class ReportRepository
             ->where('lancamentos.pago', 1)
             ->where('lancamentos.data', '<=', $ate)
             ->where('lancamentos.afeta_caixa', 1)
+            ->whereNull('lancamentos.deleted_at')
             ->selectRaw(...$this->deltaExpression($params->accountId, 'saldo'));
 
         if (!$useTransfers) {
@@ -221,6 +222,7 @@ class ReportRepository
         $query = DB::table('lancamentos as l')
             ->leftJoin('categorias as c', 'c.id', '=', 'l.categoria_id')
             ->where('l.pago', 1)
+            ->whereNull('l.deleted_at')
             ->whereBetween('l.data', [$params->start, $params->end])
             ->where('l.tipo', $tipo)
             ->where(function ($q) {
@@ -294,6 +296,7 @@ class ReportRepository
     {
         $join->on(DB::raw('1'), '=', DB::raw('1'))
             ->where('l.pago', 1)
+            ->whereNull('l.deleted_at')
             ->whereBetween('l.data', [$params->start, $params->end])
             ->where(fn($w) => $this->applyAccountTransactionFilter($w))
             ->where('l.user_id', $params->userId);
@@ -320,6 +323,7 @@ class ReportRepository
     ): QueryBuilder {
         $query = DB::table('lancamentos')
             ->where('lancamentos.pago', 1)
+            ->whereNull('lancamentos.deleted_at')
             ->whereBetween('lancamentos.data', [$start, $end]);
 
         if (!$includeSaldoInicial) {

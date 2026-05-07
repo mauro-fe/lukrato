@@ -105,6 +105,7 @@ export const STATE = {
     subcategoriasCache: new Map(),
     faturaAtual: null,
     currentDetailId: null,
+    selectedParcelaIds: new Set(),
     sortColumn: 'data_compra',
     sortDirection: 'asc',
     filtros: {

@@ -45,12 +45,7 @@ class UpdateTransferenciaUseCase
             $errors['data'] = 'Data invalida. Use o formato YYYY-MM-DD.';
         }
 
-        $valor = $payload['valor'] ?? $lancamento->valor;
-        if (is_string($valor)) {
-            $valor = str_replace(['R$', ' ', '.'], '', $valor);
-            $valor = str_replace(',', '.', $valor);
-        }
-        $valor = round(abs((float) $valor), 2);
+        $valor = LancamentoValidator::sanitizeValor($payload['valor'] ?? $lancamento->valor);
         if ($valor <= 0) {
             $errors['valor'] = 'O valor deve ser maior que zero.';
         }

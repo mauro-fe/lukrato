@@ -274,6 +274,44 @@ body:not(.sidebar-collapsed) .sidebar-nav-label {
   border-radius: 50%;
 }
 
+.sidebar .nav-item.sidebar-theme-toggle.theme-toggle {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0;
+  justify-content: flex-start;
+  padding: 10px 24px !important;
+  overflow: visible;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--theme-shell-nav-text);
+}
+
+.sidebar-theme-toggle__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar-theme-toggle i,
+.sidebar-theme-toggle svg {
+  inset: 0;
+  margin: auto;
+}
+
+.sidebar .nav-item.sidebar-theme-toggle.theme-toggle:hover {
+  background: var(--theme-shell-nav-hover-bg);
+  border-color: var(--theme-shell-nav-hover-border);
+  box-shadow: none;
+  color: var(--theme-shell-nav-hover-text);
+}
+
 .sidebar .nav-item {
   display: flex;
   align-items: center;
@@ -550,6 +588,10 @@ body.sidebar-collapsed .sidebar-footer .nav-item .nav-item-content {
   opacity: 0;
   transform: translateX(-8px);
   pointer-events: none;
+}
+
+body.sidebar-collapsed .sidebar-theme-toggle {
+  width: calc(100% - 12px) !important;
 }
 
 /* 5.5.1 Collapsed Tooltips — CSS-only, shown on hover when sidebar is collapsed */

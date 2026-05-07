@@ -1,7 +1,7 @@
 /**
  * Support + Assistente IA
  */
-import { apiFetch, apiGet, apiPost, getErrorMessage, logClientError } from '../shared/api.js';
+import { apiFetch, apiGet, apiPost, buildAssetUrl, getErrorMessage, logClientError } from '../shared/api.js';
 import {
     resolveAiActionConfirmEndpoint,
     resolveAiActionRejectEndpoint,
@@ -67,6 +67,8 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         'image/webp',
         'application/pdf',
     ]);
+
+    const LUKI_AVATAR_URL = buildAssetUrl('img/assistente/luki.png');
 
     const VIDEO_EXTENSIONS = new Set(['mp4', 'mov', 'avi', 'mkv', 'webm']);
 
@@ -440,6 +442,18 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
         `;
     }
 
+    function renderMessageAvatar(role) {
+        if (role === 'assistant') {
+            return `
+                <div class="avatar">
+                    <img src="${escapeAttribute(LUKI_AVATAR_URL)}" alt="Luki" class="lk-ai-luki-avatar lk-ai-luki-avatar--message" loading="lazy" decoding="async">
+                </div>
+            `;
+        }
+
+        return '<div class="avatar"><i data-lucide="user" style="width:14px;height:14px;"></i></div>';
+    }
+
     function appendAIMessage(role, text, isTyping = false, options = {}) {
         if (!dom.aiMessages) return null;
 
@@ -464,7 +478,7 @@ import { escapeHtml as sharedEscapeHtml } from '../shared/utils.js';
             : `<div class="lk-ai-bubble-content">${formatText(text)}</div>`;
 
         wrapper.innerHTML = `
-            <div class="avatar"><i data-lucide="${role === 'assistant' ? 'bot' : 'user'}" style="width:14px;height:14px;"></i></div>
+            ${renderMessageAvatar(role)}
             <div class="lk-ai-msg-stack">
                 <div class="bubble bubble--${bubbleTone}">
                     ${contentMarkup}

@@ -12,6 +12,24 @@ function buildThemeControls() {
     `;
 }
 
+function buildQuickToggle() {
+    document.body.innerHTML = `
+        <section>
+            <button type="button" class="theme-toggle" data-theme-toggle>Alternar tema</button>
+        </section>
+    `;
+}
+
+function buildSidebarQuickToggle() {
+    document.body.innerHTML = `
+        <section>
+            <button type="button" class="nav-item theme-toggle sidebar-theme-toggle" data-theme-toggle>
+                <span data-theme-current-label>Light</span>
+            </button>
+        </section>
+    `;
+}
+
 async function flushPromises() {
     await Promise.resolve();
     await Promise.resolve();
@@ -89,5 +107,42 @@ describe('admin/global/theme-toggle', () => {
         expect(darkButton?.classList.contains('is-active')).toBe(true);
         expect(darkButton?.getAttribute('aria-pressed')).toBe('true');
         expect(window.localStorage.getItem('lukrato-theme')).toBe('dark');
+    });
+
+    it('alterna o tema pelos botoes rapidos do layout', async () => {
+        buildQuickToggle();
+        apiGetMock.mockResolvedValue({ success: false });
+
+        await import('./theme-toggle.js');
+        await flushPromises();
+
+        const quickToggleButton = document.querySelector('[data-theme-toggle]');
+        quickToggleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await flushPromises();
+
+        expect(apiPostMock).toHaveBeenCalledWith('api/v1/user/theme', { theme: 'dark' });
+        expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+        expect(quickToggleButton?.classList.contains('dark')).toBe(true);
+        expect(window.localStorage.getItem('lukrato-theme')).toBe('dark');
+    });
+
+    it('sincroniza o rotulo do botao rapido do sidebar com o tema atual', async () => {
+        buildSidebarQuickToggle();
+        apiGetMock.mockResolvedValue({ success: false });
+
+        await import('./theme-toggle.js');
+        await flushPromises();
+
+        const quickToggleButton = document.querySelector('[data-theme-toggle]');
+        const currentLabel = document.querySelector('[data-theme-current-label]');
+
+        expect(currentLabel?.textContent).toBe('Light');
+        expect(quickToggleButton?.getAttribute('title')).toBe('Tema atual: Light');
+
+        quickToggleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await flushPromises();
+
+        expect(currentLabel?.textContent).toBe('Dark');
+
     });
 });

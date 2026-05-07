@@ -248,6 +248,25 @@
     display: block;
   }
 
+  .parcelas-bulk-toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .parcelas-bulk-toolbar__copy {
+    width: 100%;
+  }
+
+  .parcelas-bulk-delete {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .parcela-card-header {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
   .btn-pagar-fatura .btn-text-desktop,
   .btn-pagar-fatura-completa .btn-text-desktop,
   .btn-reverter-fatura .btn-text-desktop,

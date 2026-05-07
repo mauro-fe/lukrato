@@ -23,7 +23,7 @@ import { apiPost } from '../shared/api.js';
     'use strict';
 
     const root = document.documentElement;
-    const themeBtn = document.getElementById('topNavThemeToggle');
+    const quickThemeButtons = Array.from(document.querySelectorAll('[data-theme-toggle], #topNavThemeToggle'));
     const themeChoiceButtons = Array.from(document.querySelectorAll('[data-theme-choice]'));
     const systemThemeMediaQuery = createSystemThemeMediaQuery();
     let currentThemePreference = readStoredThemePreference() ?? 'system';
@@ -36,9 +36,45 @@ import { apiPost } from '../shared/api.js';
         return getInitialAppliedTheme({ root });
     }
 
+    function getThemeLabels(theme) {
+        const appliedTheme = theme === 'dark' ? 'dark' : 'light';
+        const nextTheme = appliedTheme === 'dark' ? 'light' : 'dark';
+        const currentLabel = appliedTheme === 'dark' ? 'Dark' : 'Light';
+        const nextLabel = nextTheme === 'dark' ? 'Dark' : 'Light';
+
+        return {
+            currentLabel,
+            nextLabel,
+            title: `Tema atual: ${currentLabel}`,
+        };
+    }
+
+    function updateThemeLabel(button, theme) {
+        const labels = getThemeLabels(theme);
+        const currentLabel = button.querySelector('[data-theme-current-label]');
+        const nextLabel = button.querySelector('[data-theme-next-label]');
+
+        if (currentLabel) {
+            currentLabel.textContent = labels.currentLabel;
+        }
+
+        if (nextLabel) {
+            nextLabel.textContent = labels.nextText;
+        }
+
+        button.setAttribute('aria-label', labels.ariaLabel);
+        button.setAttribute('title', labels.title);
+    }
+
     function updateThemeIcon(theme) {
-        if (!themeBtn) return;
-        themeBtn.classList.toggle('dark', theme === 'dark');
+        if (quickThemeButtons.length === 0) {
+            return;
+        }
+
+        quickThemeButtons.forEach((button) => {
+            button.classList.toggle('dark', theme === 'dark');
+            updateThemeLabel(button, theme);
+        });
     }
 
     function syncThemeChoiceButtons(themePreference) {
@@ -167,9 +203,9 @@ import { apiPost } from '../shared/api.js';
     });
     syncThemeChoiceButtons(currentThemePreference);
 
-    if (themeBtn) {
-        themeBtn.addEventListener('click', toggleTheme);
-    }
+    quickThemeButtons.forEach((button) => {
+        button.addEventListener('click', toggleTheme);
+    });
 
     themeChoiceButtons.forEach((button) => {
         button.addEventListener('click', handleThemeChoiceClick);

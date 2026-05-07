@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Validators;
 
+use Application\Casts\MoneyDecimalCast;
 use Application\Container\ApplicationContainer;
 use Application\Enums\LancamentoTipo;
 use Application\Models\Lancamento;
@@ -172,12 +173,12 @@ class LancamentoValidator
 
     public static function sanitizeValor(mixed $valor): float
     {
-        if (is_string($valor)) {
-            $valor = str_replace(['R$', ' ', '.'], '', $valor);
-            $valor = str_replace(',', '.', $valor);
+        $parsed = self::parseMoney($valor);
+        if ($parsed === null || !is_finite($parsed)) {
+            return 0.0;
         }
 
-        return round(abs((float) $valor), 2);
+        return round(abs($parsed), 2);
     }
 
     public static function sanitizeMetaValor(mixed $valor): ?float
@@ -186,16 +187,12 @@ class LancamentoValidator
             return null;
         }
 
-        if (is_string($valor)) {
-            $valor = str_replace(['R$', ' ', '.'], '', $valor);
-            $valor = str_replace(',', '.', $valor);
-        }
-
-        if (!is_numeric($valor) || !is_finite((float) $valor)) {
+        $parsed = self::parseMoney($valor);
+        if ($parsed === null || !is_finite($parsed)) {
             return null;
         }
 
-        return round(max(0, (float) $valor), 2);
+        return round(max(0, $parsed), 2);
     }
 
     public static function normalizeMetaOperation(mixed $raw): ?string
@@ -403,16 +400,17 @@ class LancamentoValidator
             return null;
         }
 
-        if (is_string($value)) {
-            $value = str_replace(['R$', ' ', '.'], '', $value);
-            $value = str_replace(',', '.', $value);
-        }
-
-        if (!is_numeric($value) || !is_finite((float) $value)) {
+        try {
+            $normalized = MoneyDecimalCast::normalize($value);
+        } catch (\InvalidArgumentException) {
             return null;
         }
 
-        return (float) $value;
+        if ($normalized === null || !is_numeric($normalized) || !is_finite((float) $normalized)) {
+            return null;
+        }
+
+        return (float) $normalized;
     }
 
     private static function resolveCategoriaRepository(): CategoriaRepository

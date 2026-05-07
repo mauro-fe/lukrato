@@ -95,6 +95,7 @@ class LancamentoFlowTest extends TestCase
     {
         $rawValues = [
             'R$ 1.500,50' => 1500.50,
+            '99.90'       => 99.90,
             '2500'        => 2500.00,
             '0,99'        => 0.99,
             '-100'        => 100.00,

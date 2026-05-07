@@ -8,6 +8,9 @@ $supportEmail = $supportEmail ?? '';
 $supportTel   = $supportTel   ?? '';
 $supportDdd   = $supportDdd   ?? '';
 $planTier     = $planTier     ?? 'free';
+$lukiAvatarUrl = function_exists('asset_url')
+    ? asset_url('assets/img/assistente/luki.png')
+    : rtrim(BASE_URL, '/') . '/assets/img/assistente/luki.png';
 ?>
 
 <!-- FAB Speed Dial Container -->
@@ -16,7 +19,7 @@ $planTier     = $planTier     ?? 'free';
     <a href="#" class="lk-fab-item" data-action="ai" id="fabItemAI">
         <span class="lk-fab-label">Assistente IA</span>
         <span class="lk-fab-icon">
-            <i data-lucide="bot"></i>
+            <img src="<?= htmlspecialchars($lukiAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="" class="lk-ai-luki-avatar lk-ai-luki-avatar--fab" loading="lazy" decoding="async">
         </span>
     </a>
     <!-- Mini-botao: Suporte (mais perto do botao principal) -->
@@ -47,7 +50,7 @@ $planTier     = $planTier     ?? 'free';
                 Suporte
             </button>
             <button class="lk-chat-tab" data-tab="ai" id="tabAI" type="button" aria-controls="panelAI">
-                <i data-lucide="bot" style="width:14px;height:14px;"></i>
+                <img src="<?= htmlspecialchars($lukiAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="" class="lk-ai-luki-avatar lk-ai-luki-avatar--tab" loading="lazy" decoding="async">
                 Assistente IA
             </button>
         </div>
@@ -109,7 +112,7 @@ $planTier     = $planTier     ?? 'free';
             <div class="lk-ai-header">
                 <div class="lk-ai-header-info">
                     <div class="lk-ai-header-icon">
-                        <i data-lucide="bot" style="width:14px;height:14px;"></i>
+                        <img src="<?= htmlspecialchars($lukiAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="" class="lk-ai-luki-avatar lk-ai-luki-avatar--header" loading="lazy" decoding="async">
                     </div>
                     <div class="lk-ai-header-text">
                         <span class="lk-ai-header-name">Assistente IA</span>
@@ -126,7 +129,7 @@ $planTier     = $planTier     ?? 'free';
                 <div class="lk-ai-messages" id="aiMessages" aria-live="polite" aria-label="Mensagens do assistente">
                     <div class="lk-ai-empty" id="aiEmpty">
                         <div class="lk-ai-empty-icon">
-                            <i data-lucide="bot" style="width:28px;height:28px;"></i>
+                            <img src="<?= htmlspecialchars($lukiAvatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Luki, mascote do Lukrato" class="lk-ai-luki-avatar lk-ai-luki-avatar--empty" loading="lazy" decoding="async">
                         </div>
                         <p class="lk-ai-empty-text">Como o Luki pode ajudar hoje?</p>
                         <p class="lk-ai-empty-subtitle">Seu assistente financeiro pessoal</p>

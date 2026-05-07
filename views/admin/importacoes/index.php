@@ -231,11 +231,11 @@ $showImportacoesSidebarOnPage = $hasInitialContextOptions && $showImportacoesSid
                                 <select id="imp-account-select" class="imp-field__control" name="conta_id"
                                     data-imp-account-select-main <?= $accounts === [] ? 'hidden' : '' ?>>
                                     <?php foreach ($accounts as $account) : ?>
-                                        <?php $accountId = (int) ($account['id'] ?? 0); ?>
-                                        <option value="<?= $accountId ?>"
-                                            <?= $accountId === $selectedAccountId ? 'selected' : '' ?>>
-                                            <?= escape((string) ($account['nome'] ?? 'Conta sem nome')) ?>
-                                        </option>
+                                    <?php $accountId = (int) ($account['id'] ?? 0); ?>
+                                    <option value="<?= $accountId ?>"
+                                        <?= $accountId === $selectedAccountId ? 'selected' : '' ?>>
+                                        <?= escape((string) ($account['nome'] ?? 'Conta sem nome')) ?>
+                                    </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -253,12 +253,12 @@ $showImportacoesSidebarOnPage = $hasInitialContextOptions && $showImportacoesSid
                                 <select id="imp-card-select" class="imp-field__control" name="cartao_id"
                                     data-imp-card-select-main <?= $cards === [] ? 'hidden' : '' ?>>
                                     <?php foreach ($cards as $card) : ?>
-                                        <?php $cardId = (int) ($card['id'] ?? 0); ?>
-                                        <option value="<?= $cardId ?>"
-                                            data-linked-account-id="<?= (int) ($card['conta_id'] ?? 0) ?>"
-                                            <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
-                                            <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
-                                        </option>
+                                    <?php $cardId = (int) ($card['id'] ?? 0); ?>
+                                    <option value="<?= $cardId ?>"
+                                        data-linked-account-id="<?= (int) ($card['conta_id'] ?? 0) ?>"
+                                        <?= $cardId === $selectedCardId ? 'selected' : '' ?>>
+                                        <?= escape((string) ($card['nome'] ?? 'Cartão sem nome')) ?>
+                                    </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -267,20 +267,20 @@ $showImportacoesSidebarOnPage = $hasInitialContextOptions && $showImportacoesSid
                                 <?= $hasInitialContextOptions ? '' : 'hidden' ?>>
                                 <legend class="imp-field__label">Formato</legend>
                                 <?php foreach ($supportedFormats as $format) : ?>
-                                    <?php
+                                <?php
                                     $formatValue = strtolower((string) $format);
                                     $radioId = 'imp-format-' . $formatValue;
                                     ?>
-                                    <label class="imp-format-switch__item surface-card" for="<?= escape($radioId) ?>">
-                                        <input id="<?= escape($radioId) ?>" type="radio" name="source_type"
-                                            value="<?= escape($formatValue) ?>" data-imp-source-type
-                                            <?= $initialSourceType === $formatValue ? 'checked' : '' ?>>
-                                        <span>
-                                            <i data-lucide="<?= $formatValue === 'csv' ? 'sheet' : 'file-code-2' ?>"
-                                                aria-hidden="true"></i>
-                                            <?= escape((string) $format) ?>
-                                        </span>
-                                    </label>
+                                <label class="imp-format-switch__item surface-card" for="<?= escape($radioId) ?>">
+                                    <input id="<?= escape($radioId) ?>" type="radio" name="source_type"
+                                        value="<?= escape($formatValue) ?>" data-imp-source-type
+                                        <?= $initialSourceType === $formatValue ? 'checked' : '' ?>>
+                                    <span>
+                                        <i data-lucide="<?= $formatValue === 'csv' ? 'sheet' : 'file-code-2' ?>"
+                                            aria-hidden="true"></i>
+                                        <?= escape((string) $format) ?>
+                                    </span>
+                                </label>
                                 <?php endforeach; ?>
                             </fieldset>
                         </div>
@@ -651,18 +651,18 @@ $showImportacoesSidebarOnPage = $hasInitialContextOptions && $showImportacoesSid
                     </div>
                     <div data-imp-plan-summary>
                         <?php if ($currentPlan !== 'free') : ?>
-                            <p class="imp-card-text">Plano pago ativo. OFX e CSV liberados sem limite prático.</p>
+                        <p class="imp-card-text">Plano pago ativo. OFX e CSV liberados sem limite prático.</p>
                         <?php else : ?>
-                            <dl class="imp-definition-list">
-                                <?php foreach ($importLimitLabelMap as $bucketKey => $bucketLabel) : ?>
-                                    <?php $bucket = is_array($importLimitBuckets[$bucketKey] ?? null) ? $importLimitBuckets[$bucketKey] : []; ?>
-                                    <?php $bucketRemaining = $bucket['remaining'] ?? null; ?>
-                                    <dt><?= escape($bucketLabel) ?></dt>
-                                    <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?>
-                                    </dd>
-                                <?php endforeach; ?>
-                            </dl>
-                            <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
+                        <dl class="imp-definition-list">
+                            <?php foreach ($importLimitLabelMap as $bucketKey => $bucketLabel) : ?>
+                            <?php $bucket = is_array($importLimitBuckets[$bucketKey] ?? null) ? $importLimitBuckets[$bucketKey] : []; ?>
+                            <?php $bucketRemaining = $bucket['remaining'] ?? null; ?>
+                            <dt><?= escape($bucketLabel) ?></dt>
+                            <dd><?= is_numeric($bucketRemaining) ? (int) $bucketRemaining . ' restante(s)' : 'Ilimitado' ?>
+                            </dd>
+                            <?php endforeach; ?>
+                        </dl>
+                        <a class="imp-link" href="<?= escape($upgradeUrl) ?>">Fazer upgrade</a>
                         <?php endif; ?>
                     </div>
                 </section>
@@ -720,27 +720,27 @@ $showImportacoesSidebarOnPage = $hasInitialContextOptions && $showImportacoesSid
                 </header>
                 <div data-imp-history-content>
                     <?php if ($latestHistoryItems !== []) : ?>
-                        <ul class="imp-history-mini-list">
-                            <?php foreach ($latestHistoryItems as $historyItem) : ?>
-                                <?php $status = strtolower((string) ($historyItem['status'] ?? 'processed')); ?>
-                                <?php $target = strtolower((string) ($historyItem['import_target'] ?? 'conta')); ?>
-                                <li>
-                                    <span class="imp-history-mini-list__id">#<?= (int) ($historyItem['batch_id'] ?? 0) ?></span>
-                                    <span
-                                        class="imp-history-mini-list__file"><?= escape((string) ($historyItem['filename'] ?? 'arquivo')) ?></span>
-                                    <span class="imp-status-badge" data-status="<?= escape($status) ?>">
-                                        <?= escape($historyStatusLabelMap[$status] ?? strtoupper($status)) ?>
-                                    </span>
-                                    <span class="imp-status-badge" data-status="idle">
-                                        <?= escape($historyTargetLabelMap[$target] ?? 'Conta') ?>
-                                    </span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
+                    <ul class="imp-history-mini-list">
+                        <?php foreach ($latestHistoryItems as $historyItem) : ?>
+                        <?php $status = strtolower((string) ($historyItem['status'] ?? 'processed')); ?>
+                        <?php $target = strtolower((string) ($historyItem['import_target'] ?? 'conta')); ?>
+                        <li>
+                            <span class="imp-history-mini-list__id">#<?= (int) ($historyItem['batch_id'] ?? 0) ?></span>
+                            <span
+                                class="imp-history-mini-list__file"><?= escape((string) ($historyItem['filename'] ?? 'arquivo')) ?></span>
+                            <span class="imp-status-badge" data-status="<?= escape($status) ?>">
+                                <?= escape($historyStatusLabelMap[$status] ?? strtoupper($status)) ?>
+                            </span>
+                            <span class="imp-status-badge" data-status="idle">
+                                <?= escape($historyTargetLabelMap[$target] ?? 'Conta') ?>
+                            </span>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
                     <?php else : ?>
-                        <p class="imp-card-text">
-                            Ainda não há lotes.
-                        </p>
+                    <p class="imp-card-text">
+                        Ainda não há lotes.
+                    </p>
                     <?php endif; ?>
                 </div>
                 <a class="imp-link" href="<?= BASE_URL ?>importacoes/historico">Ver histórico</a>

@@ -142,6 +142,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-sizing: border-box;
     transition: all var(--transition-fast);
     box-shadow: var(--theme-control-shadow);
 }
@@ -153,7 +154,13 @@
 }
 
 .lk-fab-item[data-action="ai"] .lk-fab-icon {
-    background: var(--theme-control-bg);
+    overflow: hidden;
+    padding: 4px;
+    background:
+        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.14), transparent 46%),
+        linear-gradient(135deg,
+            color-mix(in srgb, #4f8cff 68%, var(--color-surface)),
+            color-mix(in srgb, #7c3aed 50%, var(--color-bg)));
     border: 1px solid var(--theme-control-border);
     color: var(--theme-control-text);
 }
@@ -162,6 +169,22 @@
     width: 20px;
     height: 20px;
     color: currentColor !important;
+}
+
+.lk-ai-luki-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    border-radius: inherit;
+}
+
+.lk-ai-luki-avatar--fab,
+.lk-ai-luki-avatar--header,
+.lk-ai-luki-avatar--empty,
+.lk-ai-luki-avatar--message {
+    filter: drop-shadow(0 6px 10px rgba(2, 8, 23, 0.28));
 }
 
 .lk-fab-item:hover .lk-fab-icon {
@@ -795,6 +818,18 @@
     background: color-mix(in srgb, var(--color-surface) 72%, transparent);
 }
 
+.lk-chat-tab .lk-ai-luki-avatar--tab {
+    width: 14px;
+    height: 14px;
+    padding: 1px;
+    border-radius: 5px;
+    background:
+        radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.15), transparent 52%),
+        color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+    flex: 0 0 14px;
+    box-sizing: border-box;
+}
+
 .lk-chat-tab.active {
     color: var(--color-primary);
     background: color-mix(in srgb, var(--color-primary) 8%, transparent);
@@ -941,7 +976,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    padding: 2px;
+    box-sizing: border-box;
     background:
+        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.14), transparent 48%),
         linear-gradient(135deg,
             color-mix(in srgb, #5b8cff 70%, var(--color-surface)),
             color-mix(in srgb, #8b5cf6 50%, var(--color-primary)));
@@ -1040,15 +1079,19 @@
 }
 
 .lk-ai-empty-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 18px;
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     position: relative;
+    overflow: hidden;
+    padding: 6px;
+    box-sizing: border-box;
     background:
+        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.18), transparent 50%),
         linear-gradient(135deg,
             color-mix(in srgb, #4f8cff 72%, var(--color-primary)),
             color-mix(in srgb, #7c3aed 60%, var(--color-bg)));
@@ -1062,9 +1105,9 @@
 .lk-ai-empty-icon::after {
     content: '';
     position: absolute;
-    width: 78px;
-    height: 78px;
-    border-radius: 22px;
+    width: 96px;
+    height: 96px;
+    border-radius: 28px;
     border: 1px dashed color-mix(in srgb, #4f8cff 25%, transparent);
     animation: slowSpin 20s linear infinite;
     pointer-events: none;
@@ -1185,12 +1228,16 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-sizing: border-box;
+    overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--glass-border) 78%, transparent);
     box-shadow: 0 10px 22px rgba(2, 8, 23, 0.18);
 }
 
 .lk-ai-msg.assistant .avatar {
+    padding: 2px;
     background:
+        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.14), transparent 48%),
         linear-gradient(135deg,
             color-mix(in srgb, #4259ff 65%, var(--color-surface)),
             color-mix(in srgb, #7c3aed 45%, var(--color-bg)));

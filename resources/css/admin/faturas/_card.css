@@ -38,6 +38,8 @@
 }
 
 .parcelamento-card.is-current-focus {
+  display: flex;
+  flex-direction: column;
   border-color: color-mix(in srgb, var(--fatura-accent) 44%, var(--glass-border));
   box-shadow:
     0 16px 28px rgba(5, 12, 24, 0.26),
@@ -76,6 +78,8 @@
   display: grid;
   gap: 12px;
   padding: 1.05rem;
+  height: 100%;
+  align-content: start;
 }
 
 /* Card — Top (brand + head) */
@@ -587,8 +591,20 @@
     display: none;
   }
 
+  .parcelamentos-grid:not(.list-view) .parcelamento-card.is-current-focus .fatura-card-details {
+    display: grid !important;
+  }
+
   .parcelamentos-grid:not(.list-view) .fatura-resumo-principal {
     gap: 8px;
+  }
+
+  .parcelamentos-grid:not(.list-view) .parcelamento-card.is-current-focus .fatura-resumo-principal {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    align-self: stretch;
   }
 }
 
@@ -598,7 +614,10 @@
   }
 
   .parcelamento-card.is-current-focus .fatura-card-shell {
+    flex: 1 1 auto;
+    min-height: 100%;
     grid-template-columns: minmax(0, 1fr) minmax(220px, 0.84fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 14px 16px;
     align-items: start;
   }
@@ -609,7 +628,7 @@
 
   .parcelamento-card.is-current-focus .fatura-resumo-principal {
     grid-column: 1;
-    align-self: start;
+    align-self: stretch;
   }
 
   .parcelamento-card.is-current-focus .parc-progress-section {
@@ -622,6 +641,7 @@
   .parcelamento-card.is-current-focus .parc-card-actions {
     grid-column: 1;
     max-width: 320px;
+    align-self: end;
   }
 }
 

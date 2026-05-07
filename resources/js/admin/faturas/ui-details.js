@@ -129,6 +129,7 @@ export const DetailsMethods = {
 
             STATE.faturaAtual = parc;
             STATE.currentDetailId = parc.id;
+            STATE.selectedParcelaIds = new Set();
 
             detailsTarget.innerHTML = this.renderDetalhes(parc);
             this.updateDetailPageMeta(parc);
@@ -159,6 +160,101 @@ export const DetailsMethods = {
         if (!detailsRoot) {
             return;
         }
+
+        const bulkToggleAllControls = Array.from(detailsRoot.querySelectorAll('.js-fatura-bulk-toggle-all'));
+        const bulkDeleteButtons = Array.from(detailsRoot.querySelectorAll('.js-fatura-bulk-delete'));
+        const bulkStatusNodes = Array.from(detailsRoot.querySelectorAll('[data-bulk-selected-status]'));
+        const bulkCountNodes = Array.from(detailsRoot.querySelectorAll('[data-bulk-count]'));
+        const bulkItemCheckboxes = Array.from(detailsRoot.querySelectorAll('.js-fatura-bulk-item'));
+
+        const getSelectableIds = () => Array.from(new Set(
+            bulkItemCheckboxes
+                .map((checkbox) => parseInt(checkbox.value, 10))
+                .filter((itemId) => !Number.isNaN(itemId))
+        ));
+
+        const syncCheckboxesByItemId = (targetItemId, checked) => {
+            bulkItemCheckboxes.forEach((checkbox) => {
+                const itemId = parseInt(checkbox.value, 10);
+                if (itemId === targetItemId) {
+                    checkbox.checked = checked;
+                }
+            });
+        };
+
+        const syncBulkSelectionUi = () => {
+            const selectableIds = getSelectableIds();
+            const selectedCount = selectableIds.filter((itemId) => STATE.selectedParcelaIds.has(itemId)).length;
+
+            bulkToggleAllControls.forEach((bulkToggleAll) => {
+                bulkToggleAll.checked = selectableIds.length > 0 && selectedCount === selectableIds.length;
+                bulkToggleAll.indeterminate = selectedCount > 0 && selectedCount < selectableIds.length;
+            });
+
+            bulkDeleteButtons.forEach((bulkDeleteButton) => {
+                bulkDeleteButton.disabled = selectedCount === 0;
+            });
+
+            bulkStatusNodes.forEach((bulkStatus) => {
+                bulkStatus.textContent = selectedCount > 0
+                    ? `${selectedCount} item(ns) selecionado(s)`
+                    : 'Selecione os itens que deseja excluir';
+            });
+
+            bulkCountNodes.forEach((bulkCount) => {
+                bulkCount.textContent = String(selectedCount);
+            });
+        };
+
+        bulkToggleAllControls.forEach((bulkToggleAll) => {
+            bulkToggleAll.addEventListener('change', (event) => {
+                const shouldSelectAll = Boolean(event.currentTarget.checked);
+
+                getSelectableIds().forEach((itemId) => {
+                    syncCheckboxesByItemId(itemId, shouldSelectAll);
+
+                    if (shouldSelectAll) {
+                        STATE.selectedParcelaIds.add(itemId);
+                    } else {
+                        STATE.selectedParcelaIds.delete(itemId);
+                    }
+                });
+
+                syncBulkSelectionUi();
+            });
+        });
+
+        bulkItemCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', (event) => {
+                const itemId = parseInt(event.currentTarget.value, 10);
+                if (Number.isNaN(itemId)) return;
+                const nextChecked = Boolean(event.currentTarget.checked);
+
+                syncCheckboxesByItemId(itemId, nextChecked);
+
+                if (nextChecked) {
+                    STATE.selectedParcelaIds.add(itemId);
+                } else {
+                    STATE.selectedParcelaIds.delete(itemId);
+                }
+
+                syncBulkSelectionUi();
+            });
+        });
+
+        bulkDeleteButtons.forEach((bulkDeleteButton) => {
+            bulkDeleteButton.addEventListener('click', async () => {
+                const itensSelecionados = this.getSelectedParcelas(STATE.faturaAtual);
+                if (itensSelecionados.length === 0) {
+                    syncBulkSelectionUi();
+                    return;
+                }
+
+                await this.excluirItensFaturaEmLote(faturaId, itensSelecionados);
+            });
+        });
+
+        syncBulkSelectionUi();
 
         const thSortable = detailsRoot.querySelectorAll('.th-sortable');
         thSortable.forEach(th => {
@@ -215,6 +311,8 @@ export const DetailsMethods = {
     },
 
     renderDetalhes(parc) {
+        this.syncSelectedParcelas(parc);
+
         const progresso = parc.progresso || 0;
         const { valorPago, valorRestante } = this.calcularValores(parc);
         const temItensPendentes = parc.parcelas_pendentes > 0 && valorRestante > 0;
@@ -233,6 +331,101 @@ export const DetailsMethods = {
         const valorPago = Math.max(0, valorOriginal - valorRestante);
 
         return { valorPago, valorRestante };
+    },
+
+    isParcelaBulkSelectable(parcela) {
+        return Boolean(parcela?.id) && (parcela?.tipo === 'estorno' || !parcela?.pago);
+    },
+
+    syncSelectedParcelas(parc) {
+        const selectableIds = new Set(
+            (parc?.parcelas || [])
+                .filter((parcela) => this.isParcelaBulkSelectable(parcela))
+                .map((parcela) => Number(parcela.id))
+                .filter((itemId) => !Number.isNaN(itemId))
+        );
+
+        STATE.selectedParcelaIds = new Set(
+            Array.from(STATE.selectedParcelaIds)
+                .map((itemId) => Number(itemId))
+                .filter((itemId) => selectableIds.has(itemId))
+        );
+    },
+
+    getSelectedParcelas(parc) {
+        this.syncSelectedParcelas(parc);
+
+        return (parc?.parcelas || []).filter((parcela) => (
+            this.isParcelaBulkSelectable(parcela)
+            && STATE.selectedParcelaIds.has(Number(parcela.id))
+        ));
+    },
+
+    renderParcelasBulkToolbar(parc) {
+        const selectableCount = (parc?.parcelas || []).filter((parcela) => this.isParcelaBulkSelectable(parcela)).length;
+        if (selectableCount === 0) {
+            return '';
+        }
+
+        const selectedCount = this.getSelectedParcelas(parc).length;
+
+        return `
+            <div class="parcelas-bulk-toolbar">
+                <label class="parcelas-bulk-toggle">
+                    <input type="checkbox" class="parcelas-check-control js-fatura-bulk-toggle-all" aria-label="Selecionar todos os itens excluíveis">
+                    <span>Selecionar todos</span>
+                </label>
+                <div class="parcelas-bulk-toolbar__copy">
+                    <span class="parcelas-bulk-toolbar__title">Exclusão em lote</span>
+                    <span class="parcelas-bulk-toolbar__status" data-bulk-selected-status>${selectedCount > 0 ? `${selectedCount} item(ns) selecionado(s)` : 'Selecione os itens que deseja excluir'}</span>
+                </div>
+                <button type="button" class="parcelas-bulk-delete js-fatura-bulk-delete" ${selectedCount === 0 ? 'disabled' : ''}>
+                    <i data-lucide="trash-2"></i>
+                    <span>Excluir selecionados</span>
+                    <span class="parcelas-bulk-delete__count" data-bulk-count>${selectedCount}</span>
+                </button>
+            </div>
+        `;
+    },
+
+    renderParcelaCardSelectionToggle(parcela) {
+        if (!this.isParcelaBulkSelectable(parcela)) {
+            return '';
+        }
+
+        return `
+            <label class="parcela-card-selection" title="Selecionar item">
+                <input
+                    type="checkbox"
+                    class="parcelas-check-control js-fatura-bulk-item"
+                    value="${parcela.id}"
+                    aria-label="Selecionar item ${Utils.escapeHtml(parcela.descricao || `#${parcela.id}`)}"
+                    ${STATE.selectedParcelaIds.has(Number(parcela.id)) ? 'checked' : ''}
+                >
+            </label>
+        `;
+    },
+
+    renderParcelaSelectionCell(parcela) {
+        if (!this.isParcelaBulkSelectable(parcela)) {
+            return `
+                <td data-label="Selecionar" class="td-select td-select--disabled">
+                    <span class="td-select__placeholder">-</span>
+                </td>
+            `;
+        }
+
+        return `
+            <td data-label="Selecionar" class="td-select">
+                <input
+                    type="checkbox"
+                    class="parcelas-check-control js-fatura-bulk-item"
+                    value="${parcela.id}"
+                    aria-label="Selecionar item ${Utils.escapeHtml(parcela.descricao || `#${parcela.id}`)}"
+                    ${STATE.selectedParcelaIds.has(Number(parcela.id)) ? 'checked' : ''}
+                >
+            </td>
+        `;
     },
 
     renderDetalhesHeader(parc, temItensPendentes, valorRestante) {
@@ -357,12 +550,16 @@ export const DetailsMethods = {
         // Versão desktop: tabela
         let html = `
             <h4 class="parcelas-titulo">📋 Lista de Itens</h4>
+            ${this.renderParcelasBulkToolbar(parc)}
             
             <!-- Tabela Desktop -->
             <div class="parcelas-container parcelas-desktop">
                 <table class="parcelas-table">
                     <thead>
                         <tr>
+                            <th class="th-select">
+                                <input type="checkbox" class="parcelas-check-control js-fatura-bulk-toggle-all" aria-label="Selecionar todos os itens excluíveis">
+                            </th>
                             <th>#</th>
                             <th class="th-sortable" data-sort="descricao">Descrição ${sortIcon('descricao')}</th>
                             <th>Categoria</th>
@@ -381,7 +578,7 @@ export const DetailsMethods = {
         } else {
             html += `
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                    <td colspan="7" style="text-align: center; padding: 2rem;">
                         <p style="color: #6b7280;">Nenhuma parcela encontrada</p>
                     </td>
                 </tr>
@@ -487,7 +684,10 @@ export const DetailsMethods = {
         const isEstorno = parcela.tipo === 'estorno';
         const statusClass = isPaga ? 'parcela-paga' : 'parcela-pendente';
         const statusText = isPaga ? '✅ Paga' : '⏳ Pendente';
-        const cardClass = isPaga ? 'parcela-card-paga' : '';
+        const isSelected = STATE.selectedParcelaIds.has(Number(parcela.id));
+        const cardClass = [isPaga ? 'parcela-card-paga' : '', isSelected ? 'parcela-card--selected' : '']
+            .filter(Boolean)
+            .join(' ');
         const mesAno = `${this.getNomeMes(parcela.mes_referencia)}/${parcela.ano_referencia}`;
         const cardId = `parcela-card-${parcela.id || index}`;
 
@@ -502,9 +702,12 @@ export const DetailsMethods = {
         // Card especial para estornos
         if (isEstorno) {
             return `
-                <div class="parcela-card" id="${cardId}" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%); border-color: rgba(16, 185, 129, 0.4);">
+                <div class="parcela-card ${cardClass}" id="${cardId}" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%); border-color: rgba(16, 185, 129, 0.4);">
                     <div class="parcela-card-header">
-                        <span class="parcela-numero" style="color: #10b981;">↩️ Estorno</span>
+                        <div class="parcela-card-header-start">
+                            ${this.renderParcelaCardSelectionToggle(parcela)}
+                            <span class="parcela-numero" style="color: #10b981;">↩️ Estorno</span>
+                        </div>
                         <span class="parcela-paga" style="background: #10b981;">✅ Creditado</span>
                     </div>
                     <div class="parcela-card-body">
@@ -539,7 +742,10 @@ export const DetailsMethods = {
         return `
             <div class="parcela-card ${cardClass}" id="${cardId}">
                 <div class="parcela-card-header">
-                    <span class="parcela-numero">${parcela.recorrente ? '<i data-lucide="refresh-cw" style="width:12px;height:12px;display:inline-block;vertical-align:middle;color:var(--primary, #e67e22);margin-right:3px;"></i> Recorrente' : `${parcela.numero_parcela || (index + 1)}/${parcela.total_parcelas || 1}`}</span>
+                    <div class="parcela-card-header-start">
+                        ${this.renderParcelaCardSelectionToggle(parcela)}
+                        <span class="parcela-numero">${parcela.recorrente ? '<i data-lucide="refresh-cw" style="width:12px;height:12px;display:inline-block;vertical-align:middle;color:var(--primary, #e67e22);margin-right:3px;"></i> Recorrente' : `${parcela.numero_parcela || (index + 1)}/${parcela.total_parcelas || 1}`}</span>
+                    </div>
                     <span class="${statusClass}">${statusText}</span>
                 </div>
                 <div class="parcela-card-body">
@@ -610,6 +816,7 @@ export const DetailsMethods = {
         if (isEstorno) {
             return `
                 <tr class="tr-estorno" style="background: rgba(16, 185, 129, 0.1);">
+                    ${this.renderParcelaSelectionCell(parcela)}
                     <td data-label="#">
                         <span class="parcela-numero" style="color: #10b981;">↩️</span>
                     </td>
@@ -647,6 +854,7 @@ export const DetailsMethods = {
 
         return `
             <tr class="${rowClass}">
+                ${this.renderParcelaSelectionCell(parcela)}
                 <td data-label="#">
                     <span class="parcela-numero">${parcela.recorrente ? '<i data-lucide="refresh-cw" style="width:12px;height:12px;display:inline-block;vertical-align:middle;color:var(--primary, #e67e22);"></i>' : `${parcela.numero_parcela}/${parcela.total_parcelas}`}</span>
                 </td>

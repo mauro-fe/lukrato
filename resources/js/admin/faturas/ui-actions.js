@@ -477,6 +477,120 @@ export const ActionMethods = {
         }
     },
 
+    async excluirItensFaturaEmLote(faturaId, itens) {
+        const itensSelecionados = Array.isArray(itens)
+            ? itens.filter((item) => Number(item?.id) > 0)
+            : [];
+
+        if (itensSelecionados.length === 0) {
+            return;
+        }
+
+        const totalSelecionados = itensSelecionados.length;
+        const totalParcelados = itensSelecionados.filter((item) => Number(item?.total_parcelas || 1) > 1).length;
+        const totalEstornos = itensSelecionados.filter((item) => item?.tipo === 'estorno').length;
+
+        const html = `
+            <div style="text-align:left; display:grid; gap:0.75rem;">
+                <p style="margin:0;">Deseja realmente excluir <strong>${totalSelecionados} item(ns)</strong> desta fatura?</p>
+                ${totalParcelados > 0 ? '<p style="margin:0; color:#f59e0b;">Itens parcelados serão removidos apenas nas parcelas selecionadas.</p>' : ''}
+                ${totalEstornos > 0 ? `<p style="margin:0; color:#10b981;">${totalEstornos} estorno(s) também ${totalEstornos === 1 ? 'será removido' : 'serão removidos'}.</p>` : ''}
+            </div>
+        `;
+
+        const confirmation = await Swal.fire({
+            title: 'Excluir itens selecionados?',
+            html,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: `Sim, excluir ${totalSelecionados}`,
+            cancelButtonText: 'Cancelar',
+            heightAuto: false,
+            customClass: {
+                container: 'swal-above-modal'
+            },
+            didOpen: () => {
+                const container = document.querySelector('.swal2-container');
+                if (container) container.style.zIndex = '99999';
+            }
+        });
+
+        if (!confirmation.isConfirmed) {
+            return;
+        }
+
+        Swal.fire({
+            title: 'Excluindo itens...',
+            html: `Removendo ${totalSelecionados} item(ns) selecionado(s).`,
+            allowOutsideClick: false,
+            heightAuto: false,
+            didOpen: () => {
+                Swal.showLoading();
+                const container = document.querySelector('.swal2-container');
+                if (container) container.style.zIndex = '99999';
+            },
+            customClass: {
+                container: 'swal-above-modal'
+            }
+        });
+
+        const errors = [];
+        let successCount = 0;
+
+        for (const item of itensSelecionados) {
+            try {
+                await Modules.API.excluirItemFatura(faturaId, item.id);
+                successCount += 1;
+            } catch (error) {
+                errors.push(error);
+            }
+        }
+
+        if (successCount > 0) {
+            await Modules.App.refreshAfterMutation(faturaId);
+        }
+
+        if (errors.length === 0) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Itens excluídos!',
+                text: `${successCount} item(ns) removido(s) da fatura.`,
+                timer: CONFIG.TIMEOUTS.successMessage,
+                showConfirmButton: false,
+                heightAuto: false,
+                customClass: {
+                    container: 'swal-above-modal'
+                },
+                didOpen: () => {
+                    const container = document.querySelector('.swal2-container');
+                    if (container) container.style.zIndex = '99999';
+                }
+            });
+            return;
+        }
+
+        const firstError = errors[0];
+        const fallbackMessage = successCount > 0
+            ? `${successCount} item(ns) foram removidos, mas ${errors.length} falharam.`
+            : 'Não foi possível excluir os itens selecionados.';
+
+        await Swal.fire({
+            icon: successCount > 0 ? 'warning' : 'error',
+            title: successCount > 0 ? 'Exclusão parcial' : 'Erro',
+            text: getErrorMessage(firstError, fallbackMessage),
+            heightAuto: false,
+            customClass: {
+                container: 'swal-above-modal'
+            },
+            didOpen: () => {
+                const container = document.querySelector('.swal2-container');
+                if (container) container.style.zIndex = '99999';
+            }
+        });
+    },
+
     async excluirParcelamentoCompleto(faturaId, itemId, totalParcelas) {
         const result = await Swal.fire({
             title: 'Excluir Parcelamento Completo?',

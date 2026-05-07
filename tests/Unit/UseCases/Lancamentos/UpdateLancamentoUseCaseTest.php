@@ -118,4 +118,46 @@ class UpdateLancamentoUseCaseTest extends TestCase
         $this->assertSame('Sucesso', $result->message);
         $this->assertSame(12, $result->data['id'] ?? null);
     }
+
+    public function testExecuteKeepsExistingDecimalStringValorWhenPayloadOmitsValor(): void
+    {
+        $repo = Mockery::mock(LancamentoRepository::class);
+        $categoriaRepo = Mockery::mock(CategoriaRepository::class);
+        $contaRepo = Mockery::mock(ContaRepository::class);
+        $metaProgressService = Mockery::mock(MetaProgressService::class);
+
+        $lancamento = new Lancamento();
+        $lancamento->id = 12;
+        $lancamento->eh_transferencia = 0;
+        $lancamento->tipo = 'despesa';
+        $lancamento->data = '2026-03-31';
+        $lancamento->valor = '99.90';
+        $lancamento->descricao = 'Internet';
+        $lancamento->observacao = 'Mensal';
+        $lancamento->forma_pagamento = 'pix';
+        $lancamento->conta_id = 7;
+        $lancamento->categoria_id = null;
+        $lancamento->meta_id = null;
+        $lancamento->meta_operacao = null;
+        $lancamento->meta_valor = null;
+
+        $repo->shouldReceive('findByIdAndUser')->once()->with(12, 10)->andReturn($lancamento);
+        $contaRepo->shouldReceive('belongsToUser')->once()->with(7, 10)->andReturnTrue();
+        $repo->shouldReceive('update')->once()->with(12, Mockery::on(
+            static fn(array $data): bool => abs((float) ($data['valor'] ?? 0) - 99.90) < 0.0001
+                && ($data['descricao'] ?? null) === 'Internet fixa'
+        ))->andReturnTrue();
+        $metaProgressService->shouldNotReceive('recalculateMeta');
+
+        $useCase = new UpdateLancamentoUseCase($repo, $categoriaRepo, $contaRepo, $metaProgressService);
+        $result = $useCase->execute(10, 12, [
+            'data' => '2026-03-31',
+            'descricao' => 'Internet fixa',
+        ]);
+
+        $this->assertFalse($result->isError());
+        $this->assertSame(200, $result->httpCode);
+        $this->assertSame('Sucesso', $result->message);
+        $this->assertSame(12, $result->data['id'] ?? null);
+    }
 }
